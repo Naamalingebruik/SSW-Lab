@@ -294,7 +294,7 @@ function Build-UnattendISO {
       <TextBox   Grid.Row="5" Grid.Column="0" x:Name="TxtOutDir" Style="{StaticResource Fld}"/>
       <Button    Grid.Row="5" Grid.Column="2" x:Name="BtnOutDir" Content="Bladeren" Style="{StaticResource Btn}" Background="#45475A" Foreground="#CDD6F4"/>
 
-      <TextBlock Grid.Row="6" Grid.ColumnSpan="3" Text="Wachtwoord (Administrator én LabAdmin krijgen beide dit wachtwoord)" Style="{StaticResource Lbl}"/>
+      <TextBlock Grid.Row="6" Grid.ColumnSpan="3" Text="Wachtwoord (Administrator en LabAdmin krijgen beide dit wachtwoord)" Style="{StaticResource Lbl}"/>
       <PasswordBox Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" x:Name="PwdAdmin"
                    Background="#313244" Foreground="#CDD6F4" BorderBrush="#45475A"
                    BorderThickness="1" Padding="8,6" FontSize="12" Height="32"/>
