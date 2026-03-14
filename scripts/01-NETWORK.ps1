@@ -105,7 +105,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
     <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
       <Button x:Name="BtnApply" Content="Uitvoeren" Style="{StaticResource Btn}" Margin="0,0,10,0" Width="120"/>
-      <Button x:Name="BtnNext" Content="Doorgaan naar 02-MAKE-ISOS →" Style="{StaticResource Btn}"
+      <Button x:Name="BtnNext" Content="Doorgaan →" Style="{StaticResource Btn}"
               Background="#A6E3A1" IsEnabled="False"/>
     </StackPanel>
   </Grid>
@@ -218,7 +218,19 @@ $btnApply.Add_Click({
 
 $btnNext.Add_Click({
     $reader.Close()
-    $next = Join-Path $PSScriptRoot "02-MAKE-ISOS.ps1"
+
+    # Vraag of de gebruiker de ISO-stap wil doen of overslaan
+    $choice = [System.Windows.MessageBox]::Show(
+        "Wil je nu unattended ISO's bouwen (aanbevolen)?`n`nJa  → 02-MAKE-ISOS.ps1`nNee → 03-VMS.ps1 (handmatige installatie)",
+        "SSW-Lab | Volgende stap",
+        [System.Windows.MessageBoxButton]::YesNo,
+        [System.Windows.MessageBoxImage]::Question
+    )
+    $next = if ($choice -eq "Yes") {
+        Join-Path $PSScriptRoot "02-MAKE-ISOS.ps1"
+    } else {
+        Join-Path $PSScriptRoot "03-VMS.ps1"
+    }
     if (Test-Path $next) { Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$next`"" -Verb RunAs }
 })
 

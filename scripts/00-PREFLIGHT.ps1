@@ -292,7 +292,7 @@ function Render-Checks {
     $adkBanner.Visibility = if ($adkMissing) { "Visible" } else { "Collapsed" }
 
     $blocked = $checks | Where-Object { $_.Block }
-    $btnNext.IsEnabled = ($null -eq $blocked)
+    $btnNext.IsEnabled = (-not $blocked)
 }
 
 $btnRerun.Add_Click({ Render-Checks })

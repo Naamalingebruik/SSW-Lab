@@ -69,14 +69,16 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <TextBox x:Name="TxtDCIP" Style="{StaticResource Fld}"/>
       </StackPanel>
       <StackPanel Grid.Column="2">
-        <TextBlock Text="Lokale admin gebruikersnaam (VM)" Style="{StaticResource Lbl}"/>
-        <TextBox x:Name="TxtAdminUser" Style="{StaticResource Fld}"/>
-        <TextBlock Text="Lokaal admin wachtwoord (VM)" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Lokaal admin wachtwoord (VM lokale admin)" Style="{StaticResource Lbl}"/>
         <PasswordBox x:Name="PwdAdmin" Style="{StaticResource PwdFld}"/>
         <TextBlock Text="DSRM wachtwoord (herstelwachtwoord)" Style="{StaticResource Lbl}"/>
         <PasswordBox x:Name="PwdDSRM" Style="{StaticResource PwdFld}"/>
-        <TextBlock Text="Domain admin wachtwoord (na promotie)" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Extra domain admin gebruikersnaam" Style="{StaticResource Lbl}"/>
+        <TextBox x:Name="TxtDomainAdmin" Style="{StaticResource Fld}"/>
+        <TextBlock Text="Extra domain admin wachtwoord" Style="{StaticResource Lbl}"/>
         <PasswordBox x:Name="PwdDomainAdmin" Style="{StaticResource PwdFld}"/>
+        <TextBlock Text="Wordt na DC-promotie aangemaakt als AD-gebruiker in Domain Admins."
+                   Foreground="#A6ADC8" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0"/>
       </StackPanel>
     </Grid>
 
@@ -113,14 +115,14 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 "@
 
 $reader        = [System.Windows.Markup.XamlReader]::Load([System.Xml.XmlNodeReader]::new($xaml))
-$txtVM         = $reader.FindName("TxtVMName")
-$txtDomain     = $reader.FindName("TxtDomain")
-$txtNB         = $reader.FindName("TxtNetBIOS")
-$txtAdminUser  = $reader.FindName("TxtAdminUser")
-$pwdAdmin      = $reader.FindName("PwdAdmin")
-$pwdDSRM       = $reader.FindName("PwdDSRM")
-$pwdDomAdmin   = $reader.FindName("PwdDomainAdmin")
-$txtDCIP       = $reader.FindName("TxtDCIP")
+$txtVM          = $reader.FindName("TxtVMName")
+$txtDomain      = $reader.FindName("TxtDomain")
+$txtNB          = $reader.FindName("TxtNetBIOS")
+$txtDomainAdmin = $reader.FindName("TxtDomainAdmin")
+$pwdAdmin       = $reader.FindName("PwdAdmin")
+$pwdDSRM        = $reader.FindName("PwdDSRM")
+$pwdDomainAdmin = $reader.FindName("PwdDomainAdmin")
+$txtDCIP        = $reader.FindName("TxtDCIP")
 $logBox        = $reader.FindName("LogBox")
 $progress      = $reader.FindName("Progress")
 $btnSetup      = $reader.FindName("BtnSetup")
@@ -153,11 +155,11 @@ function Update-DryRunBar {
 }
 
 $reader.Add_Loaded({
-    $txtVM.Text        = $profiles.DC01.Name
-    $txtDomain.Text    = $SSWConfig.DomainName
-    $txtNB.Text        = $SSWConfig.DomainNetBIOS
-    $txtDCIP.Text      = $SSWConfig.DCIP
-    $txtAdminUser.Text = "Administrator"
+    $txtVM.Text             = $profiles.DC01.Name
+    $txtDomain.Text         = $SSWConfig.DomainName
+    $txtNB.Text             = $SSWConfig.DomainNetBIOS
+    $txtDCIP.Text           = $SSWConfig.DCIP
+    $txtDomainAdmin.Text    = $SSWConfig.DomainAdmin
     Update-DryRunBar
 })
 
@@ -172,27 +174,30 @@ function Write-Log($msg) {
 
 $btnSetup.Add_Click({
     $btnSetup.IsEnabled = $false
-    $isDry       = $chkDryRun.IsChecked
-    $vmName      = $txtVM.Text.Trim()
-    $domain      = $txtDomain.Text.Trim()
-    $netbios     = $txtNB.Text.Trim()
-    $adminUser   = $txtAdminUser.Text.Trim()
-    $adminPwd    = $pwdAdmin.Password
-    $dsrmPwd     = $pwdDSRM.Password
-    $domAdmPwd   = $pwdDomAdmin.Password
-    $dcIP        = $txtDCIP.Text.Trim()
-    $pre         = if ($isDry) { "[DRY RUN] " } else { "" }
+    $isDry          = $chkDryRun.IsChecked
+    $vmName         = $txtVM.Text.Trim()
+    $domain         = $txtDomain.Text.Trim()
+    $netbios        = $txtNB.Text.Trim()
+    $adminPwd       = $pwdAdmin.Password
+    $dsrmPwd        = $pwdDSRM.Password
+    $domainAdmin    = $txtDomainAdmin.Text.Trim()
+    $domainAdminPwd = $pwdDomainAdmin.Password
+    $dcIP           = $txtDCIP.Text.Trim()
+    $localUser      = $SSWConfig.AdminUser
+    $pre            = if ($isDry) { "[DRY RUN] " } else { "" }
 
-    if (-not $adminUser) { [System.Windows.MessageBox]::Show("Vul een admin gebruikersnaam in.", "SSW-Lab"); $btnSetup.IsEnabled = $true; return }
     if (-not $adminPwd -or -not $dsrmPwd) { [System.Windows.MessageBox]::Show("Vul lokaal admin wachtwoord en DSRM wachtwoord in.", "SSW-Lab"); $btnSetup.IsEnabled = $true; return }
+    if (-not $domainAdmin) { [System.Windows.MessageBox]::Show("Vul een extra domain admin gebruikersnaam in.", "SSW-Lab"); $btnSetup.IsEnabled = $true; return }
+    if (-not $domainAdminPwd) { [System.Windows.MessageBox]::Show("Vul een wachtwoord in voor de extra domain admin.", "SSW-Lab"); $btnSetup.IsEnabled = $true; return }
 
     if ($isDry) {
-        Write-Log "${pre}Verbinding: PowerShell Direct → $vmName als $adminUser"
+        Write-Log "${pre}Verbinding: PowerShell Direct → $vmName als LabAdmin"
         Write-Log "${pre}Set-NetIPAddress $dcIP/24 op netwerk adapter"
         Write-Log "${pre}Rename-Computer -NewName DC01"
         Write-Log "${pre}Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools"
         Write-Log "${pre}Install-ADDSForest -DomainName $domain -DomainNetbiosName $netbios -InstallDns"
         Write-Log "${pre}VM wordt herstart na promotie"
+        Write-Log "${pre}New-ADUser '$domainAdmin' — lid van Domain Admins"
         Write-Log "✔ Dry Run klaar — niets uitgevoerd."
         $progress.Value = 100
         $btnNext.IsEnabled = $true
@@ -210,7 +215,7 @@ $btnSetup.Add_Click({
     }
 
     $cred = [PSCredential]::new(
-        "$vmName\$adminUser",
+        "$vmName\$localUser",
         (ConvertTo-SecureString $adminPwd -AsPlainText -Force)
     )
 
@@ -249,8 +254,33 @@ $btnSetup.Add_Click({
                 -NoRebootOnCompletion:$false -Force -ErrorAction Stop | Out-Null
         } -ArgumentList $domain, $netbios, $dsrmPwd
         $progress.Value = 90
-        Write-Log "Forest aangemaakt. DC herstart (wacht 90 sec)…"
-        Start-Sleep -Seconds 90
+        Write-Log "Forest aangemaakt. DC herstart — wachten tot DC weer online is…"
+        $domCred = [PSCredential]::new(
+            "$domain\Administrator",
+            (ConvertTo-SecureString $adminPwd -AsPlainText -Force)
+        )
+        $online = $false
+        $deadline = (Get-Date).AddMinutes(5)
+        while (-not $online -and (Get-Date) -lt $deadline) {
+            Start-Sleep -Seconds 15
+            try {
+                Invoke-Command -VMName $vmName -Credential $domCred `
+                    -ScriptBlock { $env:COMPUTERNAME } -ErrorAction Stop | Out-Null
+                $online = $true
+            } catch { }
+        }
+        if (-not $online) { throw "DC is na 5 minuten nog niet bereikbaar." }
+
+        Write-Log "Extra domain admin '$domainAdmin' aanmaken in AD…"
+        Invoke-Command -VMName $vmName -Credential $domCred -ScriptBlock {
+            param($user, $pwd, $nb)
+            $sec = ConvertTo-SecureString $pwd -AsPlainText -Force
+            New-ADUser -Name $user -SamAccountName $user -AccountPassword $sec `
+                -Enabled $true -PasswordNeverExpires $true -ErrorAction Stop
+            Add-ADGroupMember -Identity "Domain Admins" -Members $user -ErrorAction Stop
+        } -ArgumentList $domainAdmin, $domainAdminPwd, $netbios
+        Write-Log "✔ '$domainAdmin' aangemaakt en toegevoegd aan Domain Admins."
+
         $progress.Value = 100
         Write-Log "✔ DC01 klaar als domain controller voor $domain"
         $btnNext.IsEnabled = $true

@@ -186,8 +186,8 @@ function Refresh-VMs {
 
 $reader.Add_Loaded({
     $txtDomain.Text   = $SSWConfig.DomainName
-    $txtDomAdm.Text   = "Administrator"
-    $txtLocalAdm.Text = "LabAdmin"
+    $txtDomAdm.Text   = $SSWConfig.DomainAdmin
+    $txtLocalAdm.Text = $SSWConfig.AdminUser
     Refresh-VMs
     Update-DryRunBar
 })

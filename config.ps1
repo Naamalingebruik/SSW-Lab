@@ -10,6 +10,7 @@ $SSWConfig = @{
     DomainName    = "ssw.lab"
     DomainNetBIOS = "SSW"
     AdminUser     = "Administrator"
+    DomainAdmin   = "labadmin"
     # AdminPassword wordt interactief gevraagd — nooit hardcoden
 
     # ── Paden ───────────────────────────────────────────────

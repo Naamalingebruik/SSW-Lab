@@ -382,7 +382,7 @@ $btnADK.Add_Click({ Start-Process "https://go.microsoft.com/fwlink/?linkid=22899
 
 $reader.Add_Loaded({
     $txtOut.Text      = $SSWConfig.ISOPath
-    $txtAdmUser.Text  = "LabAdmin"
+    $txtAdmUser.Text  = $SSWConfig.AdminUser
     $adkBanner.Visibility = if (Test-Path $oscdimg) { "Collapsed" } else { "Visible" }
     Update-DryRunBar
 })
