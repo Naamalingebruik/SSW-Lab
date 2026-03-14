@@ -22,18 +22,18 @@ Import-Module ps2exe -Force
 # ── Paden ────────────────────────────────────────────────────
 $root     = Split-Path $PSScriptRoot -Parent
 $scripts  = Join-Path $root "scripts"
-$output   = Join-Path $root "build\dist"
+$output   = Join-Path $root "executables"
 
 if (-not (Test-Path $output)) { New-Item -ItemType Directory -Path $output -Force | Out-Null }
 
 # ── Script-definitie ─────────────────────────────────────────
 $targets = @(
-    @{ Script = "00-PREFLIGHT.ps1";   Exe = "00-Preflight.exe";        Description = "SSW-Lab Preflight Check" }
-    @{ Script = "01-NETWORK.ps1";     Exe = "01-Network.exe";          Description = "SSW-Lab Netwerk inrichten" }
-    @{ Script = "02-MAKE-ISOS.ps1";   Exe = "02-MakeISOs.exe";         Description = "SSW-Lab ISO voorbereiding" }
-    @{ Script = "03-VMS.ps1";         Exe = "03-VMs.exe";              Description = "SSW-Lab VMs aanmaken" }
-    @{ Script = "04-SETUP-DC.ps1";    Exe = "04-SetupDC.exe";          Description = "SSW-Lab DC inrichten" }
-    @{ Script = "05-JOIN-DOMAIN.ps1"; Exe = "05-JoinDomain.exe";       Description = "SSW-Lab Domain Join" }
+    @{ Script = "00-PREFLIGHT.ps1";   Exe = "Stap1 - Preflight (systeemcheck).exe";          Description = "SSW-Lab Stap 1 — Preflight systeemcheck" }
+    @{ Script = "01-NETWORK.ps1";     Exe = "Stap2 - Netwerk (vSwitch en NAT).exe";           Description = "SSW-Lab Stap 2 — Netwerk inrichten" }
+    @{ Script = "02-MAKE-ISOS.ps1";   Exe = "Stap3 - ISO voorbereiding (unattended).exe";    Description = "SSW-Lab Stap 3 — Unattended ISO's bouwen" }
+    @{ Script = "03-VMS.ps1";         Exe = "Stap4 - VMs aanmaken.exe";                      Description = "SSW-Lab Stap 4 — VMs aanmaken" }
+    @{ Script = "04-SETUP-DC.ps1";    Exe = "Stap5 - Domain Controller inrichten.exe";       Description = "SSW-Lab Stap 5 — DC inrichten" }
+    @{ Script = "05-JOIN-DOMAIN.ps1"; Exe = "Stap6 - Domain Join (clients).exe";             Description = "SSW-Lab Stap 6 — Domain Join" }
 )
 
 # ── Bouwen ───────────────────────────────────────────────────

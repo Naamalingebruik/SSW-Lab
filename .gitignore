@@ -1,6 +1,8 @@
-# Gegenereerde bestanden
-build/dist/
+# Build-tijdelijke bestanden (zip alleen voor release-upload)
 build/*.zip
+
+# De executables/ map wordt WEL getrackt in git
+# (geen uitsluitregel voor executables/)
 
 # Log- en temp-bestanden
 *.log

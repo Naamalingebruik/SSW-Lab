@@ -1,0 +1,52 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Versienummer uit tag halen
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $ver = $tag.TrimStart("v")
+          echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
+
+      - name: ps2exe installeren
+        shell: pwsh
+        run: Install-Module ps2exe -Scope CurrentUser -Force -Repository PSGallery
+
+      - name: EXEs bouwen
+        shell: pwsh
+        run: .\build\build-exe.ps1 -Version "${{ steps.version.outputs.VERSION }}"
+
+      - name: GitHub Release aanmaken en zip uploaden
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "SSW-Lab ${{ github.ref_name }}"
+          body: |
+            ## SSW-Lab ${{ github.ref_name }}
+
+            Kant-en-klare EXE's voor de Hyper-V lab deployer.
+
+            ### Installatie
+            1. Download `SSW-Lab-${{ steps.version.outputs.VERSION }}.zip`
+            2. Pak uit naar een map naar keuze
+            3. Start `00-Preflight.exe` als administrator
+
+            ### Volgorde
+            `00-Preflight` → `01-Network` → `02-MakeISOs` → `03-VMs` → `04-SetupDC` → `05-JoinDomain`
+          files: |
+            build/SSW-Lab-${{ steps.version.outputs.VERSION }}.zip
+            executables/*.exe
+          draft: false
+          prerelease: false
