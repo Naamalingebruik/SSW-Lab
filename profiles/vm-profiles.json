@@ -1,0 +1,47 @@
+{
+  "DC01": {
+    "Name": "SSW-DC01",
+    "vCPU": 2,
+    "RAM_GB": 2,
+    "Disk_GB": 60,
+    "Role": "Domain Controller",
+    "OS": "Server2025",
+    "IP": "10.50.10.10"
+  },
+  "MGMT01": {
+    "Name": "SSW-MGMT01",
+    "vCPU": 2,
+    "RAM_GB": 4,
+    "Disk_GB": 80,
+    "Role": "Management (RSAT + tools)",
+    "OS": "Windows11",
+    "IP": "10.50.10.20"
+  },
+  "W11-01": {
+    "Name": "SSW-W11-01",
+    "vCPU": 2,
+    "RAM_GB": 4,
+    "Disk_GB": 80,
+    "Role": "Windows 11 Client",
+    "OS": "Windows11",
+    "IP": "DHCP"
+  },
+  "W11-02": {
+    "Name": "SSW-W11-02",
+    "vCPU": 2,
+    "RAM_GB": 4,
+    "Disk_GB": 80,
+    "Role": "Windows 11 Client",
+    "OS": "Windows11",
+    "IP": "DHCP"
+  },
+  "W11-AUTOPILOT": {
+    "Name": "SSW-W11-AUTOPILOT",
+    "vCPU": 2,
+    "RAM_GB": 4,
+    "Disk_GB": 80,
+    "Role": "Autopilot testclient",
+    "OS": "Windows11",
+    "IP": "DHCP"
+  }
+}
