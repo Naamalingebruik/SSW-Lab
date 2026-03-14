@@ -75,9 +75,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <PasswordBox x:Name="PwdDSRM" Style="{StaticResource PwdFld}"/>
         <TextBlock Text="Extra domain admin gebruikersnaam" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtDomainAdmin" Style="{StaticResource Fld}"/>
-        <TextBlock Text="Extra domain admin wachtwoord" Style="{StaticResource Lbl}"/>
-        <PasswordBox x:Name="PwdDomainAdmin" Style="{StaticResource PwdFld}"/>
-        <TextBlock Text="Wordt na DC-promotie aangemaakt als AD-gebruiker in Domain Admins."
+        <TextBlock Text="Wordt na DC-promotie aangemaakt als Domain Admin (zelfde wachtwoord als Administrator)."
                    Foreground="#A6ADC8" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0"/>
       </StackPanel>
     </Grid>
@@ -121,7 +119,6 @@ $txtNB          = $reader.FindName("TxtNetBIOS")
 $txtDomainAdmin = $reader.FindName("TxtDomainAdmin")
 $pwdAdmin       = $reader.FindName("PwdAdmin")
 $pwdDSRM        = $reader.FindName("PwdDSRM")
-$pwdDomainAdmin = $reader.FindName("PwdDomainAdmin")
 $txtDCIP        = $reader.FindName("TxtDCIP")
 $logBox        = $reader.FindName("LogBox")
 $progress      = $reader.FindName("Progress")
@@ -181,17 +178,15 @@ $btnSetup.Add_Click({
     $adminPwd       = $pwdAdmin.Password
     $dsrmPwd        = $pwdDSRM.Password
     $domainAdmin    = $txtDomainAdmin.Text.Trim()
-    $domainAdminPwd = $pwdDomainAdmin.Password
     $dcIP           = $txtDCIP.Text.Trim()
     $localUser      = $SSWConfig.AdminUser
     $pre            = if ($isDry) { "[DRY RUN] " } else { "" }
 
     if (-not $adminPwd -or -not $dsrmPwd) { [System.Windows.MessageBox]::Show("Vul lokaal admin wachtwoord en DSRM wachtwoord in.", "SSW-Lab"); $btnSetup.IsEnabled = $true; return }
     if (-not $domainAdmin) { [System.Windows.MessageBox]::Show("Vul een extra domain admin gebruikersnaam in.", "SSW-Lab"); $btnSetup.IsEnabled = $true; return }
-    if (-not $domainAdminPwd) { [System.Windows.MessageBox]::Show("Vul een wachtwoord in voor de extra domain admin.", "SSW-Lab"); $btnSetup.IsEnabled = $true; return }
 
     if ($isDry) {
-        Write-Log "${pre}Verbinding: PowerShell Direct → $vmName als LabAdmin"
+        Write-Log "${pre}Verbinding: PowerShell Direct → $vmName als $localUser"
         Write-Log "${pre}Set-NetIPAddress $dcIP/24 op netwerk adapter"
         Write-Log "${pre}Rename-Computer -NewName DC01"
         Write-Log "${pre}Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools"
@@ -278,7 +273,7 @@ $btnSetup.Add_Click({
             New-ADUser -Name $user -SamAccountName $user -AccountPassword $sec `
                 -Enabled $true -PasswordNeverExpires $true -ErrorAction Stop
             Add-ADGroupMember -Identity "Domain Admins" -Members $user -ErrorAction Stop
-        } -ArgumentList $domainAdmin, $domainAdminPwd, $netbios
+        } -ArgumentList $domainAdmin, $adminPwd, $netbios
         Write-Log "✔ '$domainAdmin' aangemaakt en toegevoegd aan Domain Admins."
 
         $progress.Value = 100

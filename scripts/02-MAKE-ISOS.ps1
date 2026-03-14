@@ -9,7 +9,7 @@
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
 
-function Get-W11Unattend($adminUser, $adminPass) {
+function Get-W11Unattend($adminPass) {
     return @"
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
@@ -86,9 +86,9 @@ function Get-W11Unattend($adminUser, $adminPass) {
         <LocalAccounts>
           <LocalAccount wcm:action="add">
             <Password><Value>$adminPass</Value><PlainText>true</PlainText></Password>
-            <DisplayName>$adminUser</DisplayName>
+            <DisplayName>$($SSWConfig.DomainAdmin)</DisplayName>
             <Group>Administrators</Group>
-            <Name>$adminUser</Name>
+            <Name>$($SSWConfig.DomainAdmin)</Name>
           </LocalAccount>
         </LocalAccounts>
       </UserAccounts>
@@ -169,6 +169,14 @@ function Get-WS2025Unattend($adminPass) {
           <Value>$adminPass</Value>
           <PlainText>true</PlainText>
         </AdministratorPassword>
+        <LocalAccounts>
+          <LocalAccount wcm:action="add">
+            <Password><Value>$adminPass</Value><PlainText>true</PlainText></Password>
+            <DisplayName>$($SSWConfig.DomainAdmin)</DisplayName>
+            <Group>Administrators</Group>
+            <Name>$($SSWConfig.DomainAdmin)</Name>
+          </LocalAccount>
+        </LocalAccounts>
       </UserAccounts>
     </component>
   </settings>
@@ -272,7 +280,6 @@ function Build-UnattendISO {
       <Grid.RowDefinitions>
         <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
         <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
-        <RowDefinition/><RowDefinition/>
       </Grid.RowDefinitions>
 
       <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Windows 11 Enterprise ISO (MSDN)" Style="{StaticResource Lbl}"/>
@@ -287,11 +294,8 @@ function Build-UnattendISO {
       <TextBox   Grid.Row="5" Grid.Column="0" x:Name="TxtOutDir" Style="{StaticResource Fld}"/>
       <Button    Grid.Row="5" Grid.Column="2" x:Name="BtnOutDir" Content="Bladeren" Style="{StaticResource Btn}" Background="#45475A" Foreground="#CDD6F4"/>
 
-      <TextBlock Grid.Row="6" Grid.ColumnSpan="3" Text="Lokale admin gebruikersnaam (voor VMs)" Style="{StaticResource Lbl}"/>
-      <TextBox   Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" x:Name="TxtAdminUser" Style="{StaticResource Fld}"/>
-
-      <TextBlock Grid.Row="8" Grid.ColumnSpan="3" Text="Lokaal admin wachtwoord (voor VMs)" Style="{StaticResource Lbl}"/>
-      <PasswordBox Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="3" x:Name="PwdAdmin"
+      <TextBlock Grid.Row="6" Grid.ColumnSpan="3" Text="Wachtwoord (Administrator én LabAdmin krijgen beide dit wachtwoord)" Style="{StaticResource Lbl}"/>
+      <PasswordBox Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" x:Name="PwdAdmin"
                    Background="#313244" Foreground="#CDD6F4" BorderBrush="#45475A"
                    BorderThickness="1" Padding="8,6" FontSize="12" Height="32"/>
     </Grid>
@@ -341,7 +345,6 @@ $reader      = [System.Windows.Markup.XamlReader]::Load([System.Xml.XmlNodeReade
 $txtW11      = $reader.FindName("TxtW11ISO")
 $txtSrv      = $reader.FindName("TxtSrvISO")
 $txtOut      = $reader.FindName("TxtOutDir")
-$txtAdmUser  = $reader.FindName("TxtAdminUser")
 $pwdAdmin    = $reader.FindName("PwdAdmin")
 $chkW11      = $reader.FindName("ChkW11")
 $chkSrv      = $reader.FindName("ChkSrv")
@@ -382,7 +385,6 @@ $btnADK.Add_Click({ Start-Process "https://go.microsoft.com/fwlink/?linkid=22899
 
 $reader.Add_Loaded({
     $txtOut.Text      = $SSWConfig.ISOPath
-    $txtAdmUser.Text  = $SSWConfig.AdminUser
     $adkBanner.Visibility = if (Test-Path $oscdimg) { "Collapsed" } else { "Visible" }
     Update-DryRunBar
 })
@@ -414,11 +416,9 @@ $btnBuild.Add_Click({
     $btnBuild.IsEnabled = $false
     $isDry     = $chkDryRun.IsChecked
     $outDir    = $txtOut.Text.Trim()
-    $adminUser = $txtAdmUser.Text.Trim()
     $adminPass = $pwdAdmin.Password
     $pre       = if ($isDry) { "[DRY RUN] " } else { "" }
 
-    if (-not $adminUser) { [System.Windows.MessageBox]::Show("Vul een admin gebruikersnaam in.", "SSW-Lab"); $btnBuild.IsEnabled = $true; return }
     if (-not $adminPass) { [System.Windows.MessageBox]::Show("Vul een admin wachtwoord in.", "SSW-Lab"); $btnBuild.IsEnabled = $true; return }
 
     if (-not $isDry) {
@@ -437,8 +437,8 @@ $btnBuild.Add_Click({
         if ($job -eq "W11") {
             $src = $txtW11.Text.Trim()
             $dst = Join-Path $outDir "SSW-W11-Unattend.iso"
-            $xml = Get-W11Unattend $adminUser $adminPass
-            Write-Log "${pre}W11 ISO bouwen: $src → $dst (admin: $adminUser)"
+            $xml = Get-W11Unattend $adminPass
+            Write-Log "${pre}W11 ISO bouwen: $src → $dst"
         } else {
             $src = $txtSrv.Text.Trim()
             $dst = Join-Path $outDir "SSW-WS2025-Unattend.iso"

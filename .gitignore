@@ -1,0 +1,10 @@
+# Gegenereerde bestanden
+build/dist/
+build/*.zip
+
+# Log- en temp-bestanden
+*.log
+*.tmp
+
+# ISOs (te groot voor git)
+*.iso
