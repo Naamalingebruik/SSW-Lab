@@ -240,3 +240,25 @@ $SSWConfig = @{
 ---
 
 *SSW-Lab is built by and for Sogeti SSW colleagues. No dedicated hardware or personal domain required.*
+
+---
+
+## Author
+
+**Etienne Dankfort** — Sogeti SSW  
+This project is a personal community initiative and is **not an official Sogeti or Capgemini product**.  
+For use in personal MSDN test environments only.
+
+---
+
+## Licence
+
+MIT — see [LICENSE](../LICENSE)
+
+---
+
+## Disclaimer
+
+This is a community initiative by SSW colleagues and is **not an official Sogeti or Capgemini product**.  
+The author accepts no liability for any damage resulting from the use of these scripts.  
+Use exclusively in an isolated test environment with MSDN licences — never in production.

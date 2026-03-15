@@ -98,6 +98,28 @@ $SSWConfig = @{
 
 ---
 
+## Auteur
+
+**Etienne Dankfort** — Sogeti SSW  
+Dit project is een persoonlijk community-initiatief en een **niet-officieel Sogeti-product**.  
+Gebruik uitsluitend in een persoonlijke MSDN-testomgeving.
+
+---
+
+## Licentie
+
+MIT — zie [LICENSE](LICENSE)
+
+---
+
+## Disclaimer
+
+Dit is een community-initiatief van SSW-collega's en **geen officieel Sogeti- of Capgemini-product**.  
+De auteur aanvaardt geen aansprakelijkheid voor schade die voortvloeit uit het gebruik van deze scripts.  
+Gebruik uitsluitend in een geïsoleerde testomgeving met MSDN-licenties — nooit in productie.
+
+---
+
 ## Documentatie
 
 | Document | Omschrijving |

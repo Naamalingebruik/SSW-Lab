@@ -1,8 +1,8 @@
 # Build-tijdelijke bestanden (zip alleen voor release-upload)
 build/*.zip
 
-# De executables/ map wordt WEL getrackt in git
-# (geen uitsluitregel voor executables/)
+# Gecompileerde executables — worden gedistribueerd via GitHub Releases
+executables/*.exe
 
 # Log- en temp-bestanden
 *.log

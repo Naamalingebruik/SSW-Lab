@@ -50,10 +50,8 @@ foreach ($t in $targets) {
             -noConsole `
             -title       $t.Description `
             -description $t.Description `
-            -company     "Sogeti SSW" `
             -product     "SSW-Lab" `
-            -version     $Version `
-            -copyright   "Sogeti SSW $(Get-Date -Format yyyy)"
+            -version     $Version
 
         $size = [math]::Round((Get-Item $dst).Length / 1KB)
         Write-Host "  OK: $($t.Exe) ($size KB)" -ForegroundColor Green
