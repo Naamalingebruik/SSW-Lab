@@ -98,8 +98,7 @@ function Get-PreflightChecks {
 
 # ── Preset aanbeveling ───────────────────────────────────────
 function Get-PresetAdvice($checks) {
-    $blocked  = $checks | Where-Object { $_.Block }
-    $warnings = $checks | Where-Object { $_.Status -eq "WAARSCHUWING" }
+    $blocked = $checks | Where-Object { $_.Block }
 
     if ($blocked) { return "⛔  Lab kan niet starten — los de rode punten op." }
 
