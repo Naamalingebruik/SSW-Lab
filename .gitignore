@@ -8,5 +8,8 @@ executables/*.exe
 *.log
 *.tmp
 
+# Word/Excel tijdbestanden
+~$*
+
 # ISOs (te groot voor git)
 *.iso
