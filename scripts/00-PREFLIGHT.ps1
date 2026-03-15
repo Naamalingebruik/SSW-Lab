@@ -239,9 +239,16 @@ function Get-CertAdvice {
           <RadioButton x:Name="RadioAZ104" Content="AZ-104" GroupName="Cert"
                        Foreground="#CDD6F4" FontSize="12"/>
         </StackPanel>
-        <TextBlock x:Name="CertAdviceText"
-                   Foreground="#CDD6F4" FontSize="12"
-                   Margin="0,8,0,0" TextWrapping="Wrap" Text=""/>
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
+          <TextBlock x:Name="CertAdviceText"
+                     Foreground="#CDD6F4" FontSize="12"
+                     TextWrapping="Wrap" Text="" VerticalAlignment="Center"/>
+          <Button x:Name="BtnStudyGuide" Content="📖  Studieprogramma" Visibility="Collapsed"
+                  Background="#313244" Foreground="#89B4FA"
+                  FontSize="11" FontWeight="SemiBold"
+                  BorderThickness="1" BorderBrush="#89B4FA"
+                  Cursor="Hand" Padding="10,4" Margin="12,0,0,0" Height="26"/>
+        </StackPanel>
       </StackPanel>
     </Border>
 
@@ -263,13 +270,21 @@ $adkBanner      = $reader.FindName("ADKBanner")
 $btnDownloadADK = $reader.FindName("BtnDownloadADK")
 $btnRerun       = $reader.FindName("BtnRerun")
 $btnNext        = $reader.FindName("BtnNext")
-$certAdviceText = $reader.FindName("CertAdviceText")
-$radioMD102     = $reader.FindName("RadioMD102")
-$radioMS102     = $reader.FindName("RadioMS102")
-$radioSC300     = $reader.FindName("RadioSC300")
-$radioAZ104     = $reader.FindName("RadioAZ104")
+$certAdviceText  = $reader.FindName("CertAdviceText")
+$btnStudyGuide   = $reader.FindName("BtnStudyGuide")
+$radioMD102      = $reader.FindName("RadioMD102")
+$radioMS102      = $reader.FindName("RadioMS102")
+$radioSC300      = $reader.FindName("RadioSC300")
+$radioAZ104      = $reader.FindName("RadioAZ104")
 
 $script:currentCert = $null
+
+$studyGuideUrls = @{
+    "MD-102" = "https://github.com/Naamalingebruik/SSW-Lab/blob/main/docs/study-guide-MD102.md"
+    "MS-102" = "https://github.com/Naamalingebruik/SSW-Lab/blob/main/docs/study-guide-MS102.md"
+    "SC-300" = "https://github.com/Naamalingebruik/SSW-Lab/blob/main/docs/study-guide-SC300.md"
+    "AZ-104" = "https://github.com/Naamalingebruik/SSW-Lab/blob/main/docs/study-guide-AZ104.md"
+}
 
 $certClickHandler = {
     param($s, $e)
@@ -279,7 +294,14 @@ $certClickHandler = {
     $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom(
         if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
     )
+    $btnStudyGuide.Visibility = "Visible"
 }
+
+$btnStudyGuide.Add_Click({
+    if ($script:currentCert -and $studyGuideUrls.ContainsKey($script:currentCert)) {
+        Start-Process $studyGuideUrls[$script:currentCert]
+    }
+})
 
 $radioMD102.Add_Checked($certClickHandler)
 $radioMS102.Add_Checked($certClickHandler)
