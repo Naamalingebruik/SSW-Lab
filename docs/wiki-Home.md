@@ -6,6 +6,19 @@ Geautomatiseerde lab-omgeving voor Microsoft-certificeringen op een Sogeti-lapto
 
 ---
 
+## Studieprogramma's
+
+Per certificering is een volledig studieprogramma beschikbaar met MS Learn modules, lab-oefeningen en kennischecks:
+
+| Certificering | Omschrijving | Preset | Duur |
+|---|---|---|---|
+| [MD-102](studieprogramma-MD102.md) | Endpoint Administrator | Standard + Autopilot | 7 weken |
+| [MS-102](studieprogramma-MS102.md) | Microsoft 365 Administrator | Standard | 8 weken |
+| [SC-300](studieprogramma-SC300.md) | Identity and Access Administrator | Standard | 7 weken |
+| [AZ-104](studieprogramma-AZ104.md) | Azure Administrator | Minimal + Azure cloud | 8 weken |
+
+---
+
 ## Inhoudsopgave
 
 - [Vereisten](#vereisten)
