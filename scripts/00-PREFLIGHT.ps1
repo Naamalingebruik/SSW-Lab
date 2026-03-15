@@ -114,11 +114,40 @@ function Get-PresetAdvice($checks) {
     return "✅  Systeem is gereed. Alle presets zijn beschikbaar."
 }
 
+# ── Certificeringstraject advies ─────────────────────────────
+function Get-CertAdvice {
+    param([string]$cert)
+
+    $ramGB  = [math]::Round((Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1GB)
+    $drive  = if (Test-Path "D:\") { "D" } else { "C" }
+    $freeGB = [math]::Round((Get-PSDrive $drive).Free / 1GB)
+
+    $requirements = @{
+        "MD-102" = @{ MinRAM = 14; MinDisk = 300; Preset = "Standard"; VMs = "DC01 · MGMT01 · W11-01 · W11-02" }
+        "MS-102" = @{ MinRAM = 14; MinDisk = 300; Preset = "Standard"; VMs = "DC01 · MGMT01 · W11-01 · W11-02" }
+        "SC-300" = @{ MinRAM = 14; MinDisk = 300; Preset = "Standard"; VMs = "DC01 · MGMT01 · W11-01 · W11-02" }
+        "AZ-104" = @{ MinRAM = 6;  MinDisk = 140; Preset = "Minimal";  VMs = "DC01 · W11-01" }
+    }
+
+    $req    = $requirements[$cert]
+    $ramOk  = $ramGB  -ge $req.MinRAM
+    $diskOk = $freeGB -ge $req.MinDisk
+
+    if ($ramOk -and $diskOk) {
+        return "✅  Jouw laptop is geschikt voor $cert — preset: $($req.Preset) ($($req.VMs))"
+    }
+
+    $issues = @()
+    if (-not $ramOk)  { $issues += "RAM: $ramGB GB beschikbaar, $($req.MinRAM) GB vereist" }
+    if (-not $diskOk) { $issues += "Schijf: $freeGB GB vrij, $($req.MinDisk) GB vereist" }
+    return "⚠️  Hardware onvoldoende voor $cert — $($issues -join '  |  ')"
+}
+
 # ── WPF GUI ──────────────────────────────────────────────────
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SSW-Lab | Preflight Check" Height="580" Width="680"
+        Title="SSW-Lab | Preflight Check" Height="740" Width="680"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
   <Window.Resources>
@@ -155,6 +184,7 @@ function Get-PresetAdvice($checks) {
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
@@ -195,7 +225,27 @@ function Get-PresetAdvice($checks) {
       </Border>
     </StackPanel>
 
-    <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,12,16,16">
+    <Border Grid.Row="4" Background="#313244" CornerRadius="6" Margin="16,6,16,0" Padding="14,10">
+      <StackPanel>
+        <TextBlock Text="Voor welk certificeringstraject bereid je voor?"
+                   Foreground="#CDD6F4" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"/>
+        <StackPanel Orientation="Horizontal">
+          <RadioButton x:Name="RadioMD102" Content="MD-102" GroupName="Cert"
+                       Foreground="#CDD6F4" FontSize="12" Margin="0,0,20,0"/>
+          <RadioButton x:Name="RadioMS102" Content="MS-102" GroupName="Cert"
+                       Foreground="#CDD6F4" FontSize="12" Margin="0,0,20,0"/>
+          <RadioButton x:Name="RadioSC300" Content="SC-300" GroupName="Cert"
+                       Foreground="#CDD6F4" FontSize="12" Margin="0,0,20,0"/>
+          <RadioButton x:Name="RadioAZ104" Content="AZ-104" GroupName="Cert"
+                       Foreground="#CDD6F4" FontSize="12"/>
+        </StackPanel>
+        <TextBlock x:Name="CertAdviceText"
+                   Foreground="#CDD6F4" FontSize="12"
+                   Margin="0,8,0,0" TextWrapping="Wrap" Text=""/>
+      </StackPanel>
+    </Border>
+
+    <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,12,16,16">
       <Button x:Name="BtnRerun" Content="Opnieuw controleren" Style="{StaticResource PrimaryBtn}"
               Background="#A6E3A1" Margin="0,0,10,0"/>
       <Button x:Name="BtnNext" Content="Doorgaan naar 01-NETWORK →" Style="{StaticResource PrimaryBtn}"
@@ -213,6 +263,28 @@ $adkBanner      = $reader.FindName("ADKBanner")
 $btnDownloadADK = $reader.FindName("BtnDownloadADK")
 $btnRerun       = $reader.FindName("BtnRerun")
 $btnNext        = $reader.FindName("BtnNext")
+$certAdviceText = $reader.FindName("CertAdviceText")
+$radioMD102     = $reader.FindName("RadioMD102")
+$radioMS102     = $reader.FindName("RadioMS102")
+$radioSC300     = $reader.FindName("RadioSC300")
+$radioAZ104     = $reader.FindName("RadioAZ104")
+
+$script:currentCert = $null
+
+$certClickHandler = {
+    param($s, $e)
+    $script:currentCert = $s.Content
+    $advice = Get-CertAdvice $script:currentCert
+    $certAdviceText.Text = $advice
+    $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom(
+        if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
+    )
+}
+
+$radioMD102.Add_Checked($certClickHandler)
+$radioMS102.Add_Checked($certClickHandler)
+$radioSC300.Add_Checked($certClickHandler)
+$radioAZ104.Add_Checked($certClickHandler)
 
 $btnDownloadADK.Add_Click({
     Start-Process "https://go.microsoft.com/fwlink/?linkid=2289980"
@@ -292,6 +364,14 @@ function Render-Checks {
 
     $blocked = $checks | Where-Object { $_.Block }
     $btnNext.IsEnabled = (-not $blocked)
+
+    if ($script:currentCert -and $certAdviceText) {
+        $advice = Get-CertAdvice $script:currentCert
+        $certAdviceText.Text = $advice
+        $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom(
+            if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
+        )
+    }
 }
 
 $btnRerun.Add_Click({ Render-Checks })
