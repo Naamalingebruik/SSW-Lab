@@ -1,5 +1,7 @@
 # SSW-Lab — Hyper-V Lab Deployer
 
+> 🌐 **Taal:** Nederlands | [English](wiki-Home-EN.md)
+
 Geautomatiseerde lab-omgeving voor Microsoft-certificeringen op een Sogeti-laptop met MSDN-licenties.
 
 **Ondersteunde certificeringen:** MD-102 · MS-102 · SC-300 · AZ-104

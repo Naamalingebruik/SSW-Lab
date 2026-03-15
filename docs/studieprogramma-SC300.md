@@ -1,5 +1,7 @@
 # Studieprogramma SC-300 — Identity and Access Administrator
 
+> 🌐 **Taal:** Nederlands | [English](study-guide-SC300.md)
+
 **Duur:** 7 weken · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02)  
 **MS Learn pad:** [Identity and Access Administrator](https://learn.microsoft.com/en-us/certifications/exams/sc-300/)  
 **Examengewicht:**

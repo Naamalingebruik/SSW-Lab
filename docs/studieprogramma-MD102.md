@@ -1,5 +1,7 @@
 # Studieprogramma MD-102 — Endpoint Administrator
 
+> 🌐 **Taal:** Nederlands | [English](study-guide-MD102.md)
+
 **Duur:** 7 weken · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02) + W11-AUTOPILOT voor week 5  
 **MS Learn pad:** [Endpoint Administrator](https://learn.microsoft.com/en-us/certifications/exams/md-102/)  
 **Examengewicht:**

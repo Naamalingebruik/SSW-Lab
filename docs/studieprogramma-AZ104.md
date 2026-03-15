@@ -1,5 +1,7 @@
 # Studieprogramma AZ-104 — Azure Administrator
 
+> 🌐 **Taal:** Nederlands | [English](study-guide-AZ104.md)
+
 **Duur:** 8 weken · **Lab preset:** Minimal (DC01 · W11-01) — Azure-taken draaien in de cloud  
 **MS Learn pad:** [Azure Administrator](https://learn.microsoft.com/en-us/certifications/exams/az-104/)  
 **Examengewicht:**
