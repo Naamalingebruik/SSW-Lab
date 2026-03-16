@@ -20,6 +20,8 @@ Gebouwd door en voor Sogeti SSW collega's — geen eigen domein of dedicated har
 
 > **Geen eigen domein nodig.** Het lab gebruikt `ssw.lab` als intern domein. Activering verloopt via MSDN — geen productkeys in scripts.
 
+> **Sogeti-laptop (High Flex):** Start lab-scripts als Administrator via *Uitvoeren als andere gebruiker* met je High Flex-beheerdersaccount (`admin-xxx@sogeti.com`). Zscaler SSL-inspectie is transparant — de Sogeti-root CA is vertrouwd op beheerde laptops, dus cloud-verbindingen (`Connect-AzAccount`, `Connect-MgGraph`) werken zonder aanpassing. Installeer benodigde PS-modules (`Az`, `Microsoft.Graph.*`, `ExchangeOnlineManagement`) eenmalig vooraf.
+
 ---
 
 ## Snelstart
@@ -124,8 +126,7 @@ Gebruik uitsluitend in een geïsoleerde testomgeving met MSDN-licenties — nooi
 
 | Document | Omschrijving |
 |----------|--------------|
-| [docs/lab-waarde.pdf](docs/lab-waarde.pdf) | Waarom een eigen labomgeving effectiever is dan cloud-sandboxes — onderbouwd met leeronderzoek en kostenanalyse |
-
+| [docs/lab-waarde.pdf](docs/lab-waarde.pdf) | Waarom een eigen labomgeving effectiever is dan cloud-sandboxes — onderbouwd met leeronderzoek en kostenanalyse || [docs/lab-waarde-management.pdf](docs/lab-waarde-management.pdf) | Management-samenvatting: ROI en leerwinst van het SSW-Lab voor Sogeti SSW |
 ---
 
 ## Structuur
@@ -135,14 +136,23 @@ SSW-Lab/
 ├── config.ps1
 ├── README.md
 ├── scripts/
-│   ├── 00-PREFLIGHT.ps1
-│   ├── 01-NETWORK.ps1
-│   ├── 02-MAKE-ISOS.ps1
-│   ├── 03-VMS.ps1
-│   ├── 04-SETUP-DC.ps1
-│   └── 05-JOIN-DOMAIN.ps1
-└── profiles/
-    └── vm-profiles.json
+│   ├── 00-PREFLIGHT.ps1          # Systeemcheck
+│   ├── 01-NETWORK.ps1            # vSwitch en NAT
+│   ├── 02-MAKE-ISOS.ps1          # Unattended ISO's bouwen
+│   ├── 03-VMS.ps1                # VMs aanmaken
+│   ├── 04-SETUP-DC.ps1           # Domain Controller inrichten
+│   ├── 05-JOIN-DOMAIN.ps1        # Clients aan domein koppelen
+│   └── labs/
+│       ├── MD102/                # 6 lab-scripts week 1–6
+│       ├── MS102/                # 7 lab-scripts week 1–7
+│       ├── AZ104/                # 7 lab-scripts week 1–7
+│       └── SC300/                # 6 lab-scripts week 1–6
+├── profiles/
+│   └── vm-profiles.json
+└── docs/
+    ├── studieprogramma-*.md
+    ├── study-guide-*.md
+    └── wiki-Home*.md
 ```
 
 ---
@@ -225,3 +235,53 @@ Dit lab is bruikbaar als oefenomgeving voor meerdere Microsoft-certificeringen. 
 | SSW-W11-01/02 | ✅ | ✅ | ✅ | — |
 | SSW-W11-AUTOPILOT | ✅ | — | — | — |
 | NAT / vSwitch | ✅ | ✅ | — | ✅ |
+
+---
+
+## Labs
+
+Naast de zes setup-scripts bevat de repo **26 begeleide lab-scripts** die stap voor stap de examenstof oefenen. Elk script heeft een WPF GUI met Dry Run-modus, voortgangsbalk en kennischeck.
+
+### MD-102 — Endpoint Administrator (6 labs)
+| Script | Onderwerp |
+|--------|----------|
+| `scripts/labs/MD102/lab-week1-deployment.ps1` | Windows 11 deployment, Hyper-V, AD-join |
+| `scripts/labs/MD102/lab-week2-intune.ps1` | Intune-enrollement, Hybrid Azure AD Join |
+| `scripts/labs/MD102/lab-week3-compliance-ca.ps1` | Compliance-beleid, Conditional Access |
+| `scripts/labs/MD102/lab-week4-apps.ps1` | Win32-apps, IntuneWin32ContentPrepTool, IME |
+| `scripts/labs/MD102/lab-week5-autopilot.ps1` | Windows Autopilot, hardware hash, CSV-upload |
+| `scripts/labs/MD102/lab-week6-security.ps1` | Defender for Endpoint, EICAR, update rings |
+
+### MS-102 — Microsoft 365 Administrator (7 labs)
+| Script | Onderwerp |
+|--------|----------|
+| `scripts/labs/MS102/lab-week1-tenant.ps1` | Tenant-beheer, ADSync, delta sync, Graph |
+| `scripts/labs/MS102/lab-week2-gebruikers.ps1` | OU-structuur, bulk-gebruikers, SSPR |
+| `scripts/labs/MS102/lab-week3-hybrid-identity.ps1` | ADSync scheduler, password writeback, MFA |
+| `scripts/labs/MS102/lab-week4-exchange.ps1` | Exchange Online, shared mailbox, DKIM |
+| `scripts/labs/MS102/lab-week5-sharepoint-teams.ps1` | SharePoint Online, Teams, extern delen |
+| `scripts/labs/MS102/lab-week6-defender.ps1` | Defender XDR, MDE onboarding, Secure Score |
+| `scripts/labs/MS102/lab-week7-purview.ps1` | Purview, sensitivity labels, DLP, eDiscovery |
+
+### AZ-104 — Azure Administrator (7 labs)
+| Script | Onderwerp |
+|--------|----------|
+| `scripts/labs/AZ104/lab-week1-governance.ps1` | Resource groups, RBAC, Azure Policy, Entra-gebruikers |
+| `scripts/labs/AZ104/lab-week2-storage.ps1` | Storage account, blob, SAS-token, file share |
+| `scripts/labs/AZ104/lab-week3-compute.ps1` | Azure VM (B2s), data disk, snapshot, Azure Backup |
+| `scripts/labs/AZ104/lab-week4-appservices.ps1` | App Service, deployment slot, ACI, autoscale |
+| `scripts/labs/AZ104/lab-week5-networking.ps1` | VNet, NSG, VNet peering, Private DNS Zone |
+| `scripts/labs/AZ104/lab-week6-loadbalancing.ps1` | Load Balancer, health probe, App Gateway, Traffic Manager |
+| `scripts/labs/AZ104/lab-week7-monitoring.ps1` | Log Analytics, VM Insights, KQL, alert rules |
+
+### SC-300 — Identity and Access Administrator (6 labs)
+| Script | Onderwerp |
+|--------|----------|
+| `scripts/labs/SC300/lab-week1-hybrid-identity.ps1` | AD-structuur, Entra Connect, sync-status |
+| `scripts/labs/SC300/lab-week2-external-identities.ps1` | B2B, cross-tenant access, Identity Protection |
+| `scripts/labs/SC300/lab-week3-authentication.ps1` | Auth Methods, SSPR, FIDO2, WHfB, Auth Strength |
+| `scripts/labs/SC300/lab-week4-conditional-access.ps1` | CA-beleid, What-If, Named Location, sign-in logs |
+| `scripts/labs/SC300/lab-week5-appregistrations.ps1` | App registraties, API-rechten, client secret, App Proxy |
+| `scripts/labs/SC300/lab-week6-governance-pim.ps1` | Access packages, access reviews, PIM JIT-activering |
+
+> **MS Learn alignment (gecontroleerd maart 2026):** Alle scripts zijn afgestemd op de actuele examendoelen. SC-300 heeft per november 2025 *Global Secure Access* als nieuw examenonderdeel; dit onderwerp is nog niet opgenomen in de lab-scripts maar staat beschreven in [docs/studieprogramma-SC300.md](docs/studieprogramma-SC300.md).

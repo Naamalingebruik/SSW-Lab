@@ -3,8 +3,8 @@
 > 🌐 **Taal:** Nederlands | [English](study-guide-SC300.md)
 
 **Duur:** 7 weken · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02)  
-**MS Learn pad:** [Identity and Access Administrator](https://learn.microsoft.com/en-us/certifications/exams/sc-300/)  
-**Examengewicht:**
+**MS Learn pad:** [Identity and Access Administrator](https://learn.microsoft.com/en-us/credentials/certifications/exams/sc-300/)  
+**Examengewicht (bijgewerkt november 2025):**
 
 | Domein | Gewicht |
 |---|---|
@@ -13,10 +13,12 @@
 | Workload-identiteiten plannen en implementeren | 20–25% |
 | Identity governance plannen en automatiseren | 20–25% |
 
-> **Bijgewerkt:** Skills gemeten per 7 november 2025. Domeinen hernoemd en opnieuw gewogen. „Implement access management for Azure resources by using Azure roles” is **verwijderd** uit het examen. **Global Secure Access** is toegevoegd als nieuw onderdeel.
+> **Bijgewerkt:** Skills gemeten per 7 november 2025. Domeinen hernoemd en opnieuw gewogen. „Implement access management for Azure resources by using Azure roles" is **verwijderd** uit het examen. **Global Secure Access** is toegevoegd als nieuw onderdeel.
 
 > **Voorwaarde:** Microsoft 365 E5 developer tenant + Azure subscription (MSDN)  
 > SC-300 heeft meer Azure-portal werkzaamheden dan MD-102/MS-102
+
+> **Nieuw per november 2025:** *Implement Global Secure Access* is toegevoegd aan het examen (vervangt deels de Azure RBAC voor resources scope). SSW-Lab-scripts dekken dit onderdeel nog niet — raadpleeg de [MS Learn module](https://learn.microsoft.com/en-us/training/modules/deploy-configure-microsoft-entra-global-secure-access/) als zelfstandige voorbereiding.
 
 ---
 

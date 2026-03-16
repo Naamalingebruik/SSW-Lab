@@ -12,12 +12,16 @@ Automated lab environment for Microsoft certifications on a Sogeti laptop with M
 
 A complete study guide is available for each certification, including MS Learn modules, lab exercises and knowledge checks:
 
-| Certification | Description | Preset | Duration |
-|---|---|---|---|
-| [MD-102](study-guide-MD102.md) | Endpoint Administrator | Standard + Autopilot | 7 weeks |
-| [MS-102](study-guide-MS102.md) | Microsoft 365 Administrator | Standard | 8 weeks |
-| [SC-300](study-guide-SC300.md) | Identity and Access Administrator | Standard | 7 weeks |
-| [AZ-104](study-guide-AZ104.md) | Azure Administrator | Minimal + Azure cloud | 8 weeks |
+| Certification | Description | Preset | Duration | Lab scripts |
+|---|---|---|---|---|
+| [MD-102](study-guide-MD102.md) | Endpoint Administrator | Standard + Autopilot | 7 weeks | 6 (week 1–6) |
+| [MS-102](study-guide-MS102.md) | Microsoft 365 Administrator | Standard | 8 weeks | 7 (week 1–7) |
+| [SC-300](study-guide-SC300.md) | Identity and Access Administrator | Standard | 7 weeks | 6 (week 1–6) |
+| [AZ-104](study-guide-AZ104.md) | Azure Administrator | Minimal + Azure cloud | 8 weeks | 7 (week 1–7) |
+
+Each lab script (`scripts/labs/<CERT>/lab-week<N>-*.ps1`) provides a WPF GUI with Dry Run mode, step-by-step guidance and a knowledge check. Scripts automatically chain to the next lab.
+
+> **Sogeti High Flex:** Launch lab scripts via *Run as different user* with your High Flex admin account. Zscaler SSL inspection works transparently on managed Sogeti laptops.
 
 ---
 

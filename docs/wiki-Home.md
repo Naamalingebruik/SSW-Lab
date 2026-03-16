@@ -12,12 +12,16 @@ Geautomatiseerde lab-omgeving voor Microsoft-certificeringen op een Sogeti-lapto
 
 Per certificering is een volledig studieprogramma beschikbaar met MS Learn modules, lab-oefeningen en kennischecks:
 
-| Certificering | Omschrijving | Preset | Duur |
-|---|---|---|---|
-| [MD-102](studieprogramma-MD102.md) | Endpoint Administrator | Standard + Autopilot | 7 weken |
-| [MS-102](studieprogramma-MS102.md) | Microsoft 365 Administrator | Standard | 8 weken |
-| [SC-300](studieprogramma-SC300.md) | Identity and Access Administrator | Standard | 7 weken |
-| [AZ-104](studieprogramma-AZ104.md) | Azure Administrator | Minimal + Azure cloud | 8 weken |
+| Certificering | Omschrijving | Preset | Duur | Lab-scripts |
+|---|---|---|---|---|
+| [MD-102](studieprogramma-MD102.md) | Endpoint Administrator | Standard + Autopilot | 7 weken | 6 (week 1–6) |
+| [MS-102](studieprogramma-MS102.md) | Microsoft 365 Administrator | Standard | 8 weken | 7 (week 1–7) |
+| [SC-300](studieprogramma-SC300.md) | Identity and Access Administrator | Standard | 7 weken | 6 (week 1–6) |
+| [AZ-104](studieprogramma-AZ104.md) | Azure Administrator | Minimal + Azure cloud | 8 weken | 7 (week 1–7) |
+
+Elk lab-script (`scripts/labs/<CERT>/lab-week<N>-*.ps1`) heeft een WPF-GUI met Dry Run-modus, stapsgewijze begeleiding en een kennischeck. De scripts linken automatisch door naar het volgende lab.
+
+> **Sogeti High Flex:** Start lab-scripts via *Uitvoeren als andere gebruiker* met je High Flex-account. Zscaler SSL-inspectie werkt transparant op beheerde Sogeti-laptops.
 
 ---
 
