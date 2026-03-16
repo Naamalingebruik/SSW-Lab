@@ -8,10 +8,12 @@
 
 | Domain | Weight |
 |---|---|
-| Implement identity solutions in Entra ID | 25–30% |
+| Implement and manage user identities | 20–25% |
 | Implement authentication and access management | 25–30% |
-| Implement access management for applications | 10–15% |
-| Plan and implement an identity governance strategy | 25–30% |
+| Plan and implement workload identities | 20–25% |
+| Plan and automate identity governance | 20–25% |
+
+> **Updated:** Skills measured as of November 7, 2025. Domains renamed and reweighted. "Implement access management for Azure resources by using Azure roles" was **removed** from the exam. **Global Secure Access** added as a new section under authentication and access management.
 
 > **Prerequisite:** Microsoft 365 E5 developer tenant + Azure subscription (MSDN)  
 > SC-300 involves more Azure portal work than MD-102/MS-102
@@ -92,11 +94,12 @@
 
 ---
 
-## Week 4 — Conditional Access
+## Week 4 — Conditional Access and Global Secure Access
 
 ### MS Learn modules
 - [Plan, implement, and administer Conditional Access](https://learn.microsoft.com/en-us/training/modules/plan-implement-administer-conditional-access/)
 - [Implement Conditional Access for cloud app access](https://learn.microsoft.com/en-us/training/modules/implement-conditional-access-cloud-app-protection/)
+- [Implement Global Secure Access](https://learn.microsoft.com/en-us/training/modules/implement-global-secure-access/)
 
 ### Lab exercises (SSW-Lab)
 | VM | Task |
@@ -108,12 +111,16 @@
 | **SSW-W11-02** | Test with a non-enrolled device → verify block |
 | **SSW-MGMT01** | Enable *Sign-in frequency* for sensitive applications (re-auth every 4 hours) |
 | **SSW-MGMT01** | Review the **CA insights and reporting** workbook in Entra ID |
+| **SSW-MGMT01** | In the Entra admin center, explore **Global Secure Access**: review Private Access and Internet Access settings |
+| **SSW-MGMT01** | Enable *Internet Access for Microsoft 365* in Global Secure Access → review traffic logs |
 
 ### Knowledge check
 1. What is the difference between *Block* and *Grant with MFA* in Conditional Access?
 2. How do *Named Locations* work and when do you use *compliant network*?
 3. What are *Authentication contexts* and when do you use them?
 4. How do you prevent *lock-out* during CA migration in production?
+5. What is *Global Secure Access* and what are the three traffic profiles (Private, Internet, M365)?
+6. What is the difference between *Private Access* and a traditional VPN?
 
 ---
 
@@ -178,8 +185,12 @@
 - Schedule your exam via Pearson VUE
 
 ### Exam focus areas
-- Conditional Access: *What If* scenarios and authentication strength are exam favourites
+- **Domain weights changed:** user identities 20–25%, workload identities 20–25%, governance 20–25%
+- **Global Secure Access** is a new exam section — know Private Access, Internet Access and M365 profiles
+- Azure RBAC for resources ("Implement access management for Azure resources") was **removed** from SC-300 scope
+- Conditional Access: *What If* scenarios, authentication strength, continuous access evaluation and protected actions
 - PIM: know the difference between eligible, active and permanent assignments
 - Identity governance: entitlement management vs. access reviews vs. lifecycle workflows
-- B2B: cross-tenant access settings and external collaboration settings
-- App registrations: know the difference between delegated and application API permissions
+- B2B: cross-tenant access settings, cross-tenant synchronisation and external collaboration settings
+- App registrations: delegated vs. application API permissions; managed identities (system vs. user-assigned)
+- Identity monitoring: KQL queries in Log Analytics, Identity Secure Score

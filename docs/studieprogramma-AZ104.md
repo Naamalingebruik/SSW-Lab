@@ -8,10 +8,10 @@
 
 | Domein | Gewicht |
 |---|---|
-| Azure identiteiten en governance beheren | 15–20% |
+| Azure identiteiten en governance beheren | 20–25% |
 | Storage implementeren en beheren | 15–20% |
 | Azure compute resources deployen en beheren | 20–25% |
-| Virtuele netwerken implementeren en beheren | 25–30% |
+| Virtuele netwerken implementeren en beheren | 15–20% |
 | Azure resources monitoren en onderhouden | 10–15% |
 
 > **Voorwaarde:** Azure subscription via MSDN/Visual Studio Subscriptions (maandelijks tegoed)  
@@ -62,7 +62,7 @@
 | **Azure portal** | Genereer een *Shared Access Signature (SAS)* met leesrechten, 1 uur geldig |
 | **SSW-W11-01** | Gebruik Azure Storage Explorer of `azcopy` om naar blob te uploaden |
 | **Azure portal** | Maak een *Azure File Share* aan → verbind via SMB (`net use Z: \\...`) |
-| **SSW-DCO1** | Installeer Azure File Sync agent → registreer server → sync SSW-DC01-map |
+| **SSW-DC01** | Installeer Azure File Sync agent → registreer server → sync SSW-DC01-map |
 | **Azure portal** | Configureer *Lifecycle management policy*: verplaats naar Cool na 30 dagen |
 
 ### Kennischeck
@@ -104,7 +104,7 @@
 ### MS Learn modules
 - [Configure Azure App Service](https://learn.microsoft.com/en-us/training/modules/configure-azure-app-services/)
 - [Configure Azure Container Instances](https://learn.microsoft.com/en-us/training/modules/configure-azure-container-instances/)
-- [Configure Azure Kubernetes Service basics](https://learn.microsoft.com/en-us/training/modules/intro-to-kubernetes/)
+- [Configure Azure Container Apps](https://learn.microsoft.com/en-us/training/modules/introduction-to-azure-container-apps/)
 
 ### Lab oefeningen (Azure portal + CloudShell)
 | Omgeving | Taak |
@@ -113,11 +113,13 @@
 | **Azure portal** | Configureer *deployment slot* (staging) → doe een *swap* naar productie |
 | **Azure portal** | Deployeer een Azure Container Instance met een nginx-image |
 | **Azure CloudShell** | `az container create --image nginx --dns-name-label sswlab-ci ...` |
+| **Azure portal** | Maak een *Azure Container Registry* aan → push een container-image |
+| **Azure portal** | Deployeer een *Container App* vanuit ACR → configureer scaling-regels |
 | **Azure portal** | Configureer een *App Service plan* → schaal uit naar 2 instanties |
 | **Azure portal** | Bekijk *App Service Diagnostics* → analyseer beschikbaarheids-grafiek |
 
 ### Kennischeck
-1. Wat is het verschil tussen *Azure Container Instances* en *Azure Kubernetes Service*?
+1. Wat is het verschil tussen *Azure Container Instances*, *Azure Container Apps* en *Azure Kubernetes Service*?
 2. Hoe werken *deployment slots* en waarom is *slot swap* nuttig?
 3. Wat is het verschil tussen een *App Service plan* en *Consumption plan* voor Azure Functions?
 4. Hoe configureer je *autoscaling* gebaseerd op CPU-gebruik?
@@ -141,6 +143,8 @@
 | **Azure portal** | Maak een tweede VNet aan → configureer *VNet peering* tussen beide |
 | **Azure portal** | Configureer een *Azure Private DNS Zone* → registreer VMs automatisch |
 | **SSW-W11-01** | Configureer een *Point-to-Site VPN* naar het Azure VNet → test verbinding |
+| **Azure portal** | Deployeer *Azure Bastion* → verbind met een VM zonder publiek IP of RDP-poort |
+| **Azure portal** | Configureer een *Private Endpoint* voor een Storage Account → verifieer DNS-resolutie |
 | **Azure portal** | Bekijk *Effective routes* op de NIC van een VM |
 
 ### Kennischeck
@@ -195,6 +199,7 @@
 | **SSW-DC01** | Installeer de *Azure Monitor Agent (AMA)* → verifieer in Log Analytics |
 | **Azure portal** | Configureer een *Recovery Services Vault* → backup DC01-bestanden |
 | **Azure portal** | Voer een *test restore* uit → herstel een bestand naar alternatieve locatie |
+| **Azure portal** | Configureer *Azure Site Recovery* voor een VM → voer een test-failover uit naar een secundaire regio |
 
 ### Kennischeck
 1. Wat is het verschil tussen *Azure Monitor Metrics* en *Azure Monitor Logs*?
@@ -215,8 +220,10 @@
 - Plan je examen via Pearson VUE
 
 ### Aandachtspunten voor het examen
-- Networking: NSG-regels, UDR, VNet peering, Private Endpoints — zwaar gewogen
+- Networking: NSG-regels, UDR, VNet peering, Private Endpoints, Azure Bastion — zwaar gewogen
 - VM availability: ken het verschil Availability Set / Zone / VMSS exact
-- Storage: redundantie-opties (LRS/ZRS/GRS) en tier-beheer
+- Storage: redundantie-opties (LRS/ZRS/GRS), tier-beheer, blob versioning, soft delete
+- Compute: ARM templates én Bicep files — beide zijn in scope
 - RBAC: scope-levels (management group → subscription → resource group → resource)
+- Backup & recovery: verschil tussen Azure Backup en Azure Site Recovery (failover)
 - KQL: basisquery's (where, summarize, project) komen voor in casevragen

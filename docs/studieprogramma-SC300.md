@@ -8,10 +8,12 @@
 
 | Domein | Gewicht |
 |---|---|
-| Identiteitsoplossingen implementeren in Entra ID | 25–30% |
+| Gebruikersidentiteiten implementeren en beheren | 20–25% |
 | Authenticatie en toegangsbeheer implementeren | 25–30% |
-| Toegangsbeheer voor applicaties implementeren | 10–15% |
-| Identity governance strategie plannen en implementeren | 25–30% |
+| Workload-identiteiten plannen en implementeren | 20–25% |
+| Identity governance plannen en automatiseren | 20–25% |
+
+> **Bijgewerkt:** Skills gemeten per 7 november 2025. Domeinen hernoemd en opnieuw gewogen. „Implement access management for Azure resources by using Azure roles” is **verwijderd** uit het examen. **Global Secure Access** is toegevoegd als nieuw onderdeel.
 
 > **Voorwaarde:** Microsoft 365 E5 developer tenant + Azure subscription (MSDN)  
 > SC-300 heeft meer Azure-portal werkzaamheden dan MD-102/MS-102
@@ -92,11 +94,12 @@
 
 ---
 
-## Week 4 — Conditional Access
+## Week 4 — Conditional Access en Global Secure Access
 
 ### MS Learn modules
 - [Plan, implement, and administer Conditional Access](https://learn.microsoft.com/en-us/training/modules/plan-implement-administer-conditional-access/)
 - [Implement Conditional Access for cloud app access](https://learn.microsoft.com/en-us/training/modules/implement-conditional-access-cloud-app-protection/)
+- [Implement Global Secure Access](https://learn.microsoft.com/en-us/training/modules/implement-global-secure-access/)
 
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
@@ -108,12 +111,16 @@
 | **SSW-W11-02** | Test met niet-enrolled device → verifieer blokkering |
 | **SSW-MGMT01** | Schakel *Sign-in frequency* in voor gevoelige applicaties (elke 4 uur re-auth) |
 | **SSW-MGMT01** | Bekijk **CA insights and reporting** workbook in Entra ID |
+| **SSW-MGMT01** | Open **Global Secure Access** in het Entra admin center → verken Private Access en Internet Access-instellingen |
+| **SSW-MGMT01** | Schakel *Internet Access voor Microsoft 365* in via Global Secure Access → bekijk verkeerslogboeken |
 
 ### Kennischeck
 1. Wat is het verschil tussen *Block* en *Grant with MFA* in Conditional Access?
 2. Hoe werkt *Named Locations* en wanneer gebruik je *compliant network*?
 3. Wat zijn *Authentication contexts* en wanneer gebruik je ze?
 4. Hoe voorkom je *lock-out* bij CA-migratie in productie?
+5. Wat is *Global Secure Access* en wat zijn de drie verkeersprofielen (Private, Internet, M365)?
+6. Wat is het verschil tussen *Private Access* en een traditionele VPN?
 
 ---
 
@@ -178,8 +185,12 @@
 - Plan je examen via Pearson VUE
 
 ### Aandachtspunten voor het examen
-- Conditional Access: *What If* scenario's en authentication strength zijn favoriet op het examen
+- **Domeingewichten gewijzigd:** gebruikersidentiteiten 20–25%, workload-identiteiten 20–25%, governance 20–25%
+- **Global Secure Access** is een nieuw examenonderwerp — ken Private Access, Internet Access en M365-profielen
+- Azure RBAC voor resources („Implement access management for Azure resources”) is **verwijderd** uit SC-300
+- Conditional Access: *What If* scenario’s, authentication strength, continuous access evaluation en protected actions
 - PIM: weet het verschil tussen eligible, active en permanent assignments
 - Identity governance: entitlement management vs. access reviews vs. lifecycle workflows
-- B2B: cross-tenant access settings en external collaboration instellingen
-- App registrations: ken het verschil API permissions delegated vs. application
+- B2B: cross-tenant access settings, cross-tenant synchronization en external collaboration instellingen
+- App registrations: ken het verschil delegated vs. application API permissions; managed identities (system vs. user-assigned)
+- Identity monitoring: KQL-query’s in Log Analytics, Identity Secure Score

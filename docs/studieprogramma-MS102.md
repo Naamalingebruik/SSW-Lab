@@ -9,9 +9,11 @@
 | Domein | Gewicht |
 |---|---|
 | Microsoft 365 tenant deployen en beheren | 25–30% |
-| Identiteit en toegang implementeren in Entra ID | 25–30% |
-| Beveiliging en bedreigingen beheren (Defender) | 25–30% |
-| Compliance beheren | 20–25% |
+| Microsoft Entra identiteit en toegang implementeren en beheren | 25–30% |
+| Beveiliging en bedreigingen beheren via Microsoft Defender XDR | 30–35% |
+| Compliance beheren via Microsoft Purview | 10–15% |
+
+> **Bijgewerkt:** Skills gemeten per 10 november 2025. Defender-domein hernoemd naar **Microsoft Defender XDR** (30–35%). Compliance hernoemd naar **Microsoft Purview** (10–15%).
 
 > **Voorwaarde:** Microsoft 365 E5 developer tenant (via MSDN/M365 developer program)  
 > Registreer op: [developer.microsoft.com/microsoft-365/dev-program](https://developer.microsoft.com/microsoft-365/dev-program)
@@ -34,12 +36,14 @@
 | **SSW-DC01** | Installeer Azure AD Connect → synchroniseer `ssw.lab` AD-gebruikers naar Entra ID |
 | **SSW-MGMT01** | Verifieer gesynchroniseerde gebruikers in **Entra admin center → Users** |
 | **SSW-MGMT01** | Activeer Microsoft 365 E5-licenties voor gesynchroniseerde gebruikers |
+| **SSW-MGMT01** | Schakel **Microsoft 365 Backup** in: stel een back-upbeleid in voor Exchange en OneDrive |
 
 ### Kennischeck
 1. Wat is het verschil tussen een *managed domain* en een *federated domain* in Microsoft 365?
 2. Hoe werkt *password hash synchronization* versus *pass-through authentication*?
 3. Welke DNS-records zijn vereist voor een custom domein in Microsoft 365?
 4. Wat is het *Microsoft 365 compliance center* en waarvoor gebruik je het?
+5. Wat is *Microsoft 365 Backup* en hoe verschilt het van retentiebeleid?
 
 ---
 
@@ -59,19 +63,22 @@
 | **SSW-MGMT01** | Maak een dynamische groep aan in Entra ID (attribute-based: `department -eq "IT"`) |
 | **SSW-MGMT01** | Activeer *Self-Service Password Reset* (SSPR) voor de IT-afdeling |
 | **SSW-W11-01** | Test SSPR als TestUser01 via `aka.ms/sspr` |
+| **SSW-MGMT01** | Configureer **Privileged Identity Management (PIM)**: maak de rol Global Administrator *eligible* voor labadmin |
+| **SSW-MGMT01** | Activeer de GA-rol Just-in-Time via PIM → verifieer de audit trail onder **Entra → PIM → Controlegeschiedenis** |
 
 ### Kennischeck
 1. Wat is het principe van *least privilege* bij het toewijzen van beheerderrollen?
 2. Wat is het verschil tussen een beveiligingsgroep en een Microsoft 365-groep?
 3. Hoe werkt *bulk user creation* via de Microsoft 365 admin center?
 4. Wanneer gebruik je *dynamic groups* versus *assigned groups*?
+5. Wat is *PIM* en waarom heeft *Just-in-Time* toegang de voorkeur boven een permanente rol?
 
 ---
 
 ## Week 3 — Entra ID en hybride identiteit
 
 ### MS Learn modules
-- [Manage identity synchronization with Azure AD Connect](https://learn.microsoft.com/en-us/training/modules/manage-azure-active-directory-connect/)
+- [Manage identity synchronization with Azure AD Connect and Entra Cloud Sync](https://learn.microsoft.com/en-us/training/modules/manage-azure-active-directory-connect/)
 - [Implement multifactor authentication](https://learn.microsoft.com/en-us/training/modules/implement-multifactor-authentication/)
 - [Manage external identities](https://learn.microsoft.com/en-us/training/modules/manage-external-identities/)
 
@@ -84,12 +91,16 @@
 | **SSW-MGMT01** | Bekijk *Sign-in logs* in Entra ID → filter op MFA-events |
 | **SSW-MGMT01** | Nodig een externe gebruiker (B2B guest) uit via Entra ID |
 | **SSW-MGMT01** | Configureer *Cross-tenant access settings* voor externe organisaties |
+| **SSW-MGMT01** | Controleer **Entra Connect Health** → verifieer sync-agentstatus en foutrapport |
+| **SSW-MGMT01** | Schakel **Entra Password Protection** in → configureer verboden wachtwoordenlijst |
 
 ### Kennischeck
 1. Wat is het verschil tussen MFA per gebruiker en *Security Defaults*?
 2. Hoe werkt *Seamless Single Sign-On* (SSO) met Azure AD Connect?
 3. Wat is Azure AD B2B en wanneer gebruik je B2B versus B2C?
 4. Hoe troubleshoot je een sync-fout in Azure AD Connect?
+5. Wat is het verschil tussen *Entra Connect Sync* en *Entra Cloud Sync*?
+6. Wat doet *Entra Password Protection* en hoe werkt de on-premises agent?
 
 ---
 
@@ -143,20 +154,21 @@
 
 ---
 
-## Week 6 — Microsoft 365 Defender en bedreigingsbeheer
+## Week 6 — Microsoft Defender XDR en bedreigingsbeheer
 
 ### MS Learn modules
-- [Explore the Microsoft 365 Defender portal](https://learn.microsoft.com/en-us/training/modules/explore-microsoft-365-defender/)
+- [Explore the Microsoft Defender XDR portal](https://learn.microsoft.com/en-us/training/modules/explore-microsoft-365-defender/)
 - [Manage Microsoft Defender for Office 365](https://learn.microsoft.com/en-us/training/modules/manage-microsoft-defender-office-365/)
-- [Manage Microsoft Secure Score](https://learn.microsoft.com/en-us/training/modules/manage-microsoft-secure-score/)
+- [Manage Microsoft Secure Score and Exposure Management](https://learn.microsoft.com/en-us/training/modules/manage-microsoft-secure-score/)
 
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Open **Microsoft 365 Defender portal** (security.microsoft.com) |
-| **SSW-W11-01** | Onboard W11-01 aan Defender for Endpoint via Intune-policy |
-| **SSW-W11-01** | Simuleer verdachte activiteit: download EICAR-testbestand → controleer alert |
-| **SSW-MGMT01** | Analyseer het incident in Defender portal → bekijk *Attack story* graph |
+| **SSW-MGMT01** | Open het **Microsoft Defender XDR-portal** (security.microsoft.com) |
+| **SSW-W11-01** | Onboard W11-01 naar Defender for Endpoint via Intune-policy |
+| **SSW-W11-01** | Simuleer verdachte activiteit: download het EICAR-testbestand → controleer alert |
+| **SSW-MGMT01** | Analyseer het incident in de Defender portal → bekijk de *Attack story*-grafiek |
+| **SSW-MGMT01** | Bekijk het **Exposure Management**-dashboard → controleer de Microsoft Secure Score |
 | **SSW-MGMT01** | Voer *Attack Simulation Training* uit → phishing-simulatie naar TestUser01 |
 | **SSW-MGMT01** | Analyseer *Secure Score* → kies een verbeteractie en implementeer deze |
 
@@ -165,6 +177,7 @@
 2. Hoe werkt *Automated Investigation and Response* (AIR) in Defender?
 3. Wat toont de *Threat Explorer* en wanneer gebruik je het?
 4. Hoe verhoog je de Microsoft Secure Score effectief?
+5. Wat is *Exposure Management* en hoe verhoudt het zich tot Secure Score?
 
 ---
 
@@ -203,7 +216,9 @@
 - Plan je examen via Pearson VUE
 
 ### Aandachtspunten voor het examen
-- Hybride identiteit: weet alle sync-opties en wanneer je Seamless SSO gebruikt
-- Defender-scenario's: AIR, Attack Simulation, Secure Score verbeteringen
+- Hybride identiteit: ken zowel **Connect Sync** als **Entra Cloud Sync** — verschillen en migratiescenario's
+- **Defender XDR (30–35%):** unified portal, AIR, Exposure Management, Attack Simulation, Secure Score
 - DLP: verschil tussen policies voor Exchange, SharePoint en Endpoint
-- Compliance: retention vs. sensitivity — weet wanneer je welke inzet
+- **Purview (10–15%):** retentie vs. sensitivity labels — ken de kernscenario's
+- PIM: eligible vs. active vs. permanent rolassignments vallen nu onder MS-102 scope
+- Entra Password Protection en Connect Health zijn nu expliciete examendoelstellingen

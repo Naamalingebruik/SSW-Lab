@@ -8,10 +8,12 @@
 
 | Domain | Weight |
 |---|---|
-| Deploy and manage Microsoft 365 tenant | 25–30% |
-| Implement identity and access in Entra ID | 25–30% |
-| Manage security and threats (Defender) | 25–30% |
-| Manage compliance | 20–25% |
+| Deploy and manage a Microsoft 365 tenant | 25–30% |
+| Implement and manage Microsoft Entra identity and access | 25–30% |
+| Manage security and threats by using Microsoft Defender XDR | 30–35% |
+| Manage compliance by using Microsoft Purview | 10–15% |
+
+> **Updated:** Skills measured as of November 10, 2025. Defender domain renamed to **Microsoft Defender XDR** (30–35%). Compliance domain renamed to **Microsoft Purview** (10–15%).
 
 > **Prerequisite:** Microsoft 365 E5 developer tenant (via MSDN/M365 developer program)  
 > Sign up at: [developer.microsoft.com/microsoft-365/dev-program](https://developer.microsoft.com/microsoft-365/dev-program)
@@ -34,12 +36,14 @@
 | **SSW-DC01** | Install Azure AD Connect → synchronise `ssw.lab` AD users to Entra ID |
 | **SSW-MGMT01** | Verify synchronised users in **Entra admin center → Users** |
 | **SSW-MGMT01** | Assign Microsoft 365 E5 licenses to synchronised users |
+| **SSW-MGMT01** | Enable and configure **Microsoft 365 Backup**: set a backup policy for Exchange and OneDrive |
 
 ### Knowledge check
 1. What is the difference between a *managed domain* and a *federated domain* in Microsoft 365?
 2. How does *password hash synchronisation* work versus *pass-through authentication*?
 3. Which DNS records are required for a custom domain in Microsoft 365?
 4. What is the *Microsoft 365 compliance center* and what is it used for?
+5. What is *Microsoft 365 Backup* and how does it differ from retention policies?
 
 ---
 
@@ -59,19 +63,22 @@
 | **SSW-MGMT01** | Create a dynamic group in Entra ID (attribute-based: `department -eq "IT"`) |
 | **SSW-MGMT01** | Enable *Self-Service Password Reset* (SSPR) for the IT department |
 | **SSW-W11-01** | Test SSPR as TestUser01 via `aka.ms/sspr` |
+| **SSW-MGMT01** | Configure **Privileged Identity Management (PIM)**: make the Global Administrator role *eligible* for labadmin |
+| **SSW-MGMT01** | Activate the GA role Just-in-Time via PIM → verify the audit trail under **Entra → PIM → Audit history** |
 
 ### Knowledge check
 1. What is the principle of *least privilege* when assigning admin roles?
 2. What is the difference between a security group and a Microsoft 365 group?
 3. How does *bulk user creation* work via the Microsoft 365 admin center?
 4. When do you use *dynamic groups* versus *assigned groups*?
+5. What is *PIM* and why is *Just-in-Time* access preferred over permanent role assignment?
 
 ---
 
 ## Week 3 — Entra ID and hybrid identity
 
 ### MS Learn modules
-- [Manage identity synchronisation with Azure AD Connect](https://learn.microsoft.com/en-us/training/modules/manage-azure-active-directory-connect/)
+- [Manage identity synchronisation with Azure AD Connect and Entra Cloud Sync](https://learn.microsoft.com/en-us/training/modules/manage-azure-active-directory-connect/)
 - [Implement multifactor authentication](https://learn.microsoft.com/en-us/training/modules/implement-multifactor-authentication/)
 - [Manage external identities](https://learn.microsoft.com/en-us/training/modules/manage-external-identities/)
 
@@ -84,12 +91,16 @@
 | **SSW-MGMT01** | Review *Sign-in logs* in Entra ID → filter on MFA events |
 | **SSW-MGMT01** | Invite an external user (B2B guest) via Entra ID |
 | **SSW-MGMT01** | Configure *Cross-tenant access settings* for external organisations |
+| **SSW-MGMT01** | Review **Entra Connect Health** → verify sync agent status and error report |
+| **SSW-MGMT01** | Enable **Entra Password Protection** → configure banned password list |
 
 ### Knowledge check
 1. What is the difference between per-user MFA and *Security Defaults*?
 2. How does *Seamless Single Sign-On* (SSO) work with Azure AD Connect?
 3. What is Azure AD B2B and when do you use B2B versus B2C?
 4. How do you troubleshoot a sync error in Azure AD Connect?
+5. What is the difference between *Microsoft Entra Connect Sync* and *Entra Cloud Sync*?
+6. What does *Entra Password Protection* do and how does the on-premises agent work?
 
 ---
 
@@ -143,20 +154,21 @@
 
 ---
 
-## Week 6 — Microsoft 365 Defender and threat management
+## Week 6 — Microsoft Defender XDR and threat management
 
 ### MS Learn modules
-- [Explore the Microsoft 365 Defender portal](https://learn.microsoft.com/en-us/training/modules/explore-microsoft-365-defender/)
+- [Explore the Microsoft Defender XDR portal](https://learn.microsoft.com/en-us/training/modules/explore-microsoft-365-defender/)
 - [Manage Microsoft Defender for Office 365](https://learn.microsoft.com/en-us/training/modules/manage-microsoft-defender-office-365/)
-- [Manage Microsoft Secure Score](https://learn.microsoft.com/en-us/training/modules/manage-microsoft-secure-score/)
+- [Manage Microsoft Secure Score and Exposure Management](https://learn.microsoft.com/en-us/training/modules/manage-microsoft-secure-score/)
 
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Open the **Microsoft 365 Defender portal** (security.microsoft.com) |
+| **SSW-MGMT01** | Open the **Microsoft Defender XDR portal** (security.microsoft.com) |
 | **SSW-W11-01** | Onboard W11-01 to Defender for Endpoint via Intune policy |
 | **SSW-W11-01** | Simulate suspicious activity: download the EICAR test file → check alert |
 | **SSW-MGMT01** | Analyse the incident in the Defender portal → review the *Attack story* graph |
+| **SSW-MGMT01** | Review the **Exposure Management** dashboard → check the Microsoft Secure Score |
 | **SSW-MGMT01** | Run *Attack Simulation Training* → phishing simulation to TestUser01 |
 | **SSW-MGMT01** | Analyse *Secure Score* → select an improvement action and implement it |
 
@@ -165,6 +177,7 @@
 2. How does *Automated Investigation and Response* (AIR) work in Defender?
 3. What does *Threat Explorer* show and when do you use it?
 4. How do you effectively improve your Microsoft Secure Score?
+5. What is *Exposure Management* and how does it relate to Secure Score?
 
 ---
 
@@ -203,7 +216,9 @@
 - Schedule your exam via Pearson VUE
 
 ### Exam focus areas
-- Hybrid identity: know all sync options and when to use Seamless SSO
-- Defender scenarios: AIR, Attack Simulation, Secure Score improvements
+- Hybrid identity: know both **Connect Sync** and **Entra Cloud Sync** — differences and migration scenarios
+- **Defender XDR (30–35%):** unified portal, AIR, Exposure Management, Attack Simulation, Secure Score improvements
 - DLP: differences between policies for Exchange, SharePoint and Endpoint
-- Compliance: retention vs. sensitivity labels — know when to use each
+- **Purview (10–15%):** retention vs. sensitivity labels — know core scenarios
+- PIM: eligible vs. active vs. permanent role assignments in MS-102 scope
+- Entra Password Protection and Connect Health are now explicit exam objectives

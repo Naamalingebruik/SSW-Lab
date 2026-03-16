@@ -158,13 +158,13 @@ Dit lab is bruikbaar als oefenomgeving voor meerdere Microsoft-certificeringen. 
 
 📎 [Certificeringspagina op MS Learn](https://learn.microsoft.com/nl-nl/credentials/certifications/modern-desktop/)
 
-| Leerpad (MS Learn) | Lab-gebruik |
-|--------------------|-------------|
-| [Windows client implementeren](https://learn.microsoft.com/nl-nl/training/paths/deploy-windows-client/) | `03-VMS` + Autopilot ISO's bouwen via `02-MAKE-ISOS` |
-| [Intune-beheer en beleid](https://learn.microsoft.com/nl-nl/training/paths/endpoint-manager-fundamentals/) | `SSW-W11-01/02` enrollen in Intune (Entra ID hybrid join) |
-| [Windows Autopilot](https://learn.microsoft.com/nl-nl/training/paths/deploy-windows-client/) | `SSW-W11-AUTOPILOT` — specifiek voor Autopilot-scenario's |
-| [Identiteit en naleving beheren](https://learn.microsoft.com/nl-nl/training/paths/manage-identity-compliance-microsoft-365/) | `SSW-DC01` voor on-premises AD, sync naar Entra ID |
-| [Apparaten beheren en beveiligen](https://learn.microsoft.com/nl-nl/training/paths/manage-maintain-protect-windows-client/) | `SSW-MGMT01` voor RSAT, GPO, compliance-beleid |
+| Leerpad (MS Learn) | Nieuw domein (jan 2026) | Lab-gebruik |
+|--------------------|------------------------|-------------|
+| [Endpoint-infrastructuur voorbereiden](https://learn.microsoft.com/nl-nl/training/paths/deploy-windows-client/) | Prepare infrastructure (25–30%) | `03-VMS` + Autopilot ISO's via `02-MAKE-ISOS`; co-management in Intune |
+| [Windows Autopilot](https://learn.microsoft.com/nl-nl/training/paths/deploy-windows-client/) | Prepare infrastructure | `SSW-W11-AUTOPILOT` — specifiek voor Autopilot-scenario's |
+| [Apparaten beheren en onderhouden](https://learn.microsoft.com/nl-nl/training/paths/manage-maintain-protect-windows-client/) | Manage/maintain devices (30–35%) | `SSW-MGMT01` voor update-beheer, RSAT en apparaatinventaris |
+| [Apps en app-data beheren](https://learn.microsoft.com/nl-nl/training/paths/endpoint-manager-fundamentals/) | Manage apps (15–20%) | `SSW-W11-01/02` voor app-deployment en app protection policies |
+| [Apparaten beveiligen](https://learn.microsoft.com/nl-nl/training/paths/manage-identity-compliance-microsoft-365/) | Protect devices (15–20%) | `SSW-MGMT01` compliance-policies, Endpoint Security en LAPS |
 
 **Benodigde preset:** `Full`
 

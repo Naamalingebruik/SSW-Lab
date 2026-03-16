@@ -8,10 +8,10 @@
 
 | Domain | Weight |
 |---|---|
-| Manage Azure identities and governance | 15–20% |
+| Manage Azure identities and governance | 20–25% |
 | Implement and manage storage | 15–20% |
 | Deploy and manage Azure compute resources | 20–25% |
-| Implement and manage virtual networking | 25–30% |
+| Implement and manage virtual networking | 15–20% |
 | Monitor and maintain Azure resources | 10–15% |
 
 > **Prerequisite:** Azure subscription via MSDN/Visual Studio Subscriptions (monthly credit)  
@@ -104,7 +104,7 @@
 ### MS Learn modules
 - [Configure Azure App Service](https://learn.microsoft.com/en-us/training/modules/configure-azure-app-services/)
 - [Configure Azure Container Instances](https://learn.microsoft.com/en-us/training/modules/configure-azure-container-instances/)
-- [Configure Azure Kubernetes Service basics](https://learn.microsoft.com/en-us/training/modules/intro-to-kubernetes/)
+- [Configure Azure Container Apps](https://learn.microsoft.com/en-us/training/modules/introduction-to-azure-container-apps/)
 
 ### Lab exercises (Azure portal + Cloud Shell)
 | Environment | Task |
@@ -113,11 +113,13 @@
 | **Azure portal** | Configure a *deployment slot* (staging) → perform a *swap* to production |
 | **Azure portal** | Deploy an Azure Container Instance with an nginx image |
 | **Azure Cloud Shell** | `az container create --image nginx --dns-name-label sswlab-ci ...` |
+| **Azure portal** | Create an *Azure Container Registry* → push a container image |
+| **Azure portal** | Deploy a *Container App* from ACR → configure scaling rules |
 | **Azure portal** | Configure an *App Service plan* → scale out to 2 instances |
 | **Azure portal** | Review *App Service Diagnostics* → analyse availability graph |
 
 ### Knowledge check
-1. What is the difference between *Azure Container Instances* and *Azure Kubernetes Service*?
+1. What is the difference between *Azure Container Instances*, *Azure Container Apps* and *Azure Kubernetes Service*?
 2. How do *deployment slots* work and why is a *slot swap* useful?
 3. What is the difference between an *App Service plan* and a *Consumption plan* for Azure Functions?
 4. How do you configure *autoscaling* based on CPU usage?
@@ -141,6 +143,8 @@
 | **Azure portal** | Create a second VNet → configure *VNet peering* between both |
 | **Azure portal** | Configure an *Azure Private DNS Zone* → auto-register VMs |
 | **SSW-W11-01** | Configure a *Point-to-Site VPN* to the Azure VNet → test the connection |
+| **Azure portal** | Deploy *Azure Bastion* → connect to a VM without public IP or RDP port |
+| **Azure portal** | Configure a *Private Endpoint* for a Storage Account → verify DNS resolution |
 | **Azure portal** | Review *Effective routes* on the NIC of a VM |
 
 ### Knowledge check
@@ -195,6 +199,7 @@
 | **SSW-DC01** | Install the *Azure Monitor Agent (AMA)* → verify in Log Analytics |
 | **Azure portal** | Configure a *Recovery Services Vault* → back up DC01 files |
 | **Azure portal** | Run a *test restore* → recover a file to an alternate location |
+| **Azure portal** | Configure *Azure Site Recovery* for a VM → perform a test failover to a secondary region |
 
 ### Knowledge check
 1. What is the difference between *Azure Monitor Metrics* and *Azure Monitor Logs*?
@@ -215,8 +220,10 @@
 - Schedule your exam via Pearson VUE
 
 ### Exam focus areas
-- Networking: NSG rules, UDR, VNet peering, Private Endpoints — heavily weighted
+- Networking: NSG rules, UDR, VNet peering, Private Endpoints, Azure Bastion — heavily weighted
 - VM availability: know the exact difference between Availability Set / Zone / VMSS
-- Storage: redundancy options (LRS/ZRS/GRS) and tier management
+- Storage: redundancy options (LRS/ZRS/GRS), tier management, blob versioning, soft delete
+- Compute: ARM templates *and* Bicep files — both are in scope
 - RBAC: scope levels (management group → subscription → resource group → resource)
+- Backup & recovery: difference between Azure Backup and Azure Site Recovery (failover)
 - KQL: basic queries (where, summarize, project) appear in case-study questions
