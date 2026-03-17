@@ -9,7 +9,13 @@
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
 
+function Escape-XmlValue([string]$Value) {
+  return [System.Security.SecurityElement]::Escape($Value)
+}
+
 function Get-W11Unattend($adminPass) {
+  $adminPassXml   = Escape-XmlValue $adminPass
+  $domainAdminXml = Escape-XmlValue $SSWConfig.DomainAdmin
     return @"
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend"
@@ -82,15 +88,15 @@ function Get-W11Unattend($adminPass) {
       </OOBE>
       <UserAccounts>
         <AdministratorPassword>
-          <Value>$adminPass</Value>
+          <Value>$adminPassXml</Value>
           <PlainText>true</PlainText>
         </AdministratorPassword>
         <LocalAccounts>
           <LocalAccount wcm:action="add">
-            <Password><Value>$adminPass</Value><PlainText>true</PlainText></Password>
-            <DisplayName>$($SSWConfig.DomainAdmin)</DisplayName>
+            <Password><Value>$adminPassXml</Value><PlainText>true</PlainText></Password>
+            <DisplayName>$domainAdminXml</DisplayName>
             <Group>Administrators</Group>
-            <Name>$($SSWConfig.DomainAdmin)</Name>
+            <Name>$domainAdminXml</Name>
           </LocalAccount>
         </LocalAccounts>
       </UserAccounts>
@@ -101,6 +107,8 @@ function Get-W11Unattend($adminPass) {
 }
 
 function Get-WS2025Unattend($adminPass) {
+  $adminPassXml   = Escape-XmlValue $adminPass
+  $domainAdminXml = Escape-XmlValue $SSWConfig.DomainAdmin
     return @"
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend"
@@ -170,15 +178,15 @@ function Get-WS2025Unattend($adminPass) {
       </OOBE>
       <UserAccounts>
         <AdministratorPassword>
-          <Value>$adminPass</Value>
+          <Value>$adminPassXml</Value>
           <PlainText>true</PlainText>
         </AdministratorPassword>
         <LocalAccounts>
           <LocalAccount wcm:action="add">
-            <Password><Value>$adminPass</Value><PlainText>true</PlainText></Password>
-            <DisplayName>$($SSWConfig.DomainAdmin)</DisplayName>
+            <Password><Value>$adminPassXml</Value><PlainText>true</PlainText></Password>
+            <DisplayName>$domainAdminXml</DisplayName>
             <Group>Administrators</Group>
-            <Name>$($SSWConfig.DomainAdmin)</Name>
+            <Name>$domainAdminXml</Name>
           </LocalAccount>
         </LocalAccounts>
       </UserAccounts>
