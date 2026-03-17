@@ -48,6 +48,12 @@ Gebouwd door en voor Sogeti SSW collega's — geen eigen domein of dedicated har
 
 Elk script heeft een GUI en een knop om door te gaan naar het volgende.
 
+Voor een minimale gebruikershandleiding met stap-voor-stap flow, zie:
+- NL: [docs/end-to-end-smoke-test.md](docs/end-to-end-smoke-test.md)
+- EN: [docs/end-to-end-smoke-test-en.md](docs/end-to-end-smoke-test-en.md)
+
+Engelse scriptvarianten staan in: `scripts-en/`
+
 ---
 
 ## Presets

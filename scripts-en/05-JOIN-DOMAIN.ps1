@@ -63,24 +63,24 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
       <StackPanel Grid.Column="0">
         <TextBlock Text="Domein (FQDN)" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtDomain" Style="{StaticResource Fld}"/>
-        <TextBlock Text="Domain admin gebruikersnaam" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Domain admin username" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtDomainAdmin" Style="{StaticResource Fld}"/>
-        <TextBlock Text="Domain admin wachtwoord" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Domain admin password" Style="{StaticResource Lbl}"/>
         <PasswordBox x:Name="PwdDomain" Style="{StaticResource PwdFld}"/>
       </StackPanel>
       <StackPanel Grid.Column="2">
-        <TextBlock Text="Lokale admin gebruikersnaam (VMs)" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Local admin username (VMs)" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtLocalAdmin" Style="{StaticResource Fld}"/>
-        <TextBlock Text="Lokaal admin wachtwoord (VMs)" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Local admin password (VMs)" Style="{StaticResource Lbl}"/>
         <PasswordBox x:Name="PwdLocal" Style="{StaticResource PwdFld}"/>
       </StackPanel>
     </Grid>
 
     <Border Grid.Row="2" Background="#313244" CornerRadius="6" Padding="16,12" Margin="0,12,0,0">
       <StackPanel>
-        <TextBlock Text="Selecteer VMs om te joinen (DC01 overgeslagen)" Foreground="#A6ADC8" FontSize="11" Margin="0,0,0,8"/>
+        <TextBlock Text="Select VMs om te joinen (DC01 overgeslagen)" Foreground="#A6ADC8" FontSize="11" Margin="0,0,0,8"/>
         <WrapPanel x:Name="VMPanel"/>
-        <Button x:Name="BtnRefresh" Content="↻  VMs vernieuwen" Width="140" HorizontalAlignment="Left"
+        <Button x:Name="BtnRefresh" Content="↻  Refresh VMs" Width="140" HorizontalAlignment="Left"
                 Background="#45475A" Foreground="#CDD6F4" BorderThickness="0" Cursor="Hand"
                 Height="28" FontSize="11" Margin="0,8,0,0"/>
       </StackPanel>
@@ -110,7 +110,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     </Border>
 
     <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-      <Button x:Name="BtnJoin" Content="Domain Join uitvoeren" Style="{StaticResource Btn}" Width="200"/>
+      <Button x:Name="BtnJoin" Content="Run Domain Join" Style="{StaticResource Btn}" Width="200"/>
     </StackPanel>
   </Grid>
 </Window>
@@ -144,18 +144,18 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#A6E3A1")
-        $btnJoin.Content        = "Simuleren (Dry Run)"
+        $btnJoin.Content        = "Simulate (Dry Run)"
         $btnJoin.Background     = $conv.ConvertFrom("#89B4FA")
         $btnJoin.Foreground     = $conv.ConvertFrom("#1E1E2E")
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text       = "⚠  LIVE UITVOERING — VMs worden gejoined en herstarten"
+        $dryRunTitle.Text       = "⚠  LIVE EXECUTION — VMs worden gejoined en herstarten"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#F38BA8")
-        $btnJoin.Content        = "LIVE Domain Join uitvoeren"
+        $btnJoin.Content        = "LIVE Run Domain Join"
         $btnJoin.Background     = $conv.ConvertFrom("#F38BA8")
         $btnJoin.Foreground     = $conv.ConvertFrom("#1E1E2E")
     }
@@ -220,7 +220,7 @@ $btnJoin.Add_Click({
     if (-not $localPwd -or -not $domainPwd) { [System.Windows.MessageBox]::Show("Vul beide wachtwoorden in.", "SSW-Lab"); $btnJoin.IsEnabled = $true; return }
 
     $sel = $checkBoxes.GetEnumerator() | Where-Object { $_.Value.IsChecked } | ForEach-Object { $_.Key }
-    if ($sel.Count -eq 0) { Write-Log "Geen VMs geselecteerd."; $btnJoin.IsEnabled = $true; return }
+    if ($sel.Count -eq 0) { Write-Log "No VMs selected."; $btnJoin.IsEnabled = $true; return }
 
     $step = [math]::Floor(100 / $sel.Count); $done = 0
 
@@ -259,5 +259,6 @@ $btnJoin.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
 
 

@@ -17,9 +17,9 @@ function Get-PreflightChecks {
     $hvState = (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -ErrorAction SilentlyContinue).State
     $hvEnabled = $hvState -eq "Enabled"
     $results.Add([PSCustomObject]@{
-        Check   = "Hyper-V geïnstalleerd"
+        Check   = "Hyper-V installed"
         Status  = if ($hvEnabled) { "OK" } else { "FOUT" }
-        Detail  = if ($hvEnabled) { "Hyper-V is actief" } else { "Voer uit: Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All" }
+        Detail  = if ($hvEnabled) { "Hyper-V is active" } else { "Voer uit: Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All" }
         Block   = -not $hvEnabled
     })
 
@@ -36,11 +36,11 @@ function Get-PreflightChecks {
     } elseif ($hypervisorPresent) {
       "Virtualisatie actief (afgeleid via actieve hypervisor)"
     } else {
-      "Schakel virtualisatie in via BIOS/UEFI"
+      "Enable virtualization in BIOS/UEFI"
     }
 
     $results.Add([PSCustomObject]@{
-        Check   = "Virtualisatie in BIOS"
+        Check   = "Virtualization in BIOS"
         Status  = if ($vmx) { "OK" } else { "FOUT" }
       Detail  = $vmxDetail
         Block   = -not $vmx
@@ -55,7 +55,7 @@ function Get-PreflightChecks {
         "FOUT"        { "$ramGB GB — onvoldoende voor SSW-Lab (min. 16 GB)" }
     }
     $results.Add([PSCustomObject]@{
-        Check   = "RAM beschikbaar"
+        Check   = "RAM available"
         Status  = $ramStatus
         Detail  = $ramDetail
         Block   = ($ramGB -lt 16)
@@ -67,7 +67,7 @@ function Get-PreflightChecks {
     $freeGB = [math]::Round($disk.Free / 1GB)
     $diskStatus = if ($freeGB -ge 150) { "OK" } elseif ($freeGB -ge 80) { "WAARSCHUWING" } else { "FOUT" }
     $results.Add([PSCustomObject]@{
-      Check   = "Vrije schijfruimte ($($drive):\)"
+      Check   = "Free disk space ($($drive):\)"
         Status  = $diskStatus
         Detail  = switch ($diskStatus) {
             "OK"           { "$freeGB GB vrij — voldoende voor Full preset" }
@@ -77,11 +77,11 @@ function Get-PreflightChecks {
         Block   = ($freeGB -lt 80)
     })
 
-    # 5. Windows versie
+    # 5. Windows version
     $winVer = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").DisplayVersion
     $isW11  = [System.Environment]::OSVersion.Version.Build -ge 22000
     $results.Add([PSCustomObject]@{
-        Check   = "Windows versie"
+        Check   = "Windows version"
         Status  = if ($isW11) { "OK" } else { "WAARSCHUWING" }
         Detail  = if ($isW11) { "Windows 11 ($winVer)" } else { "Windows 10 — Hyper-V werkt, maar clientconfiguraties kunnen afwijken" }
         Block   = $false
@@ -114,7 +114,7 @@ function Get-PreflightChecks {
 function Get-PresetAdvice($checks) {
     $blocked = $checks | Where-Object { $_.Block }
 
-    if ($blocked) { return "⛔  Lab kan niet starten — los de rode punten op." }
+    if ($blocked) { return "⛔  Lab cannot start — los de rode punten op." }
 
     $ramCheck = $checks | Where-Object { $_.Check -like "RAM*" }
     if ($ramCheck.Status -eq "WAARSCHUWING") {
@@ -148,7 +148,7 @@ function Get-CertAdvice {
     $diskOk = $freeGB -ge $req.MinDisk
 
     if ($ramOk -and $diskOk) {
-        return "✅  Jouw laptop is geschikt voor $cert — preset: $($req.Preset) ($($req.VMs))"
+        return "✅  Your laptop is suitable for $cert — preset: $($req.Preset) ($($req.VMs))"
     }
 
     $issues = @()
@@ -204,7 +204,7 @@ function Get-CertAdvice {
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0" Style="{StaticResource Header}" Text="Preflight Check"/>
-    <TextBlock Grid.Row="1" Style="{StaticResource Sub}" Text="Systeemvereisten voor SSW-Lab"/>
+    <TextBlock Grid.Row="1" Style="{StaticResource Sub}" Text="System requirements for SSW-Lab"/>
 
     <ScrollViewer Grid.Row="2" Margin="16,0,16,0" VerticalScrollBarVisibility="Auto">
       <StackPanel x:Name="CheckPanel"/>
@@ -241,7 +241,7 @@ function Get-CertAdvice {
 
     <Border Grid.Row="4" Background="#313244" CornerRadius="6" Margin="16,6,16,0" Padding="14,10">
       <StackPanel>
-        <TextBlock Text="Voor welk certificeringstraject bereid je voor?"
+        <TextBlock Text="Which certification track are you preparing for?"
                    Foreground="#CDD6F4" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,8"/>
         <StackPanel Orientation="Horizontal">
           <RadioButton x:Name="RadioMD102" Content="MD-102" GroupName="Cert"
@@ -267,7 +267,7 @@ function Get-CertAdvice {
     </Border>
 
     <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,12,16,16">
-      <Button x:Name="BtnRerun" Content="Opnieuw controleren" Style="{StaticResource PrimaryBtn}"
+      <Button x:Name="BtnRerun" Content="Check again" Style="{StaticResource PrimaryBtn}"
               Background="#A6E3A1" Margin="0,0,10,0"/>
       <Button x:Name="BtnNext" Content="Doorgaan naar 01-NETWORK →" Style="{StaticResource PrimaryBtn}"
               IsEnabled="False"/>
@@ -502,3 +502,4 @@ $btnNext.Add_Click({
 
 $reader.Add_Loaded({ Render-Checks })
 $reader.ShowDialog() | Out-Null
+

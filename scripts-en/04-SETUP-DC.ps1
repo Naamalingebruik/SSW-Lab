@@ -13,7 +13,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SSW-Lab | Domain Controller inrichten" Height="640" Width="640"
+        Title="SSW-Lab | Configure Domain Controller" Height="640" Width="640"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
   <Window.Resources>
@@ -51,7 +51,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     </Grid.RowDefinitions>
 
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
-      <TextBlock Text="Domain Controller inrichten" Foreground="#CDD6F4" FontSize="20" FontWeight="SemiBold"/>
+      <TextBlock Text="Configure Domain Controller" Foreground="#CDD6F4" FontSize="20" FontWeight="SemiBold"/>
       <TextBlock Text="AD DS installeren en DC01 promoveren tot domain controller"
                  Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
@@ -63,17 +63,17 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
       <StackPanel Grid.Column="0">
         <TextBlock Text="VM naam (Hyper-V)" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtVMName" Style="{StaticResource Fld}"/>
-        <TextBlock Text="Domeinnaam (FQDN)" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Domain name (FQDN)" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtDomain" Style="{StaticResource Fld}"/>
-        <TextBlock Text="NetBIOS naam" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="NetBIOS name" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtNetBIOS" Style="{StaticResource Fld}"/>
-        <TextBlock Text="Statisch IP voor DC" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Static IP for DC" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtDCIP" Style="{StaticResource Fld}"/>
       </StackPanel>
       <StackPanel Grid.Column="2">
         <TextBlock Text="Lokaal admin wachtwoord (VM lokale admin)" Style="{StaticResource Lbl}"/>
         <PasswordBox x:Name="PwdAdmin" Style="{StaticResource PwdFld}"/>
-        <TextBlock Text="DSRM wachtwoord (herstelwachtwoord)" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="DSRM password (recovery password)" Style="{StaticResource Lbl}"/>
         <PasswordBox x:Name="PwdDSRM" Style="{StaticResource PwdFld}"/>
         <TextBlock Text="Extra domain admin gebruikersnaam" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtDomainAdmin" Style="{StaticResource Fld}"/>
@@ -142,18 +142,18 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#A6E3A1")
-        $btnSetup.Content       = "Simuleren (Dry Run)"
+        $btnSetup.Content       = "Simulate (Dry Run)"
         $btnSetup.Background    = $conv.ConvertFrom("#89B4FA")
         $btnSetup.Foreground    = $conv.ConvertFrom("#1E1E2E")
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text       = "⚠  LIVE UITVOERING — DC01 wordt geconfigureerd en herstart"
+        $dryRunTitle.Text       = "⚠  LIVE EXECUTION — DC01 wordt geconfigureerd en herstart"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#F38BA8")
-        $btnSetup.Content       = "LIVE DC inrichten"
+        $btnSetup.Content       = "Configure LIVE DC"
         $btnSetup.Background    = $conv.ConvertFrom("#F38BA8")
         $btnSetup.Foreground    = $conv.ConvertFrom("#1E1E2E")
     }
@@ -302,5 +302,6 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
 
 

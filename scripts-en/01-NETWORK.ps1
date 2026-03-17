@@ -12,7 +12,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SSW-Lab | Netwerk inrichten" Height="560" Width="640"
+        Title="SSW-Lab | Configure network" Height="560" Width="640"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
   <Window.Resources>
@@ -52,7 +52,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     </Grid.RowDefinitions>
 
     <StackPanel Grid.Row="0">
-      <TextBlock Text="Netwerk inrichten" Foreground="#CDD6F4" FontSize="20" FontWeight="SemiBold"/>
+      <TextBlock Text="Configure network" Foreground="#CDD6F4" FontSize="20" FontWeight="SemiBold"/>
       <TextBlock Text="Interne vSwitch + NAT voor SSW-Lab" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,16"/>
     </StackPanel>
 
@@ -63,13 +63,13 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
       <StackPanel Grid.Column="0">
-        <TextBlock Text="vSwitch naam" Style="{StaticResource Label}"/>
+        <TextBlock Text="vSwitch name" Style="{StaticResource Label}"/>
         <TextBox x:Name="TxtSwitch" Style="{StaticResource Field}"/>
-        <TextBlock Text="NAT naam" Style="{StaticResource Label}"/>
+        <TextBlock Text="NAT name" Style="{StaticResource Label}"/>
         <TextBox x:Name="TxtNAT" Style="{StaticResource Field}"/>
       </StackPanel>
       <StackPanel Grid.Column="2">
-        <TextBlock Text="NAT subnet (bijv. 10.50.10.0/24)" Style="{StaticResource Label}"/>
+        <TextBlock Text="NAT subnet (for example 10.50.10.0/24)" Style="{StaticResource Label}"/>
         <TextBox x:Name="TxtSubnet" Style="{StaticResource Field}"/>
         <TextBlock Text="Gateway IP" Style="{StaticResource Label}"/>
         <TextBox x:Name="TxtGateway" Style="{StaticResource Field}"/>
@@ -137,18 +137,18 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#A6E3A1")
-        $btnApply.Content       = "Simuleren (Dry Run)"
+        $btnApply.Content       = "Simulate (Dry Run)"
         $btnApply.Background    = $conv.ConvertFrom("#89B4FA")
         $btnApply.Foreground    = $conv.ConvertFrom("#1E1E2E")
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text       = "⚠  LIVE UITVOERING — wijzigingen worden aangebracht op dit systeem"
+        $dryRunTitle.Text       = "⚠  LIVE EXECUTION — wijzigingen worden aangebracht op dit systeem"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#F38BA8")
-        $btnApply.Content       = "LIVE uitvoeren"
+        $btnApply.Content       = "Run LIVE"
         $btnApply.Background    = $conv.ConvertFrom("#F38BA8")
         $btnApply.Foreground    = $conv.ConvertFrom("#1E1E2E")
     }
@@ -186,7 +186,7 @@ $btnApply.Add_Click({
         $progress.Value = 10
         $existSwitch = Get-VMSwitch -Name $switchName -ErrorAction SilentlyContinue
         if ($existSwitch) {
-            Write-Log "${pre}vSwitch '$switchName' bestaat al — overgeslagen."
+            Write-Log "${pre}vSwitch '$switchName' already exists - skipped."
         } else {
             Write-Log "${pre}New-VMSwitch -Name '$switchName' -SwitchType Internal"
             if (-not $isDry) { New-VMSwitch -Name $switchName -SwitchType Internal -ErrorAction Stop | Out-Null }
@@ -208,7 +208,7 @@ $btnApply.Add_Click({
 
         $existNAT = Get-NetNat -Name $natName -ErrorAction SilentlyContinue
         if ($existNAT) {
-            Write-Log "${pre}NAT '$natName' bestaat al — overgeslagen."
+            Write-Log "${pre}NAT '$natName' already exists - skipped."
         } else {
             Write-Log "${pre}New-NetNat -Name '$natName' -InternalIPInterfaceAddressPrefix $subnet"
             if (-not $isDry) { New-NetNat -Name $natName -InternalIPInterfaceAddressPrefix $subnet -ErrorAction Stop | Out-Null }
@@ -242,3 +242,4 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
