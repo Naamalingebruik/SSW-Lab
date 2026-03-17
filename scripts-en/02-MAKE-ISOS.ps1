@@ -257,7 +257,7 @@ function Build-UnattendISO {
 
     <StackPanel Grid.Row="0" Margin="0,0,0,8">
       <TextBlock Text="ISO's voorbereiden" Foreground="#CDD6F4" FontSize="20" FontWeight="SemiBold"/>
-      <TextBlock Text="Injecteer unattend.xml in MSDN ISO's" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="Inject unattend.xml into MSDN ISOs" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
 
     <!-- ADK banner -->
@@ -379,13 +379,13 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#A6E3A1")
-        $btnBuild.Content       = "Simuleren (Dry Run)"
+        $btnBuild.Content       = "Simulate (Dry Run)"
         $btnBuild.Background    = $conv.ConvertFrom("#89B4FA")
         $btnBuild.Foreground    = $conv.ConvertFrom("#1E1E2E")
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text       = "⚠  LIVE UITVOERING — ISO's worden daadwerkelijk gebouwd"
+        $dryRunTitle.Text       = "⚠  LIVE EXECUTION — ISO's worden daadwerkelijk gebouwd"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
@@ -482,3 +482,4 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
