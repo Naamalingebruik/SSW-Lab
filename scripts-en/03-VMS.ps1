@@ -56,7 +56,7 @@ function Get-TotalRAM($vmKeys) {
 
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="VM's aanmaken" Foreground="#CDD6F4" FontSize="20" FontWeight="SemiBold"/>
-      <TextBlock Text="Kies een preset of stel handmatig in" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="Choose a preset or configure manually" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
 
     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,16">
@@ -85,7 +85,7 @@ function Get-TotalRAM($vmKeys) {
 
     <Border Grid.Row="2" Background="#313244" CornerRadius="6" Padding="16,12" Margin="0,0,0,12">
       <StackPanel>
-        <TextBlock Text="Selecteer VMs" Foreground="#A6ADC8" FontSize="11" Margin="0,0,0,8"/>
+        <TextBlock Text="Select VMs" Foreground="#A6ADC8" FontSize="11" Margin="0,0,0,8"/>
         <WrapPanel x:Name="VMPanel"/>
         <TextBlock x:Name="RAMPreview" Text="" Foreground="#F9E2AF" FontSize="12" Margin="0,10,0,0"/>
       </StackPanel>
@@ -176,13 +176,13 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#A6E3A1")
-        $btnCreate.Content      = "Simuleren (Dry Run)"
+        $btnCreate.Content      = "Simulate (Dry Run)"
         $btnCreate.Background   = $conv.ConvertFrom("#89B4FA")
         $btnCreate.Foreground   = $conv.ConvertFrom("#1E1E2E")
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text       = "⚠  LIVE UITVOERING — VM's worden aangemaakt op dit systeem"
+        $dryRunTitle.Text       = "⚠  LIVE EXECUTION — VM's worden aangemaakt op dit systeem"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
@@ -222,7 +222,7 @@ $chkDryRun.Add_Unchecked({ Update-DryRunBar })
 function Update-RAMPreview {
     $sel = $checkBoxes.GetEnumerator() | Where-Object { $_.Value.IsChecked } | ForEach-Object { $_.Key }
     $total = Get-TotalRAM $sel
-    $ramPreview.Text = "Totaal geselecteerd: $total GB RAM"
+    $ramPreview.Text = "Total selected: $total GB RAM"
 }
 
 function Set-Preset($name) {
@@ -258,7 +258,7 @@ $btnCreate.Add_Click({
     $pre   = if ($isDry) { "[DRY RUN] " } else { "" }
     $sel   = $checkBoxes.GetEnumerator() | Where-Object { $_.Value.IsChecked } | ForEach-Object { $_.Key }
 
-    if ($sel.Count -eq 0) { Write-Log "Geen VMs geselecteerd."; $btnCreate.IsEnabled = $true; return }
+    if ($sel.Count -eq 0) { Write-Log "No VMs selected."; $btnCreate.IsEnabled = $true; return }
 
     $vmPath = $SSWConfig.VMPath
     if (-not $isDry -and -not (Test-Path $vmPath)) { New-Item -ItemType Directory -Path $vmPath -Force | Out-Null }
@@ -283,17 +283,17 @@ $btnCreate.Add_Click({
         $existing = Get-VM -Name $vmName -ErrorAction SilentlyContinue
 
         if ($existing) {
-            Write-Log "${pre}$vmName bestaat al — overgeslagen."
+            Write-Log "${pre}$vmName already exists - skipped."
           $skippedCount++
         } else {
             $isoPath = if ($p.OS -eq "Server2025") { $txtSrvISO.Text } else { $txtW11ISO.Text }
             Write-Log "${pre}New-VM '$vmName' ($($p.RAM_GB) GB RAM, $($p.Disk_GB) GB disk, ISO: $(Split-Path $isoPath -Leaf))"
             if (-not $isDry) {
                 try {
-              if (-not $isoPath -or -not (Test-Path $isoPath)) { Write-Log "ISO niet gevonden voor $vmName."; $failedCount++; continue }
+              if (-not $isoPath -or -not (Test-Path $isoPath)) { Write-Log "ISO not found for $vmName."; $failedCount++; continue }
                     $diskPath = Join-Path $vmPath "$vmName.vhdx"
               if (Test-Path $diskPath) {
-                Write-Log "FOUT $vmName`: Schijfbestand bestaat al op $diskPath. Verwijder of hernoem dit VHDX-bestand en probeer opnieuw."
+                Write-Log "ERROR $vmName`: Disk file already exists at $diskPath. Remove or rename this VHDX file and try again."
                 $failedCount++
                 continue
               }
@@ -301,17 +301,17 @@ $btnCreate.Add_Click({
                     $vm = New-VM -Name $vmName -MemoryStartupBytes ($p.RAM_GB * 1GB) -VHDPath $diskPath `
                                  -SwitchName $SSWConfig.vSwitchName -Generation 2 -Path $vmPath -ErrorAction Stop
                     Set-VM -VM $vm -ProcessorCount $p.vCPU -DynamicMemory:$false -AutomaticCheckpointsEnabled:$false
-                    # Windows 11/Server 2025 lab-VMs moeten Secure Boot + vTPM hebben.
+                    # Windows 11/Server 2025 lab VMs require Secure Boot + vTPM.
                     Set-VMFirmware -VM $vm -EnableSecureBoot On -SecureBootTemplate MicrosoftWindows -ErrorAction Stop
                     Set-VMKeyProtector -VMName $vmName -NewLocalKeyProtector -ErrorAction Stop | Out-Null
                     Enable-VMTPM -VMName $vmName -ErrorAction Stop | Out-Null
                     Add-VMDvdDrive -VM $vm -Path $isoPath
                     $dvd = Get-VMDvdDrive -VM $vm
                     Set-VMFirmware -VM $vm -FirstBootDevice $dvd
-                    Write-Log "✔ $vmName aangemaakt (Secure Boot + vTPM actief)."
+                    Write-Log "✔ $vmName created (Secure Boot + vTPM enabled)."
                     $createdCount++
                   } catch {
-                    Write-Log "FOUT $vmName`: $_"
+                    Write-Log "ERROR $vmName`: $_"
                     $failedCount++
                   }
                 } else {
@@ -324,14 +324,14 @@ $btnCreate.Add_Click({
 
     $progress.Value = 100
     if ($isDry) {
-      Write-Log "✔ Dry Run klaar — niets aangemaakt. Geselecteerd: $($sel.Count), bestaand/overgeslagen: $skippedCount."
+      Write-Log "✔ Dry Run complete - nothing created. Selected: $($sel.Count), existing/skipped: $skippedCount."
       $btnNext.IsEnabled = $true
     } elseif ($failedCount -gt 0) {
-      Write-Log "⚠ Voltooid met fouten. Aangemaakt: $createdCount, overgeslagen: $skippedCount, fouten: $failedCount."
-      Write-Log "Los de fouten op en run deze stap opnieuw voordat je doorgaat."
+      Write-Log "⚠ Completed with errors. Created: $createdCount, skipped: $skippedCount, errors: $failedCount."
+      Write-Log "Fix the errors and run this step again before continuing."
       $btnNext.IsEnabled = $false
     } else {
-      Write-Log "✔ Klaar. Aangemaakt: $createdCount, overgeslagen: $skippedCount, fouten: 0. Start de VMs om de installatie te voltooien."
+      Write-Log "✔ Complete. Created: $createdCount, skipped: $skippedCount, errors: 0. Start the VMs to finish installation."
       $btnNext.IsEnabled = $true
     }
     $btnCreate.IsEnabled = $true
@@ -344,5 +344,6 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
 
 
