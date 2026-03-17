@@ -11,6 +11,8 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MS-102 | Week 5 — SharePoint Online en Microsoft Teams" Height="700" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
@@ -208,3 +210,5 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
