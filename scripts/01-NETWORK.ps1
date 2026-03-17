@@ -11,6 +11,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="SSW-Lab | Netwerk inrichten" Height="560" Width="640"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
@@ -136,6 +137,9 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#A6E3A1")
+        $btnApply.Content       = "Simuleren (Dry Run)"
+        $btnApply.Background    = $conv.ConvertFrom("#89B4FA")
+        $btnApply.Foreground    = $conv.ConvertFrom("#1E1E2E")
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
@@ -144,6 +148,9 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#F38BA8")
+        $btnApply.Content       = "LIVE uitvoeren"
+        $btnApply.Background    = $conv.ConvertFrom("#F38BA8")
+        $btnApply.Foreground    = $conv.ConvertFrom("#1E1E2E")
     }
 }
 

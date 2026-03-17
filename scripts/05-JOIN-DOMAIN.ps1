@@ -11,6 +11,8 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="SSW-Lab | Domain Join" Height="640" Width="620"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
@@ -142,6 +144,9 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#A6E3A1")
+        $btnJoin.Content        = "Simuleren (Dry Run)"
+        $btnJoin.Background     = $conv.ConvertFrom("#89B4FA")
+        $btnJoin.Foreground     = $conv.ConvertFrom("#1E1E2E")
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
@@ -150,6 +155,9 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#F38BA8")
+        $btnJoin.Content        = "LIVE Domain Join uitvoeren"
+        $btnJoin.Background     = $conv.ConvertFrom("#F38BA8")
+        $btnJoin.Foreground     = $conv.ConvertFrom("#1E1E2E")
     }
 }
 
@@ -225,16 +233,16 @@ $btnJoin.Add_Click({
             if ($vm.State -ne "Running") { Start-VM -Name $vmName; Start-Sleep -Seconds 30 }
 
             $localCred = [PSCredential]::new(
-                "$vmName\$localAdmin",
+              ".\$localAdmin",
                 (ConvertTo-SecureString $localPwd -AsPlainText -Force)
             )
             $domCred = [PSCredential]::new(
-                "$($SSWConfig.DomainNetBIOS)\$domAdmin",
+              "$domAdmin@$domain",
                 (ConvertTo-SecureString $domainPwd -AsPlainText -Force)
             )
             try {
                 Invoke-Command -VMName $vmName -Credential $localCred -ScriptBlock {
-                    param($dom, $cred)
+                  param([string]$dom, [pscredential]$cred)
                     Add-Computer -DomainName $dom -Credential $cred -Restart -Force -ErrorAction Stop
                 } -ArgumentList $domain, $domCred
                 Write-Log "✔ $vmName wordt herstart en joint $domain"
@@ -251,3 +259,5 @@ $btnJoin.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
+

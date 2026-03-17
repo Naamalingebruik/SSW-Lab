@@ -11,6 +11,8 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="SSW-Lab | Domain Controller inrichten" Height="640" Width="640"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
@@ -140,6 +142,9 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#A6E3A1")
+        $btnSetup.Content       = "Simuleren (Dry Run)"
+        $btnSetup.Background    = $conv.ConvertFrom("#89B4FA")
+        $btnSetup.Foreground    = $conv.ConvertFrom("#1E1E2E")
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
@@ -148,6 +153,9 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#F38BA8")
+        $btnSetup.Content       = "LIVE DC inrichten"
+        $btnSetup.Background    = $conv.ConvertFrom("#F38BA8")
+        $btnSetup.Foreground    = $conv.ConvertFrom("#1E1E2E")
     }
 }
 
@@ -210,7 +218,7 @@ $btnSetup.Add_Click({
     }
 
     $cred = [PSCredential]::new(
-        "$vmName\$localUser",
+      ".\$localUser",
         (ConvertTo-SecureString $adminPwd -AsPlainText -Force)
     )
 
@@ -251,7 +259,7 @@ $btnSetup.Add_Click({
         $progress.Value = 90
         Write-Log "Forest aangemaakt. DC herstart — wachten tot DC weer online is…"
         $domCred = [PSCredential]::new(
-            "$domain\Administrator",
+          "$netbios\Administrator",
             (ConvertTo-SecureString $adminPwd -AsPlainText -Force)
         )
         $online = $false
@@ -268,8 +276,8 @@ $btnSetup.Add_Click({
 
         Write-Log "Extra domain admin '$domainAdmin' aanmaken in AD…"
         Invoke-Command -VMName $vmName -Credential $domCred -ScriptBlock {
-            param($user, $pwd, $nb)
-            $sec = ConvertTo-SecureString $pwd -AsPlainText -Force
+          param($user, $plainPassword, $nb)
+          $sec = ConvertTo-SecureString $plainPassword -AsPlainText -Force
             New-ADUser -Name $user -SamAccountName $user -AccountPassword $sec `
                 -Enabled $true -PasswordNeverExpires $true -ErrorAction Stop
             Add-ADGroupMember -Identity "Domain Admins" -Members $user -ErrorAction Stop
@@ -294,3 +302,5 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
+

@@ -24,11 +24,25 @@ function Get-PreflightChecks {
     })
 
     # 2. BIOS virtualisatie
-    $vmx = (Get-CimInstance Win32_Processor).VirtualizationFirmwareEnabled
+    # Sommige systemen rapporteren VirtualizationFirmwareEnabled onbetrouwbaar via WMI.
+    # Daarom gebruiken we een fallback: als de hypervisor actief is, dan staat firmware-virtualisatie effectief aan.
+    $cpuInfo = Get-CimInstance Win32_Processor
+    $vmxFromCpu = @($cpuInfo.VirtualizationFirmwareEnabled) -contains $true
+    $hypervisorPresent = (Get-CimInstance Win32_ComputerSystem).HypervisorPresent
+    $vmx = $vmxFromCpu -or $hypervisorPresent
+
+    $vmxDetail = if ($vmxFromCpu) {
+      "Intel VT-x / AMD-V actief"
+    } elseif ($hypervisorPresent) {
+      "Virtualisatie actief (afgeleid via actieve hypervisor)"
+    } else {
+      "Schakel virtualisatie in via BIOS/UEFI"
+    }
+
     $results.Add([PSCustomObject]@{
         Check   = "Virtualisatie in BIOS"
         Status  = if ($vmx) { "OK" } else { "FOUT" }
-        Detail  = if ($vmx) { "Intel VT-x / AMD-V actief" } else { "Schakel virtualisatie in via BIOS/UEFI" }
+      Detail  = $vmxDetail
         Block   = -not $vmx
     })
 
@@ -53,7 +67,7 @@ function Get-PreflightChecks {
     $freeGB = [math]::Round($disk.Free / 1GB)
     $diskStatus = if ($freeGB -ge 150) { "OK" } elseif ($freeGB -ge 80) { "WAARSCHUWING" } else { "FOUT" }
     $results.Add([PSCustomObject]@{
-        Check   = "Vrije schijfruimte ($drive:\)"
+      Check   = "Vrije schijfruimte ($($drive):\)"
         Status  = $diskStatus
         Detail  = switch ($diskStatus) {
             "OK"           { "$freeGB GB vrij — voldoende voor Full preset" }
@@ -290,10 +304,9 @@ $certClickHandler = {
     param($s, $e)
     $script:currentCert = $s.Content
     $advice = Get-CertAdvice $script:currentCert
+  $certColor = if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
     $certAdviceText.Text = $advice
-    $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom(
-        if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
-    )
+  $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom($certColor)
     $btnStudyGuide.Visibility = "Visible"
 }
 
@@ -389,10 +402,9 @@ function Render-Checks {
 
     if ($script:currentCert -and $certAdviceText) {
         $advice = Get-CertAdvice $script:currentCert
+      $certColor = if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
         $certAdviceText.Text = $advice
-        $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom(
-            if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
-        )
+      $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom($certColor)
     }
 }
 
