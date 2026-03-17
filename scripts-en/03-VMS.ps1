@@ -250,6 +250,43 @@ function Write-Log($msg) {
     $logBox.ScrollToEnd()
 }
 
+function Set-VMIsoWithRetry {
+  param(
+    $VM,
+    [string]$IsoPath,
+    [int]$MaxAttempts = 4,
+    [int]$DelaySeconds = 2
+  )
+
+  if (-not (Test-Path $IsoPath)) {
+    throw "ISO path does not exist: $IsoPath"
+  }
+
+  $dvd = Get-VMDvdDrive -VM $VM -ErrorAction SilentlyContinue | Select-Object -First 1
+  if (-not $dvd) {
+    Add-VMDvdDrive -VM $VM -ErrorAction Stop | Out-Null
+    $dvd = Get-VMDvdDrive -VM $VM -ErrorAction Stop | Select-Object -First 1
+  }
+
+  $lastError = $null
+  for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+    try {
+      Set-VMDvdDrive -VMName $VM.Name -ControllerNumber $dvd.ControllerNumber -ControllerLocation $dvd.ControllerLocation -Path $null -ErrorAction SilentlyContinue
+      Start-Sleep -Milliseconds 250
+      Set-VMDvdDrive -VMName $VM.Name -ControllerNumber $dvd.ControllerNumber -ControllerLocation $dvd.ControllerLocation -Path $IsoPath -ErrorAction Stop
+      return (Get-VMDvdDrive -VMName $VM.Name | Where-Object { $_.ControllerNumber -eq $dvd.ControllerNumber -and $_.ControllerLocation -eq $dvd.ControllerLocation } | Select-Object -First 1)
+    } catch {
+      $lastError = $_
+      if ($attempt -lt $MaxAttempts) {
+        Write-Log "Warning: ISO attach failed for $($VM.Name) (attempt $attempt/$MaxAttempts). Retrying in $DelaySeconds s."
+        Start-Sleep -Seconds $DelaySeconds
+      }
+    }
+  }
+
+  throw "Failed to attach ISO to $($VM.Name) after $MaxAttempts attempts. Last error: $($lastError.Exception.Message)"
+}
+
 $btnCreate.Add_Click({
     $btnCreate.IsEnabled = $false
     $logBox.Text = ""
@@ -305,8 +342,7 @@ $btnCreate.Add_Click({
                     Set-VMFirmware -VM $vm -EnableSecureBoot On -SecureBootTemplate MicrosoftWindows -ErrorAction Stop
                     Set-VMKeyProtector -VMName $vmName -NewLocalKeyProtector -ErrorAction Stop | Out-Null
                     Enable-VMTPM -VMName $vmName -ErrorAction Stop | Out-Null
-                    Add-VMDvdDrive -VM $vm -Path $isoPath
-                    $dvd = Get-VMDvdDrive -VM $vm
+                    $dvd = Set-VMIsoWithRetry -VM $vm -IsoPath $isoPath
                     Set-VMFirmware -VM $vm -FirstBootDevice $dvd
                     Write-Log "✔ $vmName created (Secure Boot + vTPM enabled)."
                     $createdCount++
