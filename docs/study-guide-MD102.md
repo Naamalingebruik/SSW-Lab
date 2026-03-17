@@ -3,7 +3,7 @@
 > 🌐 **Language:** English | [Nederlands](studieprogramma-MD102.md)
 
 **Duration:** 7 weeks · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02) + W11-AUTOPILOT for week 5  
-**MS Learn path:** [Endpoint Administrator](https://learn.microsoft.com/en-us/certifications/exams/md-102/)  
+**MS Learn path:** [Endpoint Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/md-102)  
 **Exam weight:**
 
 | Domain | Weight |
@@ -184,7 +184,7 @@
 ## Week 7 — Exam preparation
 
 ### Activities
-- Review weak domains based on the [official exam profile](https://learn.microsoft.com/en-us/certifications/exams/md-102/)
+- Review weak domains based on the [official exam study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/md-102)
 - Complete the **Microsoft Learn practice assessment** for MD-102: [Practice assessment](https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications)
 - Revisit lab tasks you felt less confident about (week 2 Intune enrollment, week 5 Autopilot)
 - Create a summary of all PowerShell commands used in the lab exercises

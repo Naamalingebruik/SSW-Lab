@@ -3,7 +3,7 @@
 > 🌐 **Taal:** Nederlands | [English](study-guide-MS102.md)
 
 **Duur:** 8 weken · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02)  
-**MS Learn pad:** [Microsoft 365 Administrator](https://learn.microsoft.com/en-us/certifications/exams/ms-102/)  
+**MS Learn pad:** [Microsoft 365 Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ms-102)  
 **Examengewicht:**
 
 | Domein | Gewicht |
@@ -209,7 +209,7 @@
 ## Week 8 — Examenvoorbereiding
 
 ### Activiteiten
-- Herhaal zwakke domeinen op basis van het [officiële examenprofiel](https://learn.microsoft.com/en-us/certifications/exams/ms-102/)
+- Herhaal zwakke domeinen op basis van het [officiële examenstudiegids](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ms-102)
 - Doe de **Microsoft Learn oefenassessment** MS-102: [Practice assessment](https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications)
 - Herhaal Azure AD Connect sync, Defender-incidenten en Purview-labels
 - Oefen PowerShell: MgGraph module (`Connect-MgGraph`), Exchange Online module
