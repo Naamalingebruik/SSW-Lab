@@ -211,6 +211,30 @@
 
 ## Week 8 — Examenvoorbereiding
 
+### Exam Coverage Gaps en Must-Do Labs
+
+Doel: van goede basis naar volledige exam-dekking met cloudpraktijk.
+
+### Nog expliciet af te dekken
+1. ARM templates en Bicep hands-on, inclusief aanpassen en deployen.
+2. VM Scale Sets en compute-schaalscenario's.
+3. Storage security details, zoals firewalls, soft delete, versioning en replicatiekeuzes.
+4. Backup-vault varianten en herstelrapportage.
+
+### Must-do labs voor slaagkans
+1. Deploy 1 resource set met ARM en 1 met Bicep, en leg verschillen vast.
+2. Maak een VM Scale Set met autoscale regels en voer een loadtest uit.
+3. Configureer storage firewall plus private endpoint en valideer toegangsbeperkingen.
+4. Configureer blob soft delete, versioning en lifecycle policy in 1 scenario.
+5. Voer een Azure Site Recovery test failover uit en documenteer failback-stappen.
+
+### Exit criteria voordat je examen plant
+1. Je kunt alle vijf AZ-104 domeinen praktisch aantonen in portal, CLI en PowerShell.
+2. Je beheerst networking-troubleshooting met Network Watcher in realistische cases.
+3. Je hebt minimaal 2 volledige herhaalruns gedaan van identity, networking en recovery.
+
+---
+
 ### Activiteiten
 - Herhaal zwakke domeinen op basis van het [officiële examenstudiegids](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104)
 - Doe de **Microsoft Learn oefenassessment** AZ-104: [Practice assessment](https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications)

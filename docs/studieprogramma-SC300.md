@@ -179,6 +179,30 @@
 
 ## Week 7 — Examenvoorbereiding
 
+### Exam Coverage Gaps en Must-Do Labs
+
+Doel: de huidige labs expliciet laten aansluiten op alle exam-doelstellingen.
+
+### Nog expliciet af te dekken
+1. Global Secure Access verdieping: clientdeployment, Private Access en Internet Access voor Microsoft 365.
+2. Cross-tenant synchronization naast standaard B2B collaboration.
+3. Defender for Cloud Apps in workload identity context.
+4. Identity monitoring via Log Analytics, KQL, workbooks en Identity Secure Score.
+
+### Must-do labs voor slaagkans
+1. Voer een end-to-end Global Secure Access test uit met policy, client en logging-resultaat.
+2. Configureer cross-tenant synchronization met een testtenant en valideer lifecycle gedrag.
+3. Maak een app registration met delegated en application permissions en leg consent impact vast.
+4. Bouw 2 KQL queries voor identity logs en presenteer de interpretatie.
+5. Oefen 3 PIM-rondes: eligible assignment, activation, audit en break-glass controle.
+
+### Exit criteria voordat je examen plant
+1. Je kunt elk SC-300 domein verbinden aan een eigen praktijkvoorbeeld.
+2. Je hebt CA, Identity Protection, workload identity en governance daadwerkelijk live getest.
+3. Je kunt risico-incidenten inhoudelijk analyseren met logdata in plaats van alleen portal-clicks.
+
+---
+
 ### Activiteiten
 - Herhaal zwakke domeinen op basis van het [officiële examenstudiegids](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-300)
 - Doe de **Microsoft Learn oefenassessment** SC-300: [Practice assessment](https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications)

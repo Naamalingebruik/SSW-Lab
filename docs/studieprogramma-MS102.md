@@ -206,6 +206,30 @@
 
 ---
 
+### Exam Coverage Gaps en Must-Do Labs
+
+Doel: de resterende exam-gaten sluiten met gerichte praktijkopdrachten.
+
+### Nog expliciet af te dekken
+1. Service Health, Network connectivity insights en tenant operationele monitoring.
+2. Group-based licensing en bulk user management via PowerShell.
+3. Defender for Cloud Apps onderdelen, inclusief Cloud Discovery en app connectoren.
+4. Purview retentiebeleid en retentielabels naast sensitivity labels.
+
+### Must-do labs voor slaagkans
+1. Configureer Service Health notificaties en leg vast welke signalen actie vereisen.
+2. Implementeer group-based licensing op een testgroep en valideer automatische toekenning.
+3. Koppel Defender for Cloud Apps aan Microsoft 365 en analyseer activity log events.
+4. Maak 1 retention policy en 1 retention label policy en vergelijk gedrag met sensitivity labels.
+5. Oefen 3 complete incidentflows in Defender XDR: alert, triage, containment, rapportage.
+
+### Exit criteria voordat je examen plant
+1. Je kunt per MS-102 domein ten minste 2 concrete beheeracties live demonstreren.
+2. Je beheerst tenant, identity, security en compliance zonder script-voorleeswerk.
+3. Je hebt practice assessment scores die consistent examgereed zijn.
+
+---
+
 ## Week 8 — Examenvoorbereiding
 
 ### Activiteiten

@@ -181,6 +181,30 @@
 
 ---
 
+### Exam Coverage Gaps en Must-Do Labs
+
+Doel: dit blok dicht de laatste gaten tussen het leerpad en de actuele exam-scope.
+
+### Nog expliciet af te dekken
+1. Niet-Windows deviceprofielen voor iOS, Android en macOS.
+2. Bulk enrollment en platformspecifieke enrollment-profielen.
+3. Delivery Optimization en update-monitoring op detailniveau.
+4. Intune Suite onderdelen die je nog niet live testte, zoals Remote Help en Tunnel for MAM.
+
+### Must-do labs voor slaagkans
+1. Maak minimaal 1 Android enrollment-profiel en documenteer welke instellingen exam-relevant zijn.
+2. Maak minimaal 1 iOS of macOS configuratieprofiel met filters.
+3. Configureer een update ring en een feature update policy naast elkaar en leg verschillen vast.
+4. Voer een KQL device query uit en neem output op in je samenvatting.
+5. Draai 5 volledige scenario-rondes: enrollment, compliance, CA-blokkade, app-deploy, remote action.
+
+### Exit criteria voordat je examen plant
+1. Je kunt alle vier exam-domeinen met eigen voorbeelden uitleggen.
+2. Je hebt per domein minimaal 2 hands-on labs zelf uitgevoerd.
+3. Je scoort stabiel op practice assessments en kunt foutantwoorden inhoudelijk verklaren.
+
+---
+
 ## Week 7 — Examenvoorbereiding
 
 ### Activiteiten
