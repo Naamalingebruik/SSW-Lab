@@ -166,15 +166,15 @@ Dit lab is bruikbaar als oefenomgeving voor meerdere Microsoft-certificeringen. 
 ### MD-102 — Microsoft 365 Certified: Endpoint Administrator Associate
 > **Primaire doelstelling van dit lab.**
 
-📎 [Certificeringspagina op MS Learn](https://learn.microsoft.com/nl-nl/credentials/certifications/modern-desktop/)
+📎 [Certificeringspagina op MS Learn](https://learn.microsoft.com/credentials/certifications/modern-desktop/)
 
 | Leerpad (MS Learn) | Nieuw domein (jan 2026) | Lab-gebruik |
 |--------------------|------------------------|-------------|
-| [Endpoint-infrastructuur voorbereiden](https://learn.microsoft.com/nl-nl/training/paths/deploy-windows-client/) | Prepare infrastructure (25–30%) | `03-VMS` + Autopilot ISO's via `02-MAKE-ISOS`; co-management in Intune |
-| [Windows Autopilot](https://learn.microsoft.com/nl-nl/training/paths/deploy-windows-client/) | Prepare infrastructure | `SSW-W11-AUTOPILOT` — specifiek voor Autopilot-scenario's |
-| [Apparaten beheren en onderhouden](https://learn.microsoft.com/nl-nl/training/paths/manage-maintain-protect-windows-client/) | Manage/maintain devices (30–35%) | `SSW-MGMT01` voor update-beheer, RSAT en apparaatinventaris |
-| [Apps en app-data beheren](https://learn.microsoft.com/nl-nl/training/paths/endpoint-manager-fundamentals/) | Manage apps (15–20%) | `SSW-W11-01/02` voor app-deployment en app protection policies |
-| [Apparaten beveiligen](https://learn.microsoft.com/nl-nl/training/paths/manage-identity-compliance-microsoft-365/) | Protect devices (15–20%) | `SSW-MGMT01` compliance-policies, Endpoint Security en LAPS |
+| [Endpoint-infrastructuur voorbereiden](https://learn.microsoft.com/training/paths/execute-device-enrollment/) | Prepare infrastructure (25–30%) | `03-VMS` + Autopilot ISO's via `02-MAKE-ISOS`; co-management in Intune |
+| [Windows Autopilot](https://learn.microsoft.com/training/paths/execute-device-enrollment/) | Prepare infrastructure | `SSW-W11-AUTOPILOT` — specifiek voor Autopilot-scenario's |
+| [Apparaten beheren en onderhouden](https://learn.microsoft.com/training/paths/authentication-compliance/) | Manage/maintain devices (30–35%) | `SSW-MGMT01` voor update-beheer, RSAT en apparaatinventaris |
+| [Apps en app-data beheren](https://learn.microsoft.com/training/paths/examine-application-management/) | Manage apps (15–20%) | `SSW-W11-01/02` voor app-deployment en app protection policies |
+| [Apparaten beveiligen](https://learn.microsoft.com/training/paths/manage-endpoint-security/) | Protect devices (15–20%) | `SSW-MGMT01` compliance-policies, Endpoint Security en LAPS |
 
 **Benodigde preset:** `Full`
 
@@ -183,14 +183,14 @@ Dit lab is bruikbaar als oefenomgeving voor meerdere Microsoft-certificeringen. 
 ### MS-102 — Microsoft 365 Certified: Administrator Expert
 > Bouwt voort op MD-102. Vereist hybride AD-omgeving — precies wat dit lab biedt.
 
-📎 [Certificeringspagina op MS Learn](https://learn.microsoft.com/nl-nl/credentials/certifications/m365-administrator-expert/)
+📎 [Certificeringspagina op MS Learn](https://learn.microsoft.com/credentials/certifications/m365-administrator-expert/)
 
 | Leerpad (MS Learn) | Lab-gebruik |
 |--------------------|-------------|
-| [Microsoft 365-tenant configureren](https://learn.microsoft.com/nl-nl/training/paths/configure-your-microsoft-365-tenant/) | `SSW-MGMT01` als beheerwerkstation |
-| [Identiteitssynchronisatie implementeren](https://learn.microsoft.com/nl-nl/training/paths/implement-identity-synchronization/) | `SSW-DC01` — Microsoft Entra Connect installeren en configureren |
-| [Beveiliging en naleving beheren](https://learn.microsoft.com/nl-nl/training/paths/manage-security-microsoft-365/) | Conditional Access, MFA, Defender — testen met `SSW-W11-01/02` |
-| [Microsoft 365-apps beheren](https://learn.microsoft.com/nl-nl/training/paths/manage-microsoft-365-apps/) | App-deployment via Intune testen op clients |
+| [Microsoft 365-tenant configureren](https://learn.microsoft.com/training/paths/manage-your-microsoft-365-tenant/) | `SSW-MGMT01` als beheerwerkstation |
+| [Identiteitssynchronisatie implementeren](https://learn.microsoft.com/training/paths/implement-identity-synchronization/) | `SSW-DC01` — Microsoft Entra Connect installeren en configureren |
+| [Beveiliging en naleving beheren](https://learn.microsoft.com/training/paths/implement-threat-protection-use-microsoft-365-defender/) | Conditional Access, MFA, Defender — testen met `SSW-W11-01/02` |
+| [Microsoft 365-apps beheren](https://learn.microsoft.com/training/paths/manage-your-microsoft-365-tenant/) | App-deployment via Intune testen op clients |
 
 **Benodigde preset:** `Standard` of `Full`
 
@@ -199,14 +199,14 @@ Dit lab is bruikbaar als oefenomgeving voor meerdere Microsoft-certificeringen. 
 ### SC-300 — Microsoft Certified: Identity and Access Administrator Associate
 > Focust op Entra ID en identiteitsbeheer. Het lab levert de on-premises AD-component.
 
-📎 [Certificeringspagina op MS Learn](https://learn.microsoft.com/nl-nl/credentials/certifications/identity-and-access-administrator/)
+📎 [Certificeringspagina op MS Learn](https://learn.microsoft.com/credentials/certifications/identity-and-access-administrator/)
 
 | Leerpad (MS Learn) | Lab-gebruik |
 |--------------------|-------------|
-| [Identiteiten implementeren in Microsoft Entra ID](https://learn.microsoft.com/nl-nl/training/paths/implement-identity-microsoft-entra-id/) | `SSW-DC01` als brondomein voor hybride identiteit |
-| [Verificatie en toegangsbeheer](https://learn.microsoft.com/nl-nl/training/paths/implement-authentication-access-management/) | MFA, SSPR en Conditional Access testen met lab-gebruikers |
-| [Toegang tot apps beheren](https://learn.microsoft.com/nl-nl/training/paths/implement-access-management-for-apps/) | App-registraties en enterprise apps vanuit `SSW-MGMT01` |
-| [Rechtenbeheer plannen en implementeren](https://learn.microsoft.com/nl-nl/training/paths/plan-implement-entitlement-management/) | Entra ID Governance configureren voor lab-gebruikers |
+| [Identiteiten implementeren in Microsoft Entra ID](https://learn.microsoft.com/training/paths/implement-identity-management-solution/) | `SSW-DC01` als brondomein voor hybride identiteit |
+| [Verificatie en toegangsbeheer](https://learn.microsoft.com/training/paths/implement-authentication-access-management-solution/) | MFA, SSPR en Conditional Access testen met lab-gebruikers |
+| [Toegang tot apps beheren](https://learn.microsoft.com/training/paths/implement-access-management-for-apps/) | App-registraties en enterprise apps vanuit `SSW-MGMT01` |
+| [Rechtenbeheer plannen en implementeren](https://learn.microsoft.com/training/paths/plan-implement-identity-governance-strategy/) | Entra ID Governance configureren voor lab-gebruikers |
 
 **Benodigde preset:** `Minimal` (DC01 is voldoende als AD-bron)
 
@@ -215,12 +215,12 @@ Dit lab is bruikbaar als oefenomgeving voor meerdere Microsoft-certificeringen. 
 ### AZ-104 — Microsoft Certified: Azure Administrator Associate
 > Minder directe fit, maar het lab is nuttig voor hybride netwerk- en identiteitsscenario's.
 
-📎 [Certificeringspagina op MS Learn](https://learn.microsoft.com/nl-nl/credentials/certifications/azure-administrator/)
+📎 [Certificeringspagina op MS Learn](https://learn.microsoft.com/credentials/certifications/azure-administrator/)
 
 | Leerpad (MS Learn) | Lab-gebruik |
 |--------------------|-------------|
-| [Identiteiten en governance beheren](https://learn.microsoft.com/nl-nl/training/paths/az-104-manage-identities-governance/) | `SSW-DC01` + Entra Connect voor hybride AD-scenario's |
-| [Virtuele netwerken implementeren en beheren](https://learn.microsoft.com/nl-nl/training/paths/az-104-manage-virtual-networks/) | NAT-configuratie in `01-NETWORK` als referentie voor Azure VNet-concepten |
+| [Identiteiten en governance beheren](https://learn.microsoft.com/training/paths/az-104-manage-identities-governance/) | `SSW-DC01` + Entra Connect voor hybride AD-scenario's |
+| [Virtuele netwerken implementeren en beheren](https://learn.microsoft.com/training/paths/az-104-manage-virtual-networks/) | NAT-configuratie in `01-NETWORK` als referentie voor Azure VNet-concepten |
 
 **Benodigde preset:** `Minimal`
 
