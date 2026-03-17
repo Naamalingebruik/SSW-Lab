@@ -3,7 +3,7 @@
 > 🌐 **Language:** English | [Nederlands](studieprogramma-AZ104.md)
 
 **Duration:** 8 weeks · **Lab preset:** Minimal (DC01 · W11-01) — Azure tasks run in the cloud  
-**MS Learn path:** [Azure Administrator](https://learn.microsoft.com/en-us/certifications/exams/az-104/)  
+**MS Learn path:** [Azure Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104)  
 **Exam weight:**
 
 | Domain | Weight |
@@ -212,7 +212,7 @@
 ## Week 8 — Exam preparation
 
 ### Activities
-- Review weak domains based on the [official exam profile](https://learn.microsoft.com/en-us/certifications/exams/az-104/)
+- Review weak domains based on the [official exam study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104)
 - Complete the **Microsoft Learn practice assessment** for AZ-104: [Practice assessment](https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications)
 - Practice resource creation via **Azure CLI** and **PowerShell (Az module)** — the exam includes CLI questions
 - Revisit VNet architecture and NSG scenarios (most frequently examined)

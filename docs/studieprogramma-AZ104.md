@@ -3,7 +3,7 @@
 > 🌐 **Taal:** Nederlands | [English](study-guide-AZ104.md)
 
 **Duur:** 8 weken · **Lab preset:** Minimal (DC01 · W11-01) — Azure-taken draaien in de cloud  
-**MS Learn pad:** [Azure Administrator](https://learn.microsoft.com/en-us/certifications/exams/az-104/)  
+**MS Learn pad:** [Azure Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104)  
 **Examengewicht:**
 
 | Domein | Gewicht |
@@ -212,7 +212,7 @@
 ## Week 8 — Examenvoorbereiding
 
 ### Activiteiten
-- Herhaal zwakke domeinen op basis van het [officiële examenprofiel](https://learn.microsoft.com/en-us/certifications/exams/az-104/)
+- Herhaal zwakke domeinen op basis van het [officiële examenstudiegids](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104)
 - Doe de **Microsoft Learn oefenassessment** AZ-104: [Practice assessment](https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications)
 - Oefen resource-aanmaak via **Azure CLI** en **PowerShell (Az module)** — examen bevat CLI-vragen
 - Herhaal VNet-architectuur en NSG-scenario's (meest gestelde vragen)

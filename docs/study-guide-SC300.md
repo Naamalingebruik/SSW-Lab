@@ -3,7 +3,7 @@
 > 🌐 **Language:** English | [Nederlands](studieprogramma-SC300.md)
 
 **Duration:** 7 weeks · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02)  
-**MS Learn path:** [Identity and Access Administrator](https://learn.microsoft.com/en-us/certifications/exams/sc-300/)  
+**MS Learn path:** [Identity and Access Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-300)  
 **Exam weight:**
 
 | Domain | Weight |
@@ -178,7 +178,7 @@
 ## Week 7 — Exam preparation
 
 ### Activities
-- Review weak domains based on the [official exam profile](https://learn.microsoft.com/en-us/certifications/exams/sc-300/)
+- Review weak domains based on the [official exam study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-300)
 - Complete the **Microsoft Learn practice assessment** for SC-300: [Practice assessment](https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications)
 - Revisit PIM configuration, CA What-If scenarios and entitlement management
 - Create an overview of all Identity Protection risk types and remediation steps
