@@ -3,7 +3,7 @@
 # SSW-Lab | MD-102 | Week 1 — Windows client deployment
 # Doel: Verifieer deploy-readiness, Windows 11 build, ADK-installatie
 #       en demonstreer unattended/SIM-concepten.
-# VMs:  SSW-DC01, SSW-MGMT01, SSW-W11-01
+# VMs:  LAB-DC01, LAB-MGMT01, LAB-W11-01
 # ============================================================
 
 . "$PSScriptRoot\..\..\..\config.ps1"
@@ -12,6 +12,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MD-102 | Week 1 — Windows client deployment" Height="700" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">

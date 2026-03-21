@@ -2,7 +2,7 @@
 # ============================================================
 # SSW-Lab | labs/MD102/lab-week4-apps.ps1
 # MD-102 Week 4 — Applicatiebeheer met Intune
-# VMs:  SSW-MGMT01, SSW-W11-01, SSW-W11-02
+# VMs:  LAB-MGMT01, LAB-W11-01, LAB-W11-02
 # Cloud: Intune portal (intune.microsoft.com)
 # ============================================================
 
@@ -12,6 +12,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MD-102 | Week 4 — Applicatiebeheer met Intune" Height="720" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">

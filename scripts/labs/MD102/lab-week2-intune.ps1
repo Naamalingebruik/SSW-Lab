@@ -2,7 +2,7 @@
 # ============================================================
 # SSW-Lab | MD-102 | Week 2 — Intune enrollment en device management
 # Doel: Demonstreer enrollment-stappen, BitLocker-policy, compliance
-# VMs:  SSW-W11-01, SSW-W11-02, SSW-MGMT01
+# VMs:  LAB-W11-01, LAB-W11-02, LAB-MGMT01
 # Cloud: Intune portal (intune.microsoft.com)
 # ============================================================
 
@@ -12,6 +12,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MD-102 | Week 2 — Intune enrollment" Height="700" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">

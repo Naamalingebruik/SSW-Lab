@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | 03-VMS.ps1
 # Interactieve VM-builder met preset-keuze en RAM-preview.

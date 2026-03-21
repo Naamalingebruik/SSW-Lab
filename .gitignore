@@ -13,3 +13,6 @@ executables/*.exe
 
 # ISOs (te groot voor git)
 *.iso
+
+# Persoonlijke lokale configuratie (domein, tenant, etc.)
+config.local.ps1

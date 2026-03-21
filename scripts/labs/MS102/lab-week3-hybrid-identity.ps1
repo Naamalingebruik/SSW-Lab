@@ -2,7 +2,7 @@
 # ============================================================
 # SSW-Lab | labs/MS102/lab-week3-hybrid-identity.ps1
 # MS-102 Week 3 — Entra ID en hybride identiteit
-# VMs:  SSW-DC01, SSW-MGMT01, SSW-W11-01
+# VMs:  LAB-DC01, LAB-MGMT01, LAB-W11-01
 # Cloud: Entra admin center
 # ============================================================
 
@@ -12,6 +12,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MS-102 | Week 3 — Hybride identiteit en MFA" Height="720" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">

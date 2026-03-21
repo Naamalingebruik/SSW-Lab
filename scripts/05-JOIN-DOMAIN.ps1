@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | 05-JOIN-DOMAIN.ps1
 # Voegt geselecteerde VMs toe aan ssw.lab via PowerShell Direct.
@@ -11,6 +11,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="SSW-Lab | Domain Join" Height="640" Width="620"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
@@ -162,7 +163,7 @@ function Write-Log($msg) {
 function Refresh-VMs {
     $vmPanel.Children.Clear()
     $checkBoxes.Clear()
-    $vms = Get-VM | Where-Object { $_.Name -like "SSW-*" -and $_.Name -ne $profiles.DC01.Name }
+    $vms = Get-VM | Where-Object { $_.Name -like "LAB-*" -and $_.Name -ne $profiles.DC01.Name }
     foreach ($vm in $vms) {
         $cb = [System.Windows.Controls.CheckBox]::new()
         $cb.Content = $vm.Name
@@ -234,10 +235,14 @@ $btnJoin.Add_Click({
             )
             try {
                 Invoke-Command -VMName $vmName -Credential $localCred -ScriptBlock {
-                    param($dom, $cred)
+                    param($dom, $cred, $newName)
+                    # Windows-naam gelijkstellen aan Hyper-V VM-naam
+                    if ($env:COMPUTERNAME -ne $newName) {
+                        Rename-Computer -NewName $newName -Force -ErrorAction SilentlyContinue
+                    }
                     Add-Computer -DomainName $dom -Credential $cred -Restart -Force -ErrorAction Stop
-                } -ArgumentList $domain, $domCred
-                Write-Log "✔ $vmName wordt herstart en joint $domain"
+                } -ArgumentList $domain, $domCred, $vmName
+                Write-Log "✔ $vmName wordt hernoemd naar $vmName en herstart en joint $domain"
             } catch { Write-Log "FOUT $vmName`: $_" }
         }
 

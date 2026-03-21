@@ -1,7 +1,7 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | 04-SETUP-DC.ps1
-# Configureert SSW-DC01 als domain controller voor ssw.lab.
+# Configureert LAB-DC01 als domain controller voor ssw.lab.
 # Dry Run is standaard AAN — zet vinkje uit om echt uit te voeren.
 # ============================================================
 
@@ -11,6 +11,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="SSW-Lab | Domain Controller inrichten" Height="640" Width="640"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
@@ -227,10 +228,13 @@ $btnSetup.Add_Click({
         } -ArgumentList $dcIP, $SSWConfig.GatewayIP
         $progress.Value = 25
 
-        Write-Log "Computernaam instellen (DC01)…"
+        $desiredName = ($vmName -replace "^LAB-","" ) # bijv. LAB-DC01 → DC01, of gebruik de volledige naam
+        $desiredName = $vmName                        # Windows-naam = Hyper-V VM-naam (bijv. LAB-DC01)
+        Write-Log "Computernaam instellen ($desiredName)…"
         Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
-            if ($env:COMPUTERNAME -ne "DC01") { Rename-Computer -NewName "DC01" -Force -ErrorAction SilentlyContinue }
-        }
+            param($n)
+            if ($env:COMPUTERNAME -ne $n) { Rename-Computer -NewName $n -Force -ErrorAction SilentlyContinue }
+        } -ArgumentList $desiredName
         $progress.Value = 35
 
         Write-Log "AD DS installeren…"

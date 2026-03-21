@@ -54,9 +54,9 @@ Elk script heeft een GUI en een knop om door te gaan naar het volgende.
 
 | Preset | VMs | RAM |
 |--------|-----|-----|
-| **Minimal** | DC01 + W11-01 | ~6 GB |
-| **Standard** | DC01 + MGMT01 + 2x W11 | ~14 GB |
-| **Full** | Standard + W11-AUTOPILOT | ~18 GB |
+| **Minimal** | LAB-DC01 + LAB-W11-01 | ~6 GB |
+| **Standard** | LAB-DC01 + LAB-MGMT01 + 2x W11 | ~14 GB |
+| **Full** | Standard + LAB-W11-AUTOPILOT | ~18 GB |
 
 `03-VMS.ps1` stelt automatisch een preset voor op basis van beschikbaar RAM.
 
@@ -67,11 +67,13 @@ Elk script heeft een GUI en een knop om door te gaan naar het volgende.
 ```
 Laptop (Hyper-V host)
 └── SSW-Internal (vSwitch, intern)
-    ├── 10.50.10.1   → Gateway / NAT
-    ├── 10.50.10.10  → SSW-DC01
-    ├── 10.50.10.20  → SSW-MGMT01
-    └── 10.50.10.30+ → W11 clients (DHCP)
+    ├── 10.50.10.1   → Gateway / NAT (host adapter)
+    ├── 10.50.10.10  → LAB-DC01     (ssw.lab DC + DNS)
+    ├── 10.50.10.20  → LAB-MGMT01   (beheer + Entra Connect)
+    └── 10.50.10.30+ → LAB-W11-01, LAB-W11-02, LAB-W11-AUTOPILOT (DHCP)
 ```
+
+> **Let op:** Het gateway-IP `10.50.10.1` op `vEthernet (SSW-Internal)` is niet persistent — voer `01-NETWORK.ps1` opnieuw uit na een host-reboot.
 
 Internettoegang via NAT op de host. Geen Tailscale nodig.
 
@@ -83,12 +85,37 @@ Pas `config.ps1` aan voor jouw omgeving:
 
 ```powershell
 $SSWConfig = @{
-    DomainName  = "ssw.lab"          # Aanpasbaar
-    VMPath      = "D:\SSW-Lab\VMs"   # Aanpasbaar
-    NATSubnet   = "10.50.10.0/24"    # Aanpasbaar
+    DomainName    = "ssw.lab"          # Aanpasbaar
+    DomainNetBIOS = "LAB"              # NetBIOS-naam van het domein
+    VMPath        = "D:\SSW-Lab\VMs"   # Aanpasbaar
+    NATSubnet     = "10.50.10.0/24"    # Aanpasbaar
     ...
 }
 ```
+
+Voor persoonlijke overrides (bijv. Entra UPN) maak je `config.local.ps1` aan — dit bestand staat in `.gitignore`:
+
+```powershell
+# config.local.ps1 (niet committen)
+$SSWConfig.EntraUPN = "lab.jouwdomein.nl"
+```
+
+---
+
+## Active Directory & Hybrid Identity
+
+Het lab gebruikt `ssw.lab` als intern AD-domein met NetBIOS-naam `LAB`.
+
+| VM | Rol | Join-type |
+|----|-----|-----------|
+| LAB-DC01 | Domain Controller + DNS | — |
+| LAB-MGMT01 | Beheer + Entra Connect | Hybrid Entra Join |
+| LAB-W11-01 | Windows 11 client | Hybrid Entra Join |
+| LAB-W11-02 | Windows 11 client | Pure Entra ID Join (OOBE) |
+| LAB-W11-AUTOPILOT | Windows 11 Autopilot | Autopilot → Entra ID |
+
+**Entra Connect** wordt geïnstalleerd op `LAB-MGMT01` via `scripts/Install-EntraConnect.ps1`.  
+Vereist: MSI op `D:\SSW-Lab\AzureADConnect.msi` en een geverifieerd custom domein in je MSDN dev-tenant (bijv. `lab.stts.nl`).
 
 ---
 

@@ -8,7 +8,7 @@ $SSWConfig = @{
 
     # ── Domein ──────────────────────────────────────────────
     DomainName    = "ssw.lab"
-    DomainNetBIOS = "SSW"
+    DomainNetBIOS = "LAB"
     AdminUser     = "Administrator"
     DomainAdmin   = "labadmin"
     # AdminPassword wordt interactief gevraagd — nooit hardcoden
@@ -29,10 +29,23 @@ $SSWConfig = @{
     # ── VM Profielen (uit vm-profiles.json geladen in scripts)
     ProfilePath   = "$PSScriptRoot\profiles\vm-profiles.json"
 
+    # ── Entra Connect (optioneel) ────────────────────────────
+    # Vul EntraUPN in als je een geverifieerd custom domein hebt in je dev-tenant.
+    # Laat leeg als je geen Entra Connect wilt gebruiken.
+    # Gebruik config.local.ps1 (gitignored) voor jouw persoonlijke waarde.
+    EntraUPN      = ""   # bijv. "lab.contoso.com"
+
     # ── Presets ─────────────────────────────────────────────
     Presets = @{
         Minimal  = @("DC01", "W11-01")
         Standard = @("DC01", "MGMT01", "W11-01", "W11-02")
         Full     = @("DC01", "MGMT01", "W11-01", "W11-02", "W11-AUTOPILOT")
     }
+}
+
+# ── Lokale override (gitignored) ─────────────────────────────
+# Maak config.local.ps1 aan om persoonlijke waarden te overschrijven.
+# Voorbeeld inhoud:  $SSWConfig.EntraUPN = "lab.jouwdomein.nl"
+if (Test-Path "$PSScriptRoot\config.local.ps1") {
+    . "$PSScriptRoot\config.local.ps1"
 }

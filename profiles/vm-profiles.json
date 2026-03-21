@@ -1,6 +1,6 @@
 {
   "DC01": {
-    "Name": "SSW-DC01",
+    "Name": "LAB-DC01",
     "vCPU": 2,
     "RAM_GB": 2,
     "Disk_GB": 60,
@@ -9,7 +9,7 @@
     "IP": "10.50.10.10"
   },
   "MGMT01": {
-    "Name": "SSW-MGMT01",
+    "Name": "LAB-MGMT01",
     "vCPU": 2,
     "RAM_GB": 4,
     "Disk_GB": 80,
@@ -18,7 +18,7 @@
     "IP": "10.50.10.20"
   },
   "W11-01": {
-    "Name": "SSW-W11-01",
+    "Name": "LAB-W11-01",
     "vCPU": 2,
     "RAM_GB": 4,
     "Disk_GB": 80,
@@ -27,7 +27,7 @@
     "IP": "DHCP"
   },
   "W11-02": {
-    "Name": "SSW-W11-02",
+    "Name": "LAB-W11-02",
     "vCPU": 2,
     "RAM_GB": 4,
     "Disk_GB": 80,
@@ -36,7 +36,7 @@
     "IP": "DHCP"
   },
   "W11-AUTOPILOT": {
-    "Name": "SSW-W11-AUTOPILOT",
+    "Name": "LAB-W11-AUTOPILOT",
     "vCPU": 2,
     "RAM_GB": 4,
     "Disk_GB": 80,

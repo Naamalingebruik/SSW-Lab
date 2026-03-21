@@ -2,7 +2,7 @@
 # ============================================================
 # SSW-Lab | labs/MD102/lab-week5-autopilot.ps1
 # MD-102 Week 5 — Windows Autopilot
-# VMs:  SSW-W11-AUTOPILOT, SSW-MGMT01
+# VMs:  LAB-W11-AUTOPILOT, LAB-MGMT01
 # Cloud: Intune portal (intune.microsoft.com)
 # ============================================================
 
@@ -12,6 +12,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MD-102 | Week 5 — Windows Autopilot" Height="720" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">

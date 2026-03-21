@@ -2,7 +2,7 @@
 # ============================================================
 # SSW-Lab | MD-102 | Week 3 — Compliance, Conditional Access en identiteit
 # Doel: Test-users in AD, Azure AD Connect, CA-policy, compliance
-# VMs:  SSW-DC01, SSW-MGMT01, SSW-W11-01, SSW-W11-02
+# VMs:  LAB-DC01, LAB-MGMT01, LAB-W11-01, LAB-W11-02
 # ============================================================
 
 . "$PSScriptRoot\..\..\..\config.ps1"
@@ -11,6 +11,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MD-102 | Week 3 — Compliance en Conditional Access" Height="720" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
