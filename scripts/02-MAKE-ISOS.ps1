@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | 02-MAKE-ISOS.ps1
 # Injecteert unattend.xml in MSDN ISO's voor W11 + WS2025.

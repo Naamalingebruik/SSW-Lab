@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | 01-NETWORK.ps1
 # Maakt interne Hyper-V vSwitch + NAT aan voor SSW-Lab.

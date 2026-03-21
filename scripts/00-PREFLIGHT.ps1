@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | 00-PREFLIGHT.ps1
 # Controleert of de laptop klaar is voor SSW-Lab.
@@ -24,12 +24,16 @@ function Get-PreflightChecks {
     })
 
     # 2. BIOS virtualisatie
+    # VirtualizationFirmwareEnabled geeft op sommige laptops False terug ook al draait Hyper-V.
+    # Als Hyper-V actief is, is virtualisatie per definitie ingeschakeld in het BIOS.
     $vmx = (Get-CimInstance Win32_Processor).VirtualizationFirmwareEnabled
+    $hvRunning = (Get-Service -Name vmms -ErrorAction SilentlyContinue).Status -eq 'Running'
+    $virtOk = $vmx -or $hvRunning
     $results.Add([PSCustomObject]@{
         Check   = "Virtualisatie in BIOS"
-        Status  = if ($vmx) { "OK" } else { "FOUT" }
-        Detail  = if ($vmx) { "Intel VT-x / AMD-V actief" } else { "Schakel virtualisatie in via BIOS/UEFI" }
-        Block   = -not $vmx
+        Status  = if ($virtOk) { "OK" } else { "FOUT" }
+        Detail  = if ($virtOk) { "Intel VT-x / AMD-V actief" } else { "Schakel virtualisatie in via BIOS/UEFI" }
+        Block   = -not $virtOk
     })
 
     # 3. RAM check
@@ -53,7 +57,7 @@ function Get-PreflightChecks {
     $freeGB = [math]::Round($disk.Free / 1GB)
     $diskStatus = if ($freeGB -ge 150) { "OK" } elseif ($freeGB -ge 80) { "WAARSCHUWING" } else { "FOUT" }
     $results.Add([PSCustomObject]@{
-        Check   = "Vrije schijfruimte ($drive:\)"
+        Check   = "Vrije schijfruimte (${drive}:\)"
         Status  = $diskStatus
         Detail  = switch ($diskStatus) {
             "OK"           { "$freeGB GB vrij — voldoende voor Full preset" }
@@ -201,6 +205,29 @@ function Get-CertAdvice {
         <TextBlock x:Name="AdviceText" Style="{StaticResource Advice}" Text="Bezig met controleren…"/>
       </Border>
 
+      <!-- Hyper-V installatie banner — zichtbaar als Hyper-V ontbreekt -->
+      <Border x:Name="HyperVBanner" Background="#1E2D2E" CornerRadius="6" Padding="14,10"
+              Margin="0,6,0,0" BorderBrush="#89DCEB" BorderThickness="1" Visibility="Collapsed">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" VerticalAlignment="Center">
+            <TextBlock Text="Hyper-V is niet geïnstalleerd"
+                       Foreground="#89DCEB" FontSize="12" FontWeight="SemiBold"/>
+            <TextBlock Text="Klik op de knop om Hyper-V te installeren. Na installatie is een herstart vereist."
+                       Foreground="#A6ADC8" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0"/>
+          </StackPanel>
+          <Button x:Name="BtnInstallHyperV" Grid.Column="1"
+                  Content="⚙  Installeer Hyper-V"
+                  Background="#89DCEB" Foreground="#1E1E2E"
+                  FontWeight="SemiBold" FontSize="12"
+                  BorderThickness="0" Cursor="Hand"
+                  Padding="14,8" Margin="12,0,0,0" Height="34"/>
+        </Grid>
+      </Border>
+
       <!-- ADK download banner — zichtbaar als ADK ontbreekt -->
       <Border x:Name="ADKBanner" Background="#2D1E2E" CornerRadius="6" Padding="14,10"
               Margin="0,6,0,0" BorderBrush="#CBA6F7" BorderThickness="1" Visibility="Collapsed">
@@ -239,16 +266,20 @@ function Get-CertAdvice {
           <RadioButton x:Name="RadioAZ104" Content="AZ-104" GroupName="Cert"
                        Foreground="#CDD6F4" FontSize="12"/>
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Margin="0,8,0,0" VerticalAlignment="Center">
-          <TextBlock x:Name="CertAdviceText"
+        <Grid Margin="0,8,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <TextBlock x:Name="CertAdviceText" Grid.Column="0"
                      Foreground="#CDD6F4" FontSize="12"
                      TextWrapping="Wrap" Text="" VerticalAlignment="Center"/>
-          <Button x:Name="BtnStudyGuide" Content="📖  Studieprogramma" Visibility="Collapsed"
+          <Button x:Name="BtnStudyGuide" Grid.Column="1" Content="📖  Studieprogramma" Visibility="Collapsed"
                   Background="#313244" Foreground="#89B4FA"
                   FontSize="11" FontWeight="SemiBold"
                   BorderThickness="1" BorderBrush="#89B4FA"
                   Cursor="Hand" Padding="10,4" Margin="12,0,0,0" Height="26"/>
-        </StackPanel>
+        </Grid>
       </StackPanel>
     </Border>
 
@@ -264,10 +295,12 @@ function Get-CertAdvice {
 
 $reader = [System.Windows.Markup.XamlReader]::Load([System.Xml.XmlNodeReader]::new($xaml))
 
-$checkPanel     = $reader.FindName("CheckPanel")
-$adviceText     = $reader.FindName("AdviceText")
-$adkBanner      = $reader.FindName("ADKBanner")
-$btnDownloadADK = $reader.FindName("BtnDownloadADK")
+$checkPanel      = $reader.FindName("CheckPanel")
+$adviceText      = $reader.FindName("AdviceText")
+$hyperVBanner    = $reader.FindName("HyperVBanner")
+$btnInstallHyperV = $reader.FindName("BtnInstallHyperV")
+$adkBanner       = $reader.FindName("ADKBanner")
+$btnDownloadADK  = $reader.FindName("BtnDownloadADK")
 $btnRerun       = $reader.FindName("BtnRerun")
 $btnNext        = $reader.FindName("BtnNext")
 $certAdviceText  = $reader.FindName("CertAdviceText")
@@ -291,9 +324,8 @@ $certClickHandler = {
     $script:currentCert = $s.Content
     $advice = Get-CertAdvice $script:currentCert
     $certAdviceText.Text = $advice
-    $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom(
-        if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
-    )
+    $certColor = if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
+    $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom($certColor)
     $btnStudyGuide.Visibility = "Visible"
 }
 
@@ -308,6 +340,29 @@ $radioMS102.Add_Checked($certClickHandler)
 $radioSC300.Add_Checked($certClickHandler)
 $radioAZ104.Add_Checked($certClickHandler)
 
+$btnInstallHyperV.Add_Click({
+    $btnInstallHyperV.IsEnabled = $false
+    $btnInstallHyperV.Content = "Bezig met installeren…"
+    try {
+        Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -NoRestart -ErrorAction Stop | Out-Null
+        [System.Windows.MessageBox]::Show(
+            "Hyper-V is geïnstalleerd.`n`nHerstart je laptop en voer daarna 00-PREFLIGHT.ps1 opnieuw uit.",
+            "Herstart vereist",
+            [System.Windows.MessageBoxButton]::OK,
+            [System.Windows.MessageBoxImage]::Information
+        ) | Out-Null
+    } catch {
+        [System.Windows.MessageBox]::Show(
+            "Installatie mislukt:`n$($_.Exception.Message)",
+            "Fout",
+            [System.Windows.MessageBoxButton]::OK,
+            [System.Windows.MessageBoxImage]::Error
+        ) | Out-Null
+        $btnInstallHyperV.IsEnabled = $true
+        $btnInstallHyperV.Content = "⚙  Installeer Hyper-V"
+    }
+})
+
 $btnDownloadADK.Add_Click({
     Start-Process "https://go.microsoft.com/fwlink/?linkid=2289980"
 })
@@ -316,7 +371,8 @@ function Render-Checks {
     $checkPanel.Children.Clear()
     $checks = Get-PreflightChecks
 
-    $adkMissing = $false
+    $adkMissing  = $false
+    $hvMissing   = $false
 
     foreach ($c in $checks) {
         $color = switch ($c.Status) {
@@ -333,6 +389,7 @@ function Render-Checks {
         }
 
         if ($c.PSObject.Properties["NeedsADK"] -and $c.NeedsADK) { $adkMissing = $true }
+        if ($c.Check -like "Hyper-V*" -and $c.Status -eq "FOUT") { $hvMissing = $true }
 
         $row = [System.Windows.Controls.Border]::new()
         $row.Background = [System.Windows.Media.BrushConverter]::new().ConvertFrom("#2A2A3E")
@@ -381,6 +438,9 @@ function Render-Checks {
     $advice = Get-PresetAdvice $checks
     $adviceText.Text = $advice
 
+    # Hyper-V banner tonen/verbergen
+    $hyperVBanner.Visibility = if ($hvMissing) { "Visible" } else { "Collapsed" }
+
     # ADK banner tonen/verbergen
     $adkBanner.Visibility = if ($adkMissing) { "Visible" } else { "Collapsed" }
 
@@ -390,9 +450,8 @@ function Render-Checks {
     if ($script:currentCert -and $certAdviceText) {
         $advice = Get-CertAdvice $script:currentCert
         $certAdviceText.Text = $advice
-        $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom(
-            if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
-        )
+        $certColor2 = if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
+        $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom($certColor2)
     }
 }
 

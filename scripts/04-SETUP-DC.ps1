@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | 04-SETUP-DC.ps1
 # Configureert SSW-DC01 als domain controller voor ssw.lab.

@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | 05-JOIN-DOMAIN.ps1
 # Voegt geselecteerde VMs toe aan ssw.lab via PowerShell Direct.
