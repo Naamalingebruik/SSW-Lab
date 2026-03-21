@@ -57,6 +57,10 @@ function Get-W11Unattend($adminPass) {
               <Key>/IMAGE/NAME</Key>
               <Value>Windows 11 Enterprise</Value>
             </MetaData>
+            <MetaData wcm:action="add">
+              <Key>/IMAGE/EDITIONID</Key>
+              <Value>Enterprise</Value>
+            </MetaData>
           </InstallFrom>
           <InstallTo><DiskID>0</DiskID><PartitionID>3</PartitionID></InstallTo>
           <WillShowUI>Never</WillShowUI>
