@@ -52,14 +52,24 @@ function Get-W11Unattend($adminPass) {
       </DiskConfiguration>
       <ImageInstall>
         <OSImage>
+          <InstallFrom>
+            <MetaData wcm:action="add">
+              <Key>/IMAGE/NAME</Key>
+              <Value>Windows 11 Enterprise</Value>
+            </MetaData>
+          </InstallFrom>
           <InstallTo><DiskID>0</DiskID><PartitionID>3</PartitionID></InstallTo>
-          <WillShowUI>OnError</WillShowUI>
+          <WillShowUI>Never</WillShowUI>
         </OSImage>
       </ImageInstall>
       <UserData>
         <AcceptEula>true</AcceptEula>
         <FullName>SSW Lab</FullName>
         <Organization>Sogeti SSW</Organization>
+        <ProductKey>
+          <Key>NPPR9-FWDCX-D2C8J-H872K-2YT43</Key>
+          <WillShowUI>Never</WillShowUI>
+        </ProductKey>
       </UserData>
     </component>
   </settings>
@@ -73,6 +83,15 @@ function Get-W11Unattend($adminPass) {
     </component>
   </settings>
   <settings pass="oobeSystem">
+    <component name="Microsoft-Windows-International-Core"
+               processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35"
+               language="neutral" versionScope="nonSxS">
+      <InputLocale>nl-NL</InputLocale>
+      <UILanguage>nl-NL</UILanguage>
+      <UILanguageFallback>en-US</UILanguageFallback>
+      <SystemLocale>nl-NL</SystemLocale>
+      <UserLocale>nl-NL</UserLocale>
+    </component>
     <component name="Microsoft-Windows-Shell-Setup"
                processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35"
                language="neutral" versionScope="nonSxS">
@@ -83,6 +102,7 @@ function Get-W11Unattend($adminPass) {
         <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
         <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
         <NetworkLocation>Work</NetworkLocation>
+        <ProtectYourPC>3</ProtectYourPC>
         <SkipMachineOOBE>true</SkipMachineOOBE>
         <SkipUserOOBE>true</SkipUserOOBE>
       </OOBE>

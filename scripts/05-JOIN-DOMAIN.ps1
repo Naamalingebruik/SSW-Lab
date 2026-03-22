@@ -1,9 +1,19 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | 05-JOIN-DOMAIN.ps1
 # Voegt geselecteerde VMs toe aan ssw.lab via PowerShell Direct.
 # Dry Run is standaard AAN — zet vinkje uit om echt uit te voeren.
 # ============================================================
+
+# WPF vereist STA-threading. PowerShell 7 gebruikt MTA standaard.
+# Herstart automatisch in Windows PowerShell 5.1 (altijd STA).
+if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -ne 'STA') {
+    $script = $MyInvocation.MyCommand.Path
+    Start-Process -FilePath "powershell.exe" `
+        -ArgumentList "-STA -ExecutionPolicy Bypass -File `"$script`"" `
+        -Verb RunAs
+    exit
+}
 
 . "$PSScriptRoot\..\config.ps1"
 

@@ -5,6 +5,16 @@
 # Toont resultaten in WPF GUI met traffic-light status.
 # ============================================================
 
+# WPF vereist STA-threading. PowerShell 7 gebruikt MTA standaard.
+# Herstart automatisch in Windows PowerShell 5.1 (altijd STA).
+if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -ne 'STA') {
+    $script = $MyInvocation.MyCommand.Path
+    Start-Process -FilePath "powershell.exe" `
+        -ArgumentList "-STA -ExecutionPolicy Bypass -File `"$script`"" `
+        -Verb RunAs
+    exit
+}
+
 . "$PSScriptRoot\..\config.ps1"
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase

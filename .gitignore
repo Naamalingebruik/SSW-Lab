@@ -16,3 +16,6 @@ executables/*.exe
 
 # Persoonlijke lokale configuratie (domein, tenant, etc.)
 config.local.ps1
+
+# Persoonlijke studievoortgang — lokaal bijgehouden, niet gesynct via git
+sog-status.md

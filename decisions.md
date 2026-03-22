@@ -107,6 +107,13 @@ $SSWConfig.EntraUPN = "lab.jouwdomein.nl"
 - W11-02 → pure Entra ID Join (via OOBE / werk- of schoolaccount)
 - W11-AUTOPILOT → Autopilot-flow via Intune (cloud OOBE)
 
+**Statisch IP (niet-domain-joined, geen DHCP van DC01):**
+- IP: `10.50.10.31` / 24
+- Gateway: `10.50.10.1`
+- DNS: `10.50.10.10` (DC01)
+
+Ingesteld via `scripts/utility/Fix-W11-02-Network.ps1` op 2026-03-22.
+
 ---
 
 ### Gateway IP op host: niet persistent na reboot
