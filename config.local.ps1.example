@@ -1,0 +1,18 @@
+# ============================================================
+# SSW-Lab | config.local.ps1  (PERSOONLIJK — staat in .gitignore)
+# ============================================================
+# Kopieer dit bestand naar config.local.ps1 en vul jouw waarden in.
+# Nooit committen naar git.
+# ============================================================
+
+# Laad eerst de basis config
+$configBase = "$PSScriptRoot\config.ps1"
+if (Test-Path $configBase) { . $configBase }
+
+# Overschrijf of vul aan met jouw lokale waarden:
+$SSWConfig.LabPassword = 'VervangDitMetJouwLabWachtwoord'  # Verplicht
+$SSWConfig.EntraUPN    = 'jouwdomein.nl'                   # Bijv. lab.stts.nl
+
+# Optioneel: andere paden als je VHDs ergens anders opslaat
+# $SSWConfig.VMPath  = 'E:\VMs'
+# $SSWConfig.ISOPath = 'E:\ISOs'

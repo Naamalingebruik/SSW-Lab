@@ -35,8 +35,12 @@ if (Test-Path $configPath) { . $configPath }
 $localConfig = "$PSScriptRoot\..\..\config.local.ps1"
 if (Test-Path $localConfig) { . $localConfig }
 
-$labPassword = if ($SSWConfig -and $SSWConfig.LabPassword) { $SSWConfig.LabPassword } else { 'cWk7dtb@cWk7dtb!' }
-$entraUPN    = if ($SSWConfig -and $SSWConfig.EntraUPN)    { $SSWConfig.EntraUPN    } else { 'lab.stts.nl' }
+if (-not ($SSWConfig -and $SSWConfig.LabPassword)) {
+    Write-Error "config.local.ps1 ontbreekt of heeft geen LabPassword. Maak het aan vanuit config.local.ps1.example."
+    exit 1
+}
+$labPassword = $SSWConfig.LabPassword
+$entraUPN    = if ($SSWConfig -and $SSWConfig.EntraUPN) { $SSWConfig.EntraUPN } else { 'lab.stts.nl' }
 
 $pw        = ConvertTo-SecureString $labPassword -AsPlainText -Force
 $credAdmin    = New-Object PSCredential('LAB\labadmin', $pw)
