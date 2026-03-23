@@ -194,6 +194,8 @@ $btnSetup.Add_Click({
         Write-Log "${pre}Install-ADDSForest -DomainName $domain -DomainNetbiosName $netbios -InstallDns"
         Write-Log "${pre}VM wordt herstart na promotie"
         Write-Log "${pre}New-ADUser '$domainAdmin' — lid van Domain Admins"
+        Write-Log "${pre}Install-WindowsFeature DHCP — scope 10.50.10.100-200 aanmaken"
+        Write-Log "${pre}DHCP-reservering 10.50.10.30 voor LAB-W11-AUTOPILOT (op basis van MAC)"
         Write-Log "✔ Dry Run klaar — niets uitgevoerd."
         $progress.Value = 100
         $btnNext.IsEnabled = $true
@@ -279,6 +281,98 @@ $btnSetup.Add_Click({
             Add-ADGroupMember -Identity "Domain Admins" -Members $user -ErrorAction Stop
         } -ArgumentList $domainAdmin, $adminPwd, $netbios
         Write-Log "✔ '$domainAdmin' aangemaakt en toegevoegd aan Domain Admins."
+
+        # ── DHCP-server + Autopilot IP-reservering ──────────────────────────────
+        # Na een Autopilot-reset wordt Windows opnieuw geïnstalleerd en raakt een
+        # handmatig ingesteld statisch IP kwijt. De oplossing: DHCP op de DC met
+        # een vaste reservering op basis van het Hyper-V MAC-adres. Dit MAC-adres
+        # verandert nooit, ook niet na een Autopilot-reset of OS-herinstallatie.
+        Write-Log "DHCP-server installeren en Autopilot IP-reservering aanmaken…"
+
+        # MAC-adres van Autopilot-VM ophalen via Hyper-V (host-kant)
+        $apVMName  = $profiles.'W11-AUTOPILOT'.Name
+        $apAdapter = Get-VMNetworkAdapter -VMName $apVMName -ErrorAction SilentlyContinue |
+                     Select-Object -First 1
+        $apReservedIP = '10.50.10.30'
+        $apMAC = $null
+        if ($apAdapter -and $apAdapter.MacAddress) {
+            # Hyper-V levert '001234ABCDEF' → DHCP verwacht '00-12-34-AB-CD-EF'
+            $apMAC = ($apAdapter.MacAddress -replace '[:\-]', '') `
+                     -replace '(..)(..)(..)(..)(..)(..)', '$1-$2-$3-$4-$5-$6'
+        } else {
+            Write-Log "  WAARSCHUWING: MAC van '$apVMName' niet gevonden (VM nog niet aangemaakt?) — reservering later instelbaar via utility\Start-LabVMs.ps1."
+        }
+
+        $dhcpResult = Invoke-Command -VMName $vmName -Credential $domCred -ScriptBlock {
+            param($scopeID, $scopeStart, $scopeEnd, $gateway, $dns, $apIP, $apMAC)
+            $out = [System.Collections.Generic.List[string]]::new()
+
+            # DHCP-server feature
+            $fqdn = "$env:COMPUTERNAME.$env:USERDNSDOMAIN"
+            if (-not (Get-WindowsFeature DHCP).Installed) {
+                Install-WindowsFeature DHCP -IncludeManagementTools -ErrorAction Stop | Out-Null
+                Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ServerManager\Roles\12' `
+                    -Name 'ConfigurationState' -Value 2 -ErrorAction SilentlyContinue
+                $out.Add("DHCP-server geïnstalleerd.")
+            } else {
+                $out.Add("DHCP-server was al aanwezig.")
+            }
+            # Autorisatie altijd controleren en herstellen (ook als DHCP al eerder was geïnstalleerd)
+            $authorized = Get-DhcpServerInDC -ErrorAction SilentlyContinue | Where-Object { $_.DnsName -ieq $fqdn }
+            if (-not $authorized) {
+                try {
+                    Add-DhcpServerInDC -DnsName $fqdn -ErrorAction Stop
+                    Restart-Service DHCPServer -ErrorAction SilentlyContinue
+                    $out.Add("DHCP-server geautoriseerd in AD ($fqdn) en service herstart.")
+                } catch {
+                    $out.Add("WAARSCHUWING: DHCP-autorisatie mislukt: $_")
+                }
+            } else {
+                $out.Add("DHCP-server was al geautoriseerd in AD.")
+            }
+
+            # DHCP-scope
+            if (-not (Get-DhcpServerv4Scope -ScopeId $scopeID -ErrorAction SilentlyContinue)) {
+                Add-DhcpServerv4Scope -Name 'SSW-Lab' `
+                    -StartRange $scopeStart -EndRange $scopeEnd `
+                    -SubnetMask '255.255.255.0' -State Active | Out-Null
+                Set-DhcpServerv4OptionValue -ScopeId $scopeID `
+                    -Router $gateway -DnsServer $dns -ErrorAction SilentlyContinue | Out-Null
+                $out.Add("DHCP-scope $scopeID aangemaakt ($scopeStart – $scopeEnd).")
+            } else {
+                $out.Add("DHCP-scope $scopeID bestond al.")
+            }
+
+            # Exclusion range: .1–.99 zijn infrastructuur-IPs (gateway=.1, DC=.10, MGMT=.20, Autopilot=.30).
+            # DHCP mag nooit een willekeurige client een IP in dit bereik geven — dat veroorzaakt IP-conflicten.
+            $excl = Get-DhcpServerv4ExclusionRange -ScopeId $scopeID -ErrorAction SilentlyContinue |
+                    Where-Object { $_.StartRange -eq '10.50.10.1' }
+            if (-not $excl) {
+                Add-DhcpServerv4ExclusionRange -ScopeId $scopeID -StartRange '10.50.10.1' -EndRange '10.50.10.99' -ErrorAction SilentlyContinue
+                $out.Add("DHCP-exclusie 10.50.10.1–99 aangemaakt (infrastructuur-IPs beschermd).")
+            } else {
+                $out.Add("DHCP-exclusie 10.50.10.1–99 bestond al.")
+            }
+
+            # Vaste reservering voor Autopilot-VM
+            if ($apMAC) {
+                $existing = Get-DhcpServerv4Reservation -ScopeId $scopeID -ErrorAction SilentlyContinue |
+                            Where-Object { $_.ClientId -ieq $apMAC }
+                if (-not $existing) {
+                    Add-DhcpServerv4Reservation -ScopeId $scopeID -IPAddress $apIP `
+                        -ClientId $apMAC -Description 'LAB-W11-AUTOPILOT — vaste DHCP-reservering' | Out-Null
+                    $out.Add("DHCP-reservering $apIP aangemaakt voor Autopilot-VM (MAC $apMAC).")
+                } else {
+                    $out.Add("DHCP-reservering voor Autopilot-VM ($apIP) bestond al.")
+                }
+            }
+            return $out
+        } -ArgumentList '10.50.10.0', '10.50.10.100', '10.50.10.200',
+                         $SSWConfig.GatewayIP, $SSWConfig.DCIP, $apReservedIP, $apMAC
+
+        foreach ($line in $dhcpResult) { Write-Log "  $line" }
+        Write-Log "✔ DHCP gereed — Autopilot-VM krijgt altijd $apReservedIP (ook na Autopilot-reset)."
+        # ── Einde DHCP-setup ────────────────────────────────────────────────────
 
         $progress.Value = 100
         Write-Log "✔ DC01 klaar als domain controller voor $domain"

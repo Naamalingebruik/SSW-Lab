@@ -19,3 +19,10 @@ config.local.ps1
 
 # Persoonlijke studievoortgang — lokaal bijgehouden, niet gesynct via git
 sog-status.md
+
+# Autopilot hardware hash exports (apparaatvspecifiek, niet committen)
+autopilot-hash.csv
+*-autopilot-hash.csv
+
+# Startup-taak logbestand (lokaal, wordt bij elke reboot overschreven)
+Start-LabVMs.log

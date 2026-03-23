@@ -15,6 +15,8 @@ Vereiste: scripts uitvoeren als Administrator via *Uitvoeren als andere gebruike
 | DC start niet / AD antwoordt niet | [Scenario C](#scenario-c--dc-niet-bereikbaar) |
 | Client-VM doet niet mee aan domein | [Scenario D](#scenario-d--client-vm-niet-gejoined) |
 | Hele lab opnieuw opbouwen (vers) | [Scenario E](#scenario-e--volledige-herinstallatie) |
+| Autopilot-VM heeft verkeerd / geen IP na reset | [Scenario F](#scenario-f--autopilot-vm-kwijt-ip-na-reset) |
+| W11-01/W11-02 heeft geen internet of veroorzaakt IP-conflict | [Scenario G](#scenario-g--ip-conflict-door-statisch-ip-na-lab-oefening) |
 
 ---
 
@@ -26,6 +28,14 @@ Vereiste: scripts uitvoeren als Administrator via *Uitvoeren als andere gebruike
    - DC01 / MGMT01: `LAB\labadmin`
    - W11-xx: `labadmin` (geen domein prefix)
 4. **Scripts zijn idempotent.** Alle opbouwscripts zijn veilig om opnieuw uit te voeren.
+5. **Startup-taak automatiseert stappen 1–2.** Na het registreren van `Register-LabStartupTask.ps1` wordt bij elke host-reboot automatisch het netwerk hersteld en worden VMs in de juiste volgorde gestart. Zie [Scenario E](#scenario-e--volledige-herinstallatie).
+6. **Autopilot-VM krijgt altijd hetzelfde IP.** Via DHCP-reservering op DC01 op basis van het Hyper-V MAC-adres. Dit MAC verandert nooit — ook niet na Autopilot-reset of OS-herinstallatie. Zie [Scenario F](#scenario-f--autopilot-vm-kwijt-ip-na-reset).
+7. **IP-adresverdeling is strikt gescheiden:**
+   - `.1–.9` — host-infrastructuur (gateway = `.1`)
+   - `.10–.99` — vaste VM-IPs (DC01 = `.10`, MGMT01 = `.20`, Autopilot-VM = `.30`)
+   - `.100–.200` — DHCP-pool voor W11-01, W11-02 en andere clients
+   - DHCP heeft een exclusion range op `.1–.99` zodat het nooit infrastructuur-IPs uitdeelt.
+   - **Lab-oefeningen die een statisch IP instellen op W11-01/W11-02 mogen nooit een adres < .100 gebruiken.** De startup-taak reset clients automatisch naar DHCP als er een statisch IP in het infrastructuurbereik wordt gedetecteerd.
 
 ---
 
@@ -195,6 +205,7 @@ Set-Location D:\Github\SSW-Lab
 .\scripts\03-VMS.ps1
 
 # 5. DC inrichten (AD, DNS, labadmin, UPN-suffix)
+#    LET OP: installeert ook automatisch DHCP + vaste IP-reservering voor Autopilot-VM
 .\scripts\04-SETUP-DC.ps1
 
 # 6. Entra Connect installeren op DC01 (voor Hybrid Join)
@@ -205,6 +216,9 @@ Set-Location D:\Github\SSW-Lab
 
 # 8. MGMT01 inrichten (modules, Entra Connect)
 .\scripts\06-SETUP-MGMT.ps1
+
+# 9. Startup-taak registreren (eenmalig — start lab automatisch bij elke host-reboot)
+.\scripts\utility\Register-LabStartupTask.ps1
 ```
 
 **Verwachte tijdsduur:** 45–90 minuten (afhankelijk van schijfsnelheid en ISO-locatie).
@@ -220,6 +234,103 @@ Set-Location D:\Github\SSW-Lab
 ```
 
 Output geeft: VM-status, join-type per client, Entra Connect sync, module-aanwezigheid, en MD-102 milestone-voortgang.
+
+---
+
+## Scenario F — Autopilot-VM kwijt IP na reset
+
+**Symptoom:** `LAB-W11-AUTOPILOT` heeft na een Autopilot-reset geen netwerk, of krijgt een willekeurig DHCP-adres in plaats van `10.50.10.30`.
+
+**Oorzaak:** Bij een Autopilot-reset wordt Windows opnieuw geïnstalleerd. Een eerder handmatig ingesteld statisch IP is dan weg. De structurele oplossing is een DHCP-reservering op DC01, gekoppeld aan het Hyper-V MAC-adres van de VM. Dit MAC-adres verandert nooit.
+
+**Is DHCP al ingesteld? (was je lab gebouwd vóór maart 2026)**
+
+Als je het lab vóór de update hebt opgebouwd, is DHCP mogelijk nog niet aanwezig op DC01. Controleer:
+
+```powershell
+$pw   = ConvertTo-SecureString 'jouw-labwachtwoord' -AsPlainText -Force
+$cred = New-Object PSCredential('LAB\labadmin', $pw)
+
+Invoke-Command -VMName 'LAB-DC01' -Credential $cred -ScriptBlock {
+    (Get-WindowsFeature DHCP).Installed
+}
+```
+
+**Als `False`** → draai de startup utility (idempotent, veilig om opnieuw te draaien):
+
+```powershell
+Set-Location D:\Github\SSW-Lab
+.\scripts\utility\Start-LabVMs.ps1
+```
+
+Dit script installeert DHCP op DC01, maakt de scope aan en voegt de reservering toe.
+
+**Als de Autopilot-VM al draait maar verkeerd IP heeft:**
+
+```powershell
+# Herstart de VM — DHCP-reservering zorgt voor correct IP bij volgende boot
+Restart-VM -Name 'LAB-W11-AUTOPILOT' -Force
+```
+
+**Verifieer de reservering:**
+
+```powershell
+$pw   = ConvertTo-SecureString 'jouw-labwachtwoord' -AsPlainText -Force
+$cred = New-Object PSCredential('LAB\labadmin', $pw)
+
+Invoke-Command -VMName 'LAB-DC01' -Credential $cred -ScriptBlock {
+    Get-DhcpServerv4Reservation -ScopeId '10.50.10.0' | Where-Object { $_.Description -like '*AUTOPILOT*' }
+}
+```
+
+Verwacht output: reservering met IP `10.50.10.30` en MAC-adres van de Autopilot-VM.
+
+---
+
+## Scenario G — IP-conflict door statisch IP na lab-oefening
+
+**Symptoom:** Een VM (bijv. Autopilot-VM of een andere client) heeft geen internet terwijl DC01 wel internet heeft. Gateway is bereikbaar maar extern TCP faalt. `arp -a` toont een IP-adres bij twee verschillende MAC-adressen.
+
+**Oorzaak:** Een MD-102 lab-oefening (bijv. netwerk- of Autopilot-configuratie) heeft een statisch IP ingesteld op W11-01 of W11-02 in het infrastructuurbereik (`.1–.99`). Dat IP botst met een gereserveerd adres.
+
+**Diagnose:**
+
+```powershell
+# Check ARP tabel op de host voor het SSW-Internal subnet
+arp -a | Select-String '10.50.10'
+```
+
+Als één IP onder twee verschillende MAC-adressen verschijnt → IP-conflict.
+
+**Oplossing — betrokken VM terug naar DHCP:**
+
+```powershell
+# Vervang 'LAB-W11-01' met de naam van de conflicterende VM
+$pw   = ConvertTo-SecureString 'jouw-labwachtwoord' -AsPlainText -Force
+$cred = New-Object PSCredential('labadmin', $pw)
+
+Invoke-Command -VMName 'LAB-W11-01' -Credential $cred -ScriptBlock {
+    $n = (Get-NetAdapter | Where-Object Status -eq 'Up').Name
+    netsh interface ip set address name="$n" source=dhcp
+    netsh interface ip set dns    name="$n" source=dhcp
+}
+```
+
+Daarna: lease vernieuwen en conflict-VM opnieuw testen:
+
+```powershell
+Invoke-Command -VMName 'LAB-W11-01' -Credential $cred -ScriptBlock {
+    ipconfig /release; ipconfig /renew
+    (Get-NetIPAddress -AddressFamily IPv4 | Where-Object PrefixOrigin -eq 'Dhcp').IPAddress
+}
+```
+
+**Structureel geborgd (geen actie vereist):**
+- De DHCP-scope heeft een exclusion range op `10.50.10.1–99`. DHCP kan nooit zelf een infrastructuur-IP uitdelen.
+- `Start-LabVMs.ps1` (en de startup-taak) detecteert bij elke start automatisch statische IPs < `.100` op W11-01/W11-02 en zet ze terug naar DHCP.
+- Lab-oefeningen die een statisch IP vereisen: gebruik altijd een adres uit de range `.100–.200`, nooit lager.
+
+> **Structurele fix:** `04-SETUP-DC.ps1` installeert DHCP en de reservering nu automatisch als onderdeel van de DC-setup. Nieuwe installaties lopen dit probleem niet meer tegen.
 
 ---
 

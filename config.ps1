@@ -35,6 +35,14 @@ $SSWConfig = @{
     # Gebruik config.local.ps1 (gitignored) voor jouw persoonlijke waarde.
     EntraUPN      = ""   # bijv. "lab.contoso.com"
 
+    # ── Wachtwoorden ─────────────────────────────────────────
+    # LabPassword: wachtwoord voor labadmin (DC, MGMT, W11-01, W11-02) — stel in via config.local.ps1
+    LabPassword       = ""
+    # AutopilotPassword: wachtwoord voor lokale 'autopilot'-account op W11-AUTOPILOT
+    # Dit account is anders omdat Autopilot OOBE een eigen lokaal account aanmaakt.
+    # Stel in via config.local.ps1 als het afwijkt van LabPassword.
+    AutopilotPassword = ""
+
     # ── Presets ─────────────────────────────────────────────
     Presets = @{
         Minimal  = @("DC01", "W11-01")

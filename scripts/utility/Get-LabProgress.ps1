@@ -42,9 +42,12 @@ if (-not ($SSWConfig -and $SSWConfig.LabPassword)) {
 $labPassword = $SSWConfig.LabPassword
 $entraUPN    = if ($SSWConfig -and $SSWConfig.EntraUPN) { $SSWConfig.EntraUPN } else { 'lab.stts.nl' }
 
-$pw        = ConvertTo-SecureString $labPassword -AsPlainText -Force
+$pw           = ConvertTo-SecureString $labPassword -AsPlainText -Force
 $credAdmin    = New-Object PSCredential('LAB\labadmin', $pw)
 $credLocal    = New-Object PSCredential('labadmin', $pw)
+# Autopilot VM heeft een eigen lokaal account ('autopilot') met apart wachtwoord
+$apPassword   = if ($SSWConfig.AutopilotPassword) { $SSWConfig.AutopilotPassword } else { $labPassword }
+$credAutopilot = New-Object PSCredential('autopilot', (ConvertTo-SecureString $apPassword -AsPlainText -Force))
 
 # Unicode iconen via runtime char conversion (encoding-safe op Windows PS 5)
 $OK   = [char]::ConvertFromUtf32(0x2705)  # OK
@@ -73,6 +76,14 @@ $vms = Get-VM | Select-Object Name, State, CPUUsage, MemoryAssigned
 $vmTable = @{}
 foreach ($vm in $vms) { $vmTable[$vm.Name] = $vm }
 
+function Get-ClientCred([string]$vmName) {
+    if ($vmName -eq 'LAB-W11-AUTOPILOT') { return $credAutopilot }
+    # W11-01: puur Entra (workgroup) → lokaal labadmin
+    # W11-02: Hybrid (domain joined) → LAB\labadmin
+    if ($vmName -eq 'LAB-W11-02') { return $credAdmin }
+    return $credLocal
+}
+
 # ──────────────────────────────────────────────────────────────────
 # 2. Netwerkcheck per client VM
 # ──────────────────────────────────────────────────────────────────
@@ -88,7 +99,7 @@ foreach ($vmName in @('LAB-W11-01','LAB-W11-02','LAB-W11-AUTOPILOT')) {
         # Fallback: DNS-resolutie
         if (-not $inet) { $inet = ($null -ne (Resolve-DnsName 'microsoft.com' -ErrorAction SilentlyContinue | Select-Object -First 1)) }
         [PSCustomObject]@{ IP = $ip; Internet = $inet }
-    } $credLocal
+    } (Get-ClientCred $vmName)
     $netStatus[$vmName] = if ($r) { @{ IP = $r.IP; Internet = $r.Internet } } else { @{ IP = 'ERR'; Internet = $false } }
 }
 
@@ -101,7 +112,7 @@ foreach ($vmName in @('LAB-W11-01','LAB-W11-02','LAB-W11-AUTOPILOT')) {
     if ($vmTable[$vmName].State -ne 'Running') { $joinStatus[$vmName] = @{ PsDirect = $false }; continue }
     $r = Invoke-VMCmd $vmName {
         $raw = dsregcmd /status
-        $get = { param($k) ($raw | Select-String "^\s*$k\s*:\s*(.+)$" | Select-Object -First 1) -replace ".*:\s*", '' }
+        $get = { param($k) $v = ($raw | Select-String "^\s*$k\s*:\s*(.+)$" | Select-Object -First 1) -replace ".*:\s*", ''; if ($null -eq $v) { '' } else { "$v" } }
         [PSCustomObject]@{
             AzureAdJoined    = (& $get 'AzureAdJoined').Trim()
             DomainJoined     = (& $get 'DomainJoined').Trim()
@@ -110,7 +121,7 @@ foreach ($vmName in @('LAB-W11-01','LAB-W11-02','LAB-W11-AUTOPILOT')) {
             DeviceId         = (& $get 'DeviceId').Trim()
             MdmUrl           = (& $get 'MdmUrl').Trim()
         }
-    } $credLocal
+    } (Get-ClientCred $vmName)
     $joinStatus[$vmName] = if ($r) {
         @{
             PsDirect        = $true
@@ -138,7 +149,7 @@ foreach ($vmName in @('LAB-W11-01','LAB-W11-02','LAB-W11-AUTOPILOT')) {
         (Get-CimInstance SoftwareLicensingProduct |
             Where-Object {$_.Name -like 'Windows*' -and $_.PartialProductKey} |
             Select-Object -First 1).LicenseStatus
-    } $credLocal
+    } (Get-ClientCred $vmName)
     $activation[$vmName] = if ($null -ne $r) { [int]$r } else { -1 }
 }
 
@@ -153,11 +164,16 @@ if ($vmTable['LAB-DC01'].State -eq 'Running') {
         if (-not $svc) { return $null }
         Import-Module ADSync -ErrorAction SilentlyContinue
         $sched = Get-ADSyncScheduler -ErrorAction SilentlyContinue
+        # LastSyncRunStartTime bestaat niet in alle versies — gebruik run history als fallback
+        $lastRun = (Get-ADSyncRunProfileResult -NumberRequested 2 -ErrorAction SilentlyContinue |
+                    Where-Object { $_.RunProfileName -like '*Delta*' -or $_.RunProfileName -like '*Export*' } |
+                    Sort-Object StartDate -Descending |
+                    Select-Object -First 1).StartDate
         [PSCustomObject]@{
-            Installed       = $true
-            ServiceRunning  = ($svc.Status -eq 'Running')
-            LastSync        = $sched.LastSyncRunStartTime
-            SyncEnabled     = $sched.SyncCycleEnabled
+            Installed      = $true
+            ServiceRunning = ($svc.Status -eq 'Running')
+            LastSync       = $lastRun
+            SyncEnabled    = $sched.SyncCycleEnabled
         }
     }
     if ($r) { $syncStatus = @{ Installed = $r.Installed; ServiceRunning = $r.ServiceRunning; LastSync = $r.LastSync; SyncEnabled = $r.SyncEnabled } }

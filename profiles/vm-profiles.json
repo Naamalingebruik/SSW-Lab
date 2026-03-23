@@ -42,6 +42,8 @@
     "Disk_GB": 80,
     "Role": "Autopilot testclient",
     "OS": "Windows11",
-    "IP": "DHCP"
+    "IP": "DHCP",
+    "DHCPReservation": "10.50.10.30",
+    "Note": "Vaste DHCP-reservering op DC01 op basis van MAC-adres. Blijft behouden na Autopilot-reset."
   }
 }
