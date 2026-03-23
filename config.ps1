@@ -15,7 +15,7 @@ $SSWConfig = @{
 
     # ── Paden ───────────────────────────────────────────────
     VMPath        = "D:\SSW-Lab\VMs"
-    ISOPath       = "D:\SSW-Lab\ISOs"
+    ISOPath       = "$PSScriptRoot\isos"   # map staat in repo, inhoud genegeerd via .gitignore
     # ── Netwerk ─────────────────────────────────────────────
     vSwitchName   = "SSW-Internal"
     NATName       = "SSW-NAT"
