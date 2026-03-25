@@ -132,3 +132,48 @@ Ingesteld via `scripts/utility/Fix-W11-02-Network.ps1` op 2026-03-22.
 **Bevinding:** Bij PS Direct (`Invoke-Command -VMName`) werkt `.\Administrator` als gebruikersnaam (hostname-onafhankelijk) voor lokale admin-toegang. `VMNaam\Administrator` faalt als de Windows-hostname afwijkt van de Hyper-V VM-naam (wat het geval is na unattended installatie met `<ComputerName>*</ComputerName>`).
 
 **Oplossing:** Altijd `.\Administrator` of `.\labadmin` gebruiken voor lokale PS Direct-sessies tot de machine hernoemd is.
+
+---
+
+## 2026-03-25
+
+### Stop-LabVMs.ps1 toegevoegd
+
+**Beslissing:** `scripts/utility/Stop-LabVMs.ps1` toegevoegd voor graceful shutdown van alle SSW-Lab VMs.
+
+**Volgorde:** LAB-W11-AUTOPILOT → LAB-W11-02 → LAB-W11-01 → LAB-MGMT01 → LAB-DC01 — clients eerst, domeincontroller als laatste.
+
+**Parameters:** `-Force` (forceer shutdown na timeout), `-TimeoutSeconds` (standaard 120).
+
+**Werking:** Laadt VM-namen uit `profiles/vm-profiles.json` (zelfde bron als de andere scripts). Slaat ontbrekende VMs over zonder fout. Logt naar `Stop-LabVMs.log` in de repo-root.
+
+---
+
+### Switch-Lab.ps1 WPF GUI toegevoegd
+
+**Beslissing:** `scripts/Switch-Lab.ps1` toegevoegd — centraal script voor wisselen tussen SSW-Lab en M365-Lab op de NUC.
+
+**Reden voor locatie in SSW-Lab repo:** SSW-Lab is de primaire host-management repo; het switcher-script beheert beide labs maar hoort logisch bij de host-laag, niet bij een specifiek lab.
+
+**Stijl:** Catppuccin dark theme WPF GUI, consistent met `scripts/01-NETWORK.ps1`. STA-thread vereist (script start zichzelf opnieuw in STA als nodig). Vereist Administrator-rechten.
+
+**Functionaliteit:**
+- Live VM-statuskaarten voor beide labs (● running, ○ off, — absent)
+- Force/graceful shutdown toggle
+- Bevestigingsdialoog vóór switch
+- Logbox in GUI + logbestand
+- Roept `Stop-LabVMs.ps1` in het actieve lab aan, start daarna het doellab
+
+**Vereiste paden (NUC):**
+- `D:\GitHub\SSW-Lab\scripts\utility\Stop-LabVMs.ps1`
+- `D:\GitHub\M365-Lab\scripts\vm\Stop-LabVMs.ps1`
+
+---
+
+### Rebase conflict opgelost: 02-MAKE-ISOS.ps1 (InstallFrom)
+
+**Aanleiding:** Lokale commit (`2b0bd64`) had `<InstallFrom><MetaData><Key>EDITIONID</Key>...</MetaData></InstallFrom>` terwijl de remote 7 commits vooruit was met `<InstallFrom><MetaData><Key>IMAGE/NAME</Key>...</MetaData></InstallFrom>`.
+
+**Beslissing:** Beide `<MetaData>`-blokken behouden in het `<InstallFrom>`-element. `<WillShowUI>Never</WillShowUI>` overgenomen uit de remote versie. Conflict opgelost in zowel `scripts/02-MAKE-ISOS.ps1` als `scripts-en/02-MAKE-ISOS.ps1`.
+
+**Rebase succesvol afgerond en gepusht naar origin.**
