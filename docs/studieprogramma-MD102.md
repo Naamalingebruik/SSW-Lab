@@ -2,8 +2,8 @@
 
 > 🌐 **Taal:** Nederlands | [English](study-guide-MD102.md)
 
-**Duur:** 7 weken · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02) + W11-AUTOPILOT voor week 5  
-**MS Learn pad:** [Endpoint Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/md-102)  
+**Duur:** 7 weken · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02) + W11-AUTOPILOT voor week 5
+**MS Learn pad:** [Endpoint Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/md-102)
 **Examengewicht:**
 
 | Domein | Gewicht |
@@ -20,11 +20,32 @@
 ---
 
 ## Week 1 — Windows client deployment
+> **Examendomein:** Infrastructuur voor devices voorbereiden · **Gewicht:** 25–30%
+
+### Leerdoelen
+- [ ] De minimale systeemvereisten voor Windows 11 kunnen opnoemen (TPM 2.0, UEFI/Secure Boot, 64 GB opslag, 4 GB RAM)
+- [ ] Het verschil uitleggen tussen wipe-and-load, in-place upgrade, en fresh start deployment
+- [ ] De rol van Windows ADK, DISM en Sysprep begrijpen in imaging workflows
+- [ ] Een antwoordbestand (`autounattend.xml`) in opzet begrijpen en benoemen welke secties geautomatiseerd worden
+- [ ] Uitleggen waarvoor `oscdimg.exe` gebruikt wordt en wanneer je een bootable ISO nodig hebt
+- [ ] De minimale Windows-build voor Intune-enrollment kennen (Windows 11 build 22000+)
 
 ### MS Learn modules
 - [Deploy Windows 11](https://learn.microsoft.com/en-us/training/modules/deploy-windows-client/)
 - [Upgrade Windows client](https://learn.microsoft.com/en-us/training/modules/upgrade-windows-client/)
 - [Windows Deployment Services en imaging](https://learn.microsoft.com/en-us/training/modules/configure-windows-deployment-services/)
+
+### Kernbegrippen
+| Begriff | Uitleg |
+|---------|--------|
+| Wipe-and-load | Volledige herinstallatie van Windows; alle bestaande data en apps worden verwijderd |
+| In-place upgrade | Windows-versie-upgrade waarbij apps, instellingen en data behouden blijven |
+| Windows ADK | Assessment and Deployment Kit — toolset voor Windows-imaging (DISM, SIM, WinPE) |
+| DISM | Deployment Image Servicing and Management — beheert WIM-images (drivers, pakketten, configuratie) |
+| Sysprep | System Preparation Tool — generaliseert een Windows-installatie voor klonen (verwijdert SID en machinespecifieke data) |
+| autounattend.xml | Antwoordbestand voor onbeheerde Windows-installaties — automatiseert taalinstelling, partitionering, productiecode en gebruikersaanmaak |
+| oscdimg.exe | Onderdeel van Windows ADK — maakt bootable ISO-bestanden van een map met Windows-installatiebestanden |
+| WinPE | Windows Preinstallation Environment — minimale Windows-omgeving die gestart wordt vóór de eigenlijke installatie |
 
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
@@ -41,14 +62,48 @@
 3. Wat doet `oscdimg.exe` en waarom is het nodig voor unattended deployments?
 4. Wanneer gebruik je DISM versus sysprep?
 
+<details>
+<summary>Antwoorden</summary>
+
+1. **Wipe-and-load** verwijdert alle bestaande data, apps en het besturingssysteem voordat een schone Windows-installatie geplaatst wordt — de schijf wordt geformatteerd. Geschikt voor vervanging van een image of bij zwaar beschadigde systemen. **In-place upgrade** upgradet het besturingssysteem (bijv. Windows 10 naar Windows 11) terwijl alle gebruikersdata, applicaties en instellingen bewaard blijven — minder verstorend voor eindgebruikers, maar potentieel meer "bagage" meegenomen.
+
+2. Windows 11 vereist build **22000** of hoger (Windows 11 21H2) voor Intune MDM-enrollment. Controleer via `winver` of via PowerShell: `(Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion').CurrentBuild`.
+
+3. `oscdimg.exe` is een commandlinetool (onderdeel van Windows ADK) die een map met Windows-installatiebestanden omzet naar een bootable ISO-bestand. Het is nodig voor unattended deployments omdat je een ISO nodig hebt die via Hyper-V, USB of PXE gestart kan worden — de bootloader-informatie en het el-Torito-bootrecord worden door oscdimg aan de ISO toegevoegd.
+
+4. **DISM** gebruik je voor het beheren van Windows-images (WIM/ESD-bestanden): stuurprogramma's toevoegen, updatepakketten injecteren, features in- of uitschakelen, en een bestaand image monteren om te inspecteren of aan te passen. **Sysprep** gebruik je om een volledig geïnstalleerd en geconfigureerd Windows-systeem voor te bereiden op klonen — het verwijdert de unieke machine-SID, computernaam en hardwarespecifieke configuratie zodat het image op meerdere systemen uitgerold kan worden. DISM werkt op images; sysprep werkt op een lopende installatie.
+
+</details>
+
 ---
 
 ## Week 2 — Intune enrollment en device management
+> **Examendomein:** Infrastructuur voor devices voorbereiden · **Gewicht:** 25–30%
+
+### Leerdoelen
+- [ ] De verschillende Intune-enrollmentmethoden kennen: handmatig, Autopilot, bulk enrollment (PPKG), co-management
+- [ ] Het verschil uitleggen tussen MDM-enrollment en MAM (App Protection Policies zonder enrollment)
+- [ ] Een compliance policy aanmaken en de statussen *Compliant*, *Not compliant* en *In grace period* interpreteren
+- [ ] Een configuration profile aanmaken (bijv. BitLocker enforced) en de toewijzing aan een apparaatgroep uitleggen
+- [ ] Uitleggen wat de Enrollment Status Page doet bij Autopilot-provisioning
+- [ ] Hybrid Azure AD Join onderscheiden van puur Entra ID Join in de context van enrollment
 
 ### MS Learn modules
 - [Enroll devices in Microsoft Intune](https://learn.microsoft.com/en-us/training/modules/enroll-devices/)
 - [Manage device profiles with Intune](https://learn.microsoft.com/en-us/training/modules/manage-device-profiles/)
 - [Monitor devices with Intune](https://learn.microsoft.com/en-us/training/modules/monitor-devices-microsoft-intune/)
+
+### Kernbegrippen
+| Begriff | Uitleg |
+|---------|--------|
+| MDM-enrollment | Het apparaat wordt volledig beheerd via Intune: policies, apps, remote actions, wipe |
+| MAM (zonder enrollment) | App Protection Policies beschermen alleen app-data op niet-enrolled (BYOD) apparaten — geen apparaatbeheer |
+| Hybrid Azure AD Join | Apparaat is lid van on-premises AD én geregistreerd in Entra ID via Azure AD Connect — beheert via GPO en/of Intune |
+| Entra ID Join | Apparaat is uitsluitend in Entra ID geregistreerd — geen on-premises domein nodig |
+| Compliance policy | Intune-beleid dat bepaalt wanneer een apparaat "compliant" is (bijv. minimale OS-versie, BitLocker aan, Defender actief) |
+| Enrollment Status Page (ESP) | Scherm dat tijdens Autopilot-provisioning de voortgang van app- en profielinstallatie toont; blokkeert het bureaublad totdat alles gereed is |
+| Configuration profile | Intune-beleid dat apparaatinstellingen configureert (bijv. BitLocker, VPN, Wi-Fi, screensaver) |
+| Intune check-in | Periodiek contactmoment (standaard elke 8 uur) waarop het apparaat policies en app-opdrachten ophaalt |
 
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
@@ -66,14 +121,55 @@
 3. Wat betekent een *Compliant* versus *Not compliant* status in Intune?
 4. Hoe werkt de *Enrollment Status Page* bij Autopilot?
 
+<details>
+<summary>Antwoorden</summary>
+
+1. **MDM-enrollment** is het proces waarbij een apparaat onder Intune-beheer komt — Intune kan policies pushen, apps installeren, remote actions uitvoeren en het apparaat wipen. **Hybrid Azure AD Join** is een apparaatstatus waarbij het device zowel lid is van een on-premises Active Directory-domein als geregistreerd is in Entra ID. Een Hybrid AADJ-apparaat kan ook MDM-enrolled zijn via Intune (via automatische MDM-enrollment op basis van GPO), maar de twee begrippen zijn niet hetzelfde: join-status beschrijft de identiteitsregistratie; enrollment beschrijft het beheerkanaal.
+
+2. Enrollmentmethoden in Intune voor Windows:
+   - **Handmatig (BYOD):** Instellingen → Accounts → Werk of school → Verbinden. Geschikt voor persoonlijke apparaten.
+   - **Windows Autopilot:** Zero-touch provisioning via hardware hash registratie. Geschikt voor nieuwe bedrijfsapparaten.
+   - **Bulk enrollment via PPKG:** Provisioning package (Windows Configuration Designer). Geschikt voor bestaande apparaten zonder Intune-licentie of internet.
+   - **Automatische enrollment via GPO:** Voor Hybrid AADJ-apparaten die al domeinlid zijn — GPO triggert automatische MDM-enrollment.
+   - **Co-management:** Bestaande ConfigMgr-clients enrollen naast ConfigMgr ook in Intune.
+
+3. **Compliant:** het apparaat voldoet aan alle ingestelde compliance-vereisten (bijv. BitLocker aan, Defender actief, juiste OS-versie). Intune rapporteert "Compliant" en Conditional Access policies die compliance vereisen laten de gebruiker door. **Not compliant:** het apparaat voldoet niet aan één of meer vereisten. Afhankelijk van de ingestelde grace period wordt toegang geblokeerd via CA na het verstrijken van die periode. De gebruiker ziet in Company Portal welke vereisten niet voldaan zijn.
+
+4. De **Enrollment Status Page (ESP)** toont de eindgebruiker tijdens de Autopilot-provisioning de voortgang van drie fases: apparaatvoorbereiding, apparaatinstallatie (profielen en apps die vereist zijn voor het apparaat) en accountinstallatie (profielen en apps voor de gebruiker). Het bureaublad wordt geblokkeerd totdat alle verplichte items geïnstalleerd zijn — dit voorkomt dat gebruikers het apparaat gaan gebruiken voordat het correct geconfigureerd is. De ESP is configureerbaar: je kunt een timeout instellen en beslissen of gebruikers de installatie mogen overslaan.
+
+</details>
+
 ---
 
 ## Week 3 — Compliance, Conditional Access en identiteit
+> **Examendomein:** Infrastructuur voor devices voorbereiden · **Gewicht:** 25–30%
+
+### Leerdoelen
+- [ ] Een Conditional Access-policy aanmaken met de juiste signalen (gebruiker, apparaat, locatie, risico)
+- [ ] Het verschil uitleggen tussen *Block access* en *Grant with controls* (bijv. MFA, compliant device vereisen)
+- [ ] Azure AD Connect Sync vergelijken met Entra Cloud Sync en weten wanneer je welke gebruikt
+- [ ] Named Locations configureren en gebruiken in een CA-policy
+- [ ] Windows LAPS configureren via Intune en het geroteerde wachtwoord opvragen via de portal
+- [ ] Het verschil tussen Windows LAPS (modern) en legacy Microsoft LAPS (on-premises AD) uitleggen
 
 ### MS Learn modules
 - [Configure device compliance policies](https://learn.microsoft.com/en-us/training/modules/configure-device-compliance-policies/)
 - [Configure Conditional Access](https://learn.microsoft.com/en-us/training/modules/configure-conditional-access/)
 - [Manage user and device identities](https://learn.microsoft.com/en-us/training/modules/manage-user-device-identities/)
+
+### Kernbegrippen
+| Begriff | Uitleg |
+|---------|--------|
+| Conditional Access (CA) | Toegangsbeleid in Entra ID dat op basis van signalen (gebruiker, apparaat, locatie, risico) toegang verleent of blokkeert |
+| Named Locations | Vertrouwde IP-bereiken of landen die in CA als "bedrijfsnetwerk" of "vertrouwde locatie" gemarkeerd zijn |
+| Grant controls | CA-actie: verleen toegang mits aan een voorwaarde voldaan is (bijv. MFA, compliant device, Hybrid AADJ) |
+| Block access | CA-actie: weiger altijd toegang voor de ingestelde conditions — geen uitzondering voor de gebruiker mogelijk |
+| Report-only modus | CA-instelling waarmee je het effect van een policy kunt evalueren zonder daadwerkelijk toegang te blokkeren |
+| Azure AD Connect Sync | On-premises server die gebruikers, groepen en apparaten synchroniseert van on-prem AD naar Entra ID |
+| Entra Cloud Sync | Lichtgewicht agent (geen volledige AD Connect server) voor AD-naar-Entra synchronisatie — beperkter maar eenvoudiger te beheren |
+| Windows LAPS | Ingebouwd in Windows 11 22H2+ — beheert automatisch het wachtwoord van het lokale admin-account en slaat dit op in Entra ID of on-prem AD |
+| Legacy LAPS | Aparte agent voor on-premises Active Directory — wachtwoorden opgeslagen in AD-attribuut, niet in Entra ID |
+| Primary Refresh Token (PRT) | SSO-token dat bij inloggen op Entra ID-joined apparaten uitgegeven wordt — gebruikt voor naadloze toegang tot alle cloud-apps zonder opnieuw inloggen |
 
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
@@ -94,14 +190,59 @@
 4. Wat doet de *Named Locations* instelling in CA?
 5. Wat is *Windows LAPS* en hoe verschilt het van de legacy LAPS-oplossing?
 
+<details>
+<summary>Antwoorden</summary>
+
+1. Conditional Access beoordeelt toegang op basis van de volgende signalen (conditions):
+   - **Gebruiker/groep en rol:** op welke gebruiker of rol is het beleid van toepassing
+   - **Cloud app of actie:** tot welke app of service probeert de gebruiker toegang te krijgen
+   - **Apparaatplatform:** Windows, iOS, Android, macOS
+   - **Locatie:** Named Locations (vertrouwde IP-bereiken of landen)
+   - **Client-app:** browser, moderne auth-app, legacy auth
+   - **Aanmeldrisico (Identity Protection):** laag/gemiddeld/hoog risiconiveau van de inloging
+   - **Apparaatstatus:** compliant, Hybrid AADJ, of Entra ID-joined
+
+2. **Block access** weigert altijd toegang voor de ingestelde conditions — de gebruiker kan niets doen om toch toegang te krijgen. **Grant with controls** verleent toegang mits de gebruiker/het apparaat aan aanvullende voorwaarden voldoet, zoals MFA voltooien, een compliant apparaat gebruiken, of een Hybrid AADJ-apparaat gebruiken. De gebruiker kan de controle actief oplossen (bijv. MFA voltooien) en krijgt daarna toegang.
+
+3. **Azure AD Connect Sync** is een volledige on-premises server-installatie die alle AD-objecten (gebruikers, groepen, apparaten, contacten) synchroniseert naar Entra ID — ondersteunt complexe scenario's zoals password hash sync, passthrough auth, federation, en writeback. **Entra Cloud Sync** is een lichtgewicht agent (geen volledige server) die een subset van synchronisatiescenario's ondersteunt. Cloud Sync is eenvoudiger te installeren en beheren, maar biedt minder functionaliteit (bijv. geen device writeback). Kies Cloud Sync voor eenvoudige omgevingen; kies AD Connect voor complexe hybride scenario's of als writeback vereist is.
+
+4. **Named Locations** zijn in Entra ID gedefinieerde sets van vertrouwde IP-adressen (bijv. het bedrijfsnetwerk) of landen/regio's. In een CA-policy gebruik je Named Locations als condition om onderscheid te maken tussen toegang vanuit het kantoor (vertrouwde locatie) versus thuis of onderweg. Voorbeeld: MFA alleen vereisen als de gebruiker zich **buiten** de Named Location bevindt. Zo vermijd je dat medewerkers op kantoor steeds MFA moeten doen.
+
+5. **Windows LAPS (modern)** is ingebouwd in Windows 11 22H2+ en Windows Server 2022, configureert het wachtwoord van het lokale admin-account automatisch, en slaat het op in Entra ID (cloud) of on-premises AD. Beheerd via Intune of Group Policy. **Legacy LAPS** is een aparte agent die je op elk apparaat moet installeren, werkt alleen met on-premises Active Directory (wachtwoord opgeslagen als AD-attribuut), en wordt geconfigureerd via GPO. Microsoft adviseert migratie naar Windows LAPS. Kernverschil: Windows LAPS ondersteunt Entra ID als backup-bestemming; legacy LAPS werkt alleen on-premises.
+
+</details>
+
 ---
 
 ## Week 4 — Applicatiebeheer met Intune
+> **Examendomein:** Applicaties beheren · **Gewicht:** 15–20%
+
+### Leerdoelen
+- [ ] De verschillende app-typen in Intune kennen: Win32, MSI/MSIX, Microsoft Store, LOB, webapplicatie, M365 Apps
+- [ ] Een Win32-app verpakken met de IntuneWinAppUtil en uploaden naar Intune inclusief detectieregel
+- [ ] Het verschil uitleggen tussen een *Required* en een *Available* app-toewijzing
+- [ ] Een App Protection Policy (MAM) aanmaken en de werking beschrijven voor BYOD-scenario's
+- [ ] De `IntuneManagementExtension.log` localiseren en gebruiken voor troubleshooting van app-installaties
+- [ ] Microsoft 365 Apps deployen via Intune en de rol van ODT en OCT uitleggen
 
 ### MS Learn modules
 - [Deploy and update applications with Intune](https://learn.microsoft.com/en-us/training/modules/deploy-applications/)
 - [Manage Win32 apps with Intune](https://learn.microsoft.com/en-us/training/modules/manage-win32-apps/)
 - [Configure Microsoft 365 Apps deployment](https://learn.microsoft.com/en-us/training/modules/configure-microsoft-365-apps/)
+
+### Kernbegrippen
+| Begriff | Uitleg |
+|---------|--------|
+| Win32 app | App verpakt als `.intunewin` bestand — het meest flexibele app-type voor complexe installaties met custom detect- en installatiecommando's |
+| IntuneWinAppUtil | Gratis Microsoft-tool die een installatiemap omzet naar een `.intunewin` pakket voor Intune |
+| Detectieregel | Regel die Intune gebruikt om te bepalen of een app al geïnstalleerd is (bestandspad, registry-sleutel of MSI product code) |
+| Required deployment | Geforceerde installatie — het apparaat ontvangt en installeert de app automatisch, de gebruiker kan niet weigeren |
+| Available deployment | App verschijnt in Company Portal — de gebruiker kiest zelf of en wanneer de app geïnstalleerd wordt |
+| App Protection Policy (MAM) | Beveiligingsbeleid op app-niveau: versleutelt app-data, blokkeert kopiëren naar persoonlijke apps, vereist PIN bij openen — werkt ook zonder enrollment |
+| MAM-WE | MAM Without Enrollment — App Protection Policies op niet-enrolled BYOD-apparaten |
+| IntuneManagementExtension.log | Logbestand op `C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\` — bevat gedetailleerde status van Win32-app-installaties en PowerShell-scripts |
+| ODT | Office Deployment Tool — commandlinetool voor installatie, update en verwijdering van Microsoft 365 Apps via een XML-configuratiebestand |
+| OCT | Office Customization Tool — webgebaseerde GUI op config.office.com om de ODT XML-configuratie te genereren |
 
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
@@ -119,14 +260,55 @@
 3. Wat doet de `IntuneManagementExtension.log` en waar staat die?
 4. Wat zijn de voordelen van MAM zonder MDM-enrollment?
 
+<details>
+<summary>Antwoorden</summary>
+
+1. **Required:** Intune installeert de app automatisch op het toegewezen apparaat of voor de toegewezen gebruiker — zonder interactie van de gebruiker. De installatie vindt plaats bij de volgende Intune check-in. De gebruiker kan de installatie niet weigeren of uitstellen. Geschikt voor verplichte bedrijfssoftware. **Available:** De app verschijnt in de Company Portal-app. De gebruiker kiest zelf of en wanneer de app geïnstalleerd wordt. Geschikt voor optionele of aanvullende software.
+
+2. **Win32 app packaging** gebruik je wanneer: de app een complex installatieprogramma heeft (`.exe` met switches), je aangepaste detectieregels nodig hebt, de app pre- of post-installatiescripts vereist, of de app niet beschikbaar is in de Microsoft Store. **Microsoft Store for Business** (of de nieuwe Microsoft Store in Intune) gebruik je wanneer: de app beschikbaar is in de Store, je geen extra verpakking wilt doen, en automatische updates via de Store gewenst zijn. Store-apps hebben geen eigen detectieregel nodig.
+
+3. De `IntuneManagementExtension.log` staat op `C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log`. Het bevat gedetailleerde stap-voor-stap logging van: Win32 app-installaties (download, detectie, uitvoering van het installatiecommando, detectie na installatie), PowerShell-scripts die via Intune uitgevoerd worden, en Proactive Remediations (detectie en herstelscripts). Het is het primaire troubleshootingbestand voor "waarom is mijn app niet geïnstalleerd?".
+
+4. **MAM zonder MDM-enrollment (MAM-WE)** heeft de volgende voordelen voor BYOD-scenario's:
+   - **Privacy:** het persoonlijke apparaat wordt niet beheerd door IT — geen remote wipe van het hele apparaat mogelijk
+   - **Eenvoud:** de gebruiker hoeft het apparaat niet formeel in te schrijven
+   - **Beveiliging van bedrijfsdata:** app-data (bijv. e-mail in Outlook, bestanden in OneDrive) wordt versleuteld en afgeschermd, kopiëren naar persoonlijke apps wordt geblokkeerd
+   - **Flexibiliteit:** werkt op iOS, Android en Windows zonder volledige MDM-controle
+   - **Acceptatie:** medewerkers accepteren MAM-WE eerder dan volledige MDM-enrollment op een persoonlijk apparaat
+
+</details>
+
 ---
 
 ## Week 5 — Windows Autopilot
+> **Examendomein:** Infrastructuur voor devices voorbereiden · **Gewicht:** 25–30%
+
+### Leerdoelen
+- [ ] De vier Autopilot-scenario's kennen en toepassen: User-driven, Self-deploying, Pre-provisioning (White Glove), Existing Device
+- [ ] Een hardware hash ophalen via PowerShell en uploaden naar Intune
+- [ ] Een Autopilot deployment profile aanmaken en de OOBE-instellingen configureren
+- [ ] De Enrollment Status Page (ESP) configureren met een timeout en verplichte apps
+- [ ] Autopilot Reset uitleggen en onderscheiden van een volledige fabrieksreset
+- [ ] Windows 365 Cloud PC vergelijken met Azure Virtual Desktop op de examendomeinen
+- [ ] Een KQL device query uitvoeren in Intune en de beschikbare tabellen benoemen
 
 ### MS Learn modules
 - [Configure Windows Autopilot](https://learn.microsoft.com/en-us/training/modules/configure-windows-autopilot/)
 - [Autopilot deployment scenarios](https://learn.microsoft.com/en-us/training/modules/windows-autopilot-deployment-scenarios/)
 - [Troubleshoot Windows Autopilot](https://learn.microsoft.com/en-us/training/modules/troubleshoot-windows-autopilot/)
+
+### Kernbegrippen
+| Begriff | Uitleg |
+|---------|--------|
+| Hardware hash | Unieke apparaat-fingerprint die via PowerShell (`Get-WindowsAutoPilotInfo`) verzameld wordt en in Intune geregistreerd wordt voor Autopilot |
+| User-driven mode | Autopilot-scenario waarbij de gebruiker inlogt met een Entra ID-account tijdens OOBE — het apparaat wordt persoonlijk ingericht |
+| Self-deploying mode | Autopilot-scenario voor kiosken/shared devices — geen gebruikersinteractie vereist; apparaat authenticeert via TPM 2.0 |
+| Pre-provisioning (White Glove) | IT of leverancier doorloopt de technician flow vooraf — apps en profielen worden geïnstalleerd vóór uitgifte aan de gebruiker |
+| Autopilot Reset | Herinstalleer Windows terwijl het apparaat Entra ID-joined en Autopilot-geregistreerd blijft — gebruikersdata wordt verwijderd |
+| Group Tag | Label op een Autopilot-apparaat om via dynamische Entra ID-groepen automatisch het juiste deployment profile toe te wijzen |
+| Windows 365 Cloud PC | Desktop-as-a-Service: volledige persoonlijke Windows-desktop gehost in Microsoft-cloud, beheerd via Intune |
+| Azure Virtual Desktop (AVD) | Microsoft-hosted VDI: multi-session mogelijk, pay-per-use Azure-kosten, meer flexibel maar complexer dan Windows 365 |
+| KQL Device Query | Kusto Query Language-query direct op één apparaat in Intune — real-time hardware/software-informatie; vereist Intune Advanced Analytics |
 
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
@@ -148,15 +330,58 @@
 5. Wat is *Windows 365* en hoe verschilt het van Azure Virtual Desktop?
 6. Hoe voer je een KQL device query uit in Intune en welke data kun je ophalen?
 
+<details>
+<summary>Antwoorden</summary>
+
+1. **User-driven:** de gebruiker logt in met zijn Entra ID-account tijdens de OOBE — het apparaat wordt persoonlijk ingericht voor die gebruiker. Vereist: een Autopilot-geregistreerd apparaat, internet, en een Entra ID-account. Geschikt voor persoonlijke werkapparaten. **Self-deploying:** er is geen gebruikersinloggen vereist — het apparaat authenticeert zichzelf via TPM 2.0 en certificaat. Geschikt voor kiosken, shared devices, en digital signage. Vereist: TPM 2.0 (hardware-attestation) en internet. Geen gebruikersaccount wordt aangemaakt.
+
+2. De **Enrollment Status Page (ESP)** toont de voortgang van drie installatiefases (apparaatvoorbereiding, apparaatinstallatie, accountinstallatie) en blokkeert het bureaublad totdat alles gereed is. Configureren via Intune → Devices → Windows → Enrollment → Enrollment Status Page → Create profile. Stel in: naam, tijdlimiet (bijv. 60 minuten), welke apps geblokkeerd totdat ze geïnstalleerd zijn, en of gebruikers de installatie mogen overslaan bij time-out.
+
+3. Als een apparaat al een Autopilot-profiel toegewezen heeft en je wilt dat wijzigen: ga naar Intune → Devices → Windows → Enrollment → Windows Autopilot devices → selecteer het apparaat → Assign user (voor user-driven) of verander de groepstag (Group Tag). Bij een groepstag-wijziging wordt het profiel opnieuw geëvalueerd op basis van de dynamische groep. Voor een volledige deregistratie: selecteer het apparaat → Delete → re-importeer de hardware hash.
+
+4. **Autopilot Reset** (ook: Windows Autopilot Reset) verwijdert alle gebruikersdata, geïnstalleerde apps en persoonlijke instellingen van een apparaat, maar behoudt de Entra ID-enrollment, het Autopilot-profiel en de domein-join-configuratie. Het apparaat start opnieuw op naar de Autopilot-OOBE voor de volgende gebruiker. Gebruik het bij: hergebruik van een apparaat voor een nieuwe medewerker, het "schoon" teruggeven van een apparaat na uit dienst treding van een medewerker, of bij een geïnfecteerd systeem dat gereset moet worden zonder volledige herinstallatie.
+
+5. **Windows 365** is een Desktop-as-a-Service: elke gebruiker krijgt een vaste, persoonlijke Cloud PC (virtuele Windows-desktop in Microsoft-cloud) voor een vaste prijs per gebruiker/maand. Beheerd volledig via Intune. **Azure Virtual Desktop (AVD)** is Microsoft-hosted VDI: multi-session mogelijk (meerdere gebruikers per VM-host), kosten op basis van Azure-verbruik (flexibeler bij laag gebruik), meer complex om op te zetten en te beheren. Sleutelonderscheid: Windows 365 = vaste prijs, altijd persistent, persoonlijk; AVD = variabele kosten, kan gedeeld/niet-persistent zijn, vereist Azure-infrastructuurbeheer.
+
+6. KQL Device Query uitvoeren: Intune → Devices → All devices → selecteer een apparaat → tabblad **Device query**. Typ een KQL-query in het interactieve queryvenster en klik op **Run**. Beschikbare tabellen (voorbeelden): `InstalledApplications` (geïnstalleerde apps), `SystemInfo` (hardware, OS-versie), `LocalUsers` (lokale gebruikersaccounts), `LogicalDrive` (schijfruimte). De resultaten zijn real-time (huidig moment), anders dan de gecachte Intune-hardware-inventory. Vereist: Intune Advanced Analytics (onderdeel van Intune Suite of Plan 2).
+
+</details>
+
 ---
 
 ## Week 6 — Security, updates, Intune Suite en monitoring
+> **Examendomein:** Devices beveiligen · **Gewicht:** 15–20%
+
+### Leerdoelen
+- [ ] Het verschil uitleggen tussen een Update ring (WUfB) en een Feature update policy en ze naast elkaar configureren
+- [ ] Co-management tussen Intune en Configuration Manager beschrijven en de workload-verdeling uitleggen
+- [ ] Het Endpoint analytics dashboard interpreteren en anomaliedetectie begrijpen
+- [ ] Remote actions (wipe, retire, sync, rotate LAPS password) uitvoeren vanuit de Intune-portal
+- [ ] De zes Intune Suite-add-ons benoemen en het probleem dat elk oplost beschrijven
+- [ ] Endpoint Privilege Management (EPM) configureren met elevation rules voor specifieke applicaties
+- [ ] Een Security Baseline deployen en de status rapporteren via Intune
 
 ### MS Learn modules
 - [Manage endpoint security with Intune](https://learn.microsoft.com/en-us/training/modules/manage-endpoint-security/)
 - [Manage Windows updates with Intune](https://learn.microsoft.com/en-us/training/modules/manage-windows-updates-intune/)
 - [Monitor and troubleshoot devices](https://learn.microsoft.com/en-us/training/modules/monitor-troubleshoot-devices/)
 - [Intune Suite add-on capabilities](https://learn.microsoft.com/en-us/mem/intune/fundamentals/intune-add-ons)
+
+### Kernbegrippen
+| Begriff | Uitleg |
+|---------|--------|
+| Update ring (WUfB) | Windows Update for Business-beleid dat de deferral van kwaliteits- en feature-updates instelt (in dagen) |
+| Quality Update | Maandelijkse cumulatieve beveiligings- en bugfixpatch (Patch Tuesday) |
+| Feature Update | Halfjaarlijkse versie-upgrade van Windows (bijv. 22H2 → 23H2) — apart van kwaliteitsupdates instelbaar |
+| Deferral period | Aantal dagen dat een update tegengehouden wordt nadat Microsoft hem uitbrengt |
+| Feature update policy | Intune-policy die een specifieke Windows-doelversie vastpint — forceert upgrade naar die versie |
+| Co-management | Windows-apparaat beheerd door zowel Configuration Manager als Intune — workloads zijn per functie te verdelen |
+| Tenant Attach | ConfigMgr-apparaten zichtbaar in Intune-portal voor remote actions en hardware-inventory — zonder volledige co-management |
+| Endpoint analytics | Intune-dashboard voor apparaatprestaties, opstartduur, app-betrouwbaarheid en anomaliedetectie |
+| Security Baseline | Vooraf geconfigureerde bundel van Microsoft-aanbevolen beveiligingsinstellingen (Windows, Defender, Edge) |
+| Intune Suite | Betaalde add-on bundel met: EPM, Enterprise App Catalog, Remote Help, Advanced Analytics, Cloud PKI, Tunnel for MAM |
+| Endpoint Privilege Management (EPM) | Intune Suite-component waarmee standaardgebruikers specifieke apps met verhoogde rechten kunnen starten — zonder permanent lokaal admin-account |
+| Elevation rule | EPM-configuratie die bepaalt welk specifiek bestand/proces verheven mag worden, en of dit automatisch of na gebruikersbevestiging gebeurt |
 
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
@@ -179,29 +404,70 @@
 5. Welke Intune Suite-add-ons bestaan er en welk probleem lost elk op?
 6. Wat is *Endpoint Privilege Management* en wanneer gebruik je elevation policies?
 
+<details>
+<summary>Antwoorden</summary>
+
+1. **Update ring** (Windows Update for Business) stelt een deferral-periode in: quality updates bijv. 7 dagen vertragen, feature updates 30 dagen. Het apparaat ontvangt de update automatisch nadat de deferral-periode verstreken is — je hebt geen controle over welke versie geïnstalleerd wordt, alleen over het tijdstip. **Feature update policy** pint een specifieke Windows-doelversie vast (bijv. Windows 11 23H2) en forceert apparaten die een oudere versie hebben om naar die versie te upgraden. Gebruik beide naast elkaar: de update ring voor kwaliteitsupdates, de feature update policy om de Windows-versie te beheren.
+
+2. **Co-management** combineert Configuration Manager (on-premises) en Intune (cloud) voor hetzelfde Windows-apparaat. De ConfigMgr-client draait op het apparaat en registreert het ook in Intune. Per workload (bijv. Compliance Policies, Endpoint Protection, Windows Updates, Office Click-to-Run, Resource Access) kies je wie de authority is: ConfigMgr of Intune. Je kunt workloads geleidelijk verschuiven via een pilot-collection. Zo kun je in eigen tempo migreren van ConfigMgr naar volledig cloud-beheer.
+
+3. Het **Endpoint analytics**-dashboard toont: apparaatopstarttijden en prestatiescores (Startup performance), app-betrouwbaarheid (Application reliability — crashes en hangs), Recommended software score (patch-compliance aanbevelingen), anomaliedetectie (apparaten die afwijken van de norm worden gesignaleerd), resource performance (CPU/RAM-gebruik), en de work from anywhere score. Het helpt IT-beheerders proactief prestatieproblemen te identificeren vóórdat gebruikers gaan klagen.
+
+4. **Remote actions** via Intune: ga naar Intune → Devices → All devices → selecteer een apparaat. Beschikbare acties (afhankelijk van platform en OS):
+   - **Wipe:** fabrieksreset — verwijdert alle data en herinstalleer Windows; apparaat is niet meer bruikbaar totdat het opnieuw geconfigureerd is
+   - **Retire:** verwijdert bedrijfsdata en -profielen, maar laat persoonlijke data intact (voor BYOD)
+   - **Sync:** triggert een directe Intune check-in — apparaat haalt onmiddellijk nieuwe policies en apps op
+   - **Rotate LAPS password:** rouleert het lokale admin-wachtwoord onmiddellijk
+   - **Fresh Start:** herinstalleer Windows maar behoud gebruikersdata
+
+5. De zes **Intune Suite**-add-ons:
+   - **Endpoint Privilege Management (EPM):** oplossing voor least-privilege — specifieke apps met admin-rechten zonder gebruiker permanent admin te maken
+   - **Enterprise App Catalog:** bibliotheek van ~300+ voorgeconfigureerde Win32-apps met automatische updates
+   - **Microsoft Intune Remote Help:** Intune-native remote support met audit-logging en RBAC — vervangt TeamViewer/Quick Assist
+   - **Advanced Analytics:** uitgebreide apparaatrapportage, anomaliedetectie en KQL device queries
+   - **Microsoft Cloud PKI:** volledig beheerde CA in de cloud — elimineert on-premises ADCS + NDES + Certificate Connector
+   - **Microsoft Tunnel for MAM:** VPN-tunnel voor MAM-beheerde apps op niet-enrolled iOS/Android apparaten
+
+6. **Endpoint Privilege Management** stelt standaardgebruikers (zonder lokaal adminrecht) in staat om specifieke, door IT goedgekeurde applicaties te starten met verhoogde (admin) rechten. Je gebruikt **elevation rules** wanneer: gebruikers een specifieke applicatie soms als admin moeten starten (bijv. een legacy installer, een beheertool), maar je ze permanent lokaal admin maken te riskant is. Configureer per applicatie: bestandsnaam, eventueel bestandshash (voor extra verificatie), en het elevatietype — *managed elevation* (automatisch, geen gebruikersinteractie) of *user-confirmed elevation* (gebruiker bevestigt via pop-up, genereert audittrail). Vereist Intune Suite of Intune Plan 2.
+
+</details>
+
 ---
 
 ### Exam Coverage Gaps en Must-Do Labs
 
-Doel: dit blok dicht de laatste gaten tussen het leerpad en de actuele exam-scope.
+Doel: dit blok dicht de laatste gaten tussen het leerpad en de actuele exam-scope per 23 januari 2026.
 
 ### Nog expliciet af te dekken
-1. Niet-Windows deviceprofielen voor iOS, Android en macOS.
-2. Bulk enrollment en platformspecifieke enrollment-profielen.
-3. Delivery Optimization en update-monitoring op detailniveau.
-4. Intune Suite onderdelen die je nog niet live testte, zoals Remote Help en Tunnel for MAM.
+
+1. **Niet-Windows deviceprofielen (iOS, Android, macOS):** het examen toetst actief het aanmaken van configuration profiles voor alle platforms. Zorg dat je de profieltypen per platform kent: iOS/iPadOS → Templates (Device restrictions, VPN, Wi-Fi, SCEP-certificaten); macOS → Templates + Settings Catalog; Android Enterprise → meerdere enrollment-modi (Fully managed, Dedicated, Corporate-owned work profile, Personally-owned work profile) met elk eigen profieltypen.
+
+2. **Bulk enrollment en platformspecifieke enrollment-profielen:** provisioning packages (PPKG via Windows Configuration Designer) voor Windows; Apple ADE (Automated Device Enrollment, voorheen DEP) via Apple Business Manager voor iOS; Android zero-touch enrollment voor Android Enterprise fully managed. Weet welke methode vereist is voor welk scenario.
+
+3. **Delivery Optimization en update-monitoring op detailniveau:** Delivery Optimization verdeelt Windows Update-bandbreedte via P2P — geconfigureerd via Intune Settings Catalog. Monitoring via Intune → Devices → Monitor → Windows Update rings report: Last scan time, update state, error codes per apparaat.
+
+4. **Intune Suite-onderdelen die nog niet live getest zijn:** Remote Help (audit-logging, RBAC-rol toewijzen), Microsoft Tunnel for MAM (verschil met reguliere Microsoft Tunnel — enrolled vs. niet-enrolled), Cloud PKI (architectuurverschil met ADCS+NDES). Begrijp de architectuur ook als je de componenten niet live kunt testen.
+
+5. **Security Baselines versus Configuration Profiles:** een security baseline is een vooraf geconfigureerde bundel Microsoft-aanbevelingen (onneembaar als geheel); een configuration profile geeft volledige controle over individuele instellingen. Conflicten tussen een baseline en een profiel worden als "Error" gerapporteerd — de instelling wordt niet toegepast.
+
+6. **App supersedence en de Enterprise App Catalog:** weet hoe app-vervanging (supersedence) werkt in Intune en wat de Enterprise App Catalog toevoegt boven handmatig verpakken (automatische updates, voorgeconfigureerde detectie/install/uninstall-commando's).
 
 ### Must-do labs voor slaagkans
-1. Maak minimaal 1 Android enrollment-profiel en documenteer welke instellingen exam-relevant zijn.
-2. Maak minimaal 1 iOS of macOS configuratieprofiel met filters.
-3. Configureer een update ring en een feature update policy naast elkaar en leg verschillen vast.
-4. Voer een KQL device query uit en neem output op in je samenvatting.
-5. Draai 5 volledige scenario-rondes: enrollment, compliance, CA-blokkade, app-deploy, remote action.
+
+1. Maak minimaal 1 Android enrollment-profiel (Fully managed) aan en documenteer welke instellingen exam-relevant zijn (camera block, copy-paste tussen werk/privé, update behavior).
+2. Maak minimaal 1 iOS of macOS configuratieprofiel aan met een filter (bijv. alleen iOS 16+) — oefen hoe filters anders evalueren dan dynamische groepen.
+3. Configureer een update ring én een feature update policy naast elkaar en leg schriftelijk vast: wat doet elk, wanneer gebruik je welke, en hoe verifieer je de toestand via register (`HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate`).
+4. Voer minimaal drie verschillende KQL device queries uit (InstalledApplications, SystemInfo, LocalUsers) en neem de resultaten op in je samenvatting — vereist Advanced Analytics licentie.
+5. Draai 5 volledige scenario-rondes end-to-end: enrollment → compliance policy aanmaken → Conditional Access blokkade simuleren → app deployen (Required) → remote action uitvoeren (Sync of Retire). Documenteer elk scenario.
+6. Bouw een Intune Remediation (Proactive Remediation) met een detectie- en herstelscript en verifieer de uitvoering via het Device status rapport in Intune.
+7. Configureer Windows LAPS via Intune (backup naar Entra ID), forceer een wachtwoordrotatie en verifieer het nieuwe wachtwoord via de portal en via PowerShell (Microsoft Graph).
 
 ### Exit criteria voordat je examen plant
-1. Je kunt alle vier exam-domeinen met eigen voorbeelden uitleggen.
-2. Je hebt per domein minimaal 2 hands-on labs zelf uitgevoerd.
-3. Je scoort stabiel op practice assessments en kunt foutantwoorden inhoudelijk verklaren.
+
+1. Je kunt alle vier exam-domeinen met eigen lab-voorbeelden uitleggen — niet alleen uit het hoofd, maar aan de hand van wat je zelf geconfigureerd hebt.
+2. Je hebt per domein minimaal 2 hands-on labs zelf uitgevoerd en de resultaten gedocumenteerd.
+3. Je scoort stabiel boven 75% op de officiële MS Learn practice assessment en kunt elk foutantwoord inhoudelijk verklaren (niet: "ik wist het niet"; wel: "ik dacht X maar het is Y omdat...").
+4. Je kunt de veelgemaakte examenvalkuilen benoemen zonder te spieken: Self-Deploying vereist geen gebruiker, MAM-WE werkt zonder enrollment, compliance policy blokkeert niet direct (grace period), Security Baseline overschrijft geen config profiles bij conflict (rapporteert Error), Tenant Attach ≠ Co-management.
 
 ---
 
