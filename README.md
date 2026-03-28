@@ -31,22 +31,22 @@ Gebouwd door en voor Sogeti SSW collega's — geen eigen domein of dedicated har
 
 ```powershell
 # 1. Controleer systeem
-.\scripts\00-PREFLIGHT.ps1
+.\scripts\Initialize-Preflight.ps1
 
 # 2. Maak netwerk aan
-.\scripts\01-NETWORK.ps1
+.\scripts\Configure-HostNetwork.ps1
 
 # 3. Bereid ISO's voor (MSDN ISO's als bron)
-.\scripts\02-MAKE-ISOS.ps1
+.\scripts\Build-UnattendedIsos.ps1
 
 # 4. Maak VMs aan
-.\scripts\03-VMS.ps1
+.\scripts\New-LabVMs.ps1
 
 # 5. Richt DC in
-.\scripts\04-SETUP-DC.ps1
+.\scripts\Initialize-DomainController.ps1
 
 # 6. Join clients aan domein
-.\scripts\05-JOIN-DOMAIN.ps1
+.\scripts\Join-LabComputersToDomain.ps1
 ```
 
 Elk script heeft een GUI en een knop om door te gaan naar het volgende.
@@ -61,7 +61,7 @@ Elk script heeft een GUI en een knop om door te gaan naar het volgende.
 | **Standard** | LAB-DC01 + LAB-MGMT01 + 2x W11 | ~14 GB |
 | **Full** | Standard + LAB-W11-AUTOPILOT | ~18 GB |
 
-`03-VMS.ps1` stelt automatisch een preset voor op basis van beschikbaar RAM.
+`New-LabVMs.ps1` stelt automatisch een preset voor op basis van beschikbaar RAM.
 
 ---
 
@@ -76,7 +76,7 @@ Laptop (Hyper-V host)
     └── 10.50.10.30+ → LAB-W11-01, LAB-W11-02, LAB-W11-AUTOPILOT (DHCP)
 ```
 
-> **Let op:** Het gateway-IP `10.50.10.1` op `vEthernet (SSW-Internal)` is niet persistent — voer `01-NETWORK.ps1` opnieuw uit na een host-reboot.
+> **Let op:** Het gateway-IP `10.50.10.1` op `vEthernet (SSW-Internal)` is niet persistent — voer `Configure-HostNetwork.ps1` opnieuw uit na een host-reboot.
 
 Internettoegang via NAT op de host. Geen Tailscale nodig.
 
@@ -167,12 +167,12 @@ SSW-Lab/
 ├── config.ps1
 ├── README.md
 ├── scripts/
-│   ├── 00-PREFLIGHT.ps1          # Systeemcheck
-│   ├── 01-NETWORK.ps1            # vSwitch en NAT
-│   ├── 02-MAKE-ISOS.ps1          # Unattended ISO's bouwen
-│   ├── 03-VMS.ps1                # VMs aanmaken
-│   ├── 04-SETUP-DC.ps1           # Domain Controller inrichten
-│   ├── 05-JOIN-DOMAIN.ps1        # Clients aan domein koppelen
+│   ├── Initialize-Preflight.ps1          # Systeemcheck
+│   ├── Configure-HostNetwork.ps1            # vSwitch en NAT
+│   ├── Build-UnattendedIsos.ps1          # Unattended ISO's bouwen
+│   ├── New-LabVMs.ps1                # VMs aanmaken
+│   ├── Initialize-DomainController.ps1           # Domain Controller inrichten
+│   ├── Join-LabComputersToDomain.ps1        # Clients aan domein koppelen
 │   └── labs/
 │       ├── MD102/                # 6 lab-scripts week 1–6
 │       ├── MS102/                # 7 lab-scripts week 1–7
@@ -201,11 +201,11 @@ Dit lab is bruikbaar als oefenomgeving voor meerdere Microsoft-certificeringen. 
 
 | Leerpad (MS Learn) | Nieuw domein (jan 2026) | Lab-gebruik |
 |--------------------|------------------------|-------------|
-| [Endpoint-infrastructuur voorbereiden](https://learn.microsoft.com/training/paths/execute-device-enrollment/) | Prepare infrastructure (25–30%) | `03-VMS` + Autopilot ISO's via `02-MAKE-ISOS`; co-management in Intune |
-| [Windows Autopilot](https://learn.microsoft.com/training/paths/execute-device-enrollment/) | Prepare infrastructure | `SSW-W11-AUTOPILOT` — specifiek voor Autopilot-scenario's |
-| [Apparaten beheren en onderhouden](https://learn.microsoft.com/training/paths/authentication-compliance/) | Manage/maintain devices (30–35%) | `SSW-MGMT01` voor update-beheer, RSAT en apparaatinventaris |
-| [Apps en app-data beheren](https://learn.microsoft.com/training/paths/examine-application-management/) | Manage apps (15–20%) | `SSW-W11-01/02` voor app-deployment en app protection policies |
-| [Apparaten beveiligen](https://learn.microsoft.com/training/paths/manage-endpoint-security/) | Protect devices (15–20%) | `SSW-MGMT01` compliance-policies, Endpoint Security en LAPS |
+| [Endpoint-infrastructuur voorbereiden](https://learn.microsoft.com/training/paths/execute-device-enrollment/) | Prepare infrastructure (25–30%) | `New-LabVMs.ps1` + Autopilot ISO's via `Build-UnattendedIsos.ps1`; co-management in Intune |
+| [Windows Autopilot](https://learn.microsoft.com/training/paths/execute-device-enrollment/) | Prepare infrastructure | `LAB-W11-AUTOPILOT` — specifiek voor Autopilot-scenario's |
+| [Apparaten beheren en onderhouden](https://learn.microsoft.com/training/paths/authentication-compliance/) | Manage/maintain devices (30–35%) | `LAB-MGMT01` voor update-beheer, RSAT en apparaatinventaris |
+| [Apps en app-data beheren](https://learn.microsoft.com/training/paths/examine-application-management/) | Manage apps (15–20%) | `LAB-W11-01/02` voor app-deployment en app protection policies |
+| [Apparaten beveiligen](https://learn.microsoft.com/training/paths/manage-endpoint-security/) | Protect devices (15–20%) | `LAB-MGMT01` compliance-policies, Endpoint Security en LAPS |
 
 **Benodigde preset:** `Full`
 
@@ -218,9 +218,9 @@ Dit lab is bruikbaar als oefenomgeving voor meerdere Microsoft-certificeringen. 
 
 | Leerpad (MS Learn) | Lab-gebruik |
 |--------------------|-------------|
-| [Microsoft 365-tenant configureren](https://learn.microsoft.com/training/paths/manage-your-microsoft-365-tenant/) | `SSW-MGMT01` als beheerwerkstation |
-| [Identiteitssynchronisatie implementeren](https://learn.microsoft.com/training/paths/implement-identity-synchronization/) | `SSW-DC01` — Microsoft Entra Connect installeren en configureren |
-| [Beveiliging en naleving beheren](https://learn.microsoft.com/training/paths/implement-threat-protection-use-microsoft-365-defender/) | Conditional Access, MFA, Defender — testen met `SSW-W11-01/02` |
+| [Microsoft 365-tenant configureren](https://learn.microsoft.com/training/paths/manage-your-microsoft-365-tenant/) | `LAB-MGMT01` als beheerwerkstation |
+| [Identiteitssynchronisatie implementeren](https://learn.microsoft.com/training/paths/implement-identity-synchronization/) | `LAB-DC01` — Microsoft Entra Connect installeren en configureren |
+| [Beveiliging en naleving beheren](https://learn.microsoft.com/training/paths/implement-threat-protection-use-microsoft-365-defender/) | Conditional Access, MFA, Defender — testen met `LAB-W11-01/02` |
 | [Microsoft 365-apps beheren](https://learn.microsoft.com/training/paths/manage-your-microsoft-365-tenant/) | App-deployment via Intune testen op clients |
 
 **Benodigde preset:** `Standard` of `Full`
@@ -234,9 +234,9 @@ Dit lab is bruikbaar als oefenomgeving voor meerdere Microsoft-certificeringen. 
 
 | Leerpad (MS Learn) | Lab-gebruik |
 |--------------------|-------------|
-| [Identiteiten implementeren in Microsoft Entra ID](https://learn.microsoft.com/training/paths/implement-identity-management-solution/) | `SSW-DC01` als brondomein voor hybride identiteit |
+| [Identiteiten implementeren in Microsoft Entra ID](https://learn.microsoft.com/training/paths/implement-identity-management-solution/) | `LAB-DC01` als brondomein voor hybride identiteit |
 | [Verificatie en toegangsbeheer](https://learn.microsoft.com/training/paths/implement-authentication-access-management-solution/) | MFA, SSPR en Conditional Access testen met lab-gebruikers |
-| [Toegang tot apps beheren](https://learn.microsoft.com/training/paths/implement-access-management-for-apps/) | App-registraties en enterprise apps vanuit `SSW-MGMT01` |
+| [Toegang tot apps beheren](https://learn.microsoft.com/training/paths/implement-access-management-for-apps/) | App-registraties en enterprise apps vanuit `LAB-MGMT01` |
 | [Rechtenbeheer plannen en implementeren](https://learn.microsoft.com/training/paths/plan-implement-identity-governance-strategy/) | Entra ID Governance configureren voor lab-gebruikers |
 
 **Benodigde preset:** `Minimal` (DC01 is voldoende als AD-bron)
@@ -250,8 +250,8 @@ Dit lab is bruikbaar als oefenomgeving voor meerdere Microsoft-certificeringen. 
 
 | Leerpad (MS Learn) | Lab-gebruik |
 |--------------------|-------------|
-| [Identiteiten en governance beheren](https://learn.microsoft.com/training/paths/az-104-manage-identities-governance/) | `SSW-DC01` + Entra Connect voor hybride AD-scenario's |
-| [Virtuele netwerken implementeren en beheren](https://learn.microsoft.com/training/paths/az-104-manage-virtual-networks/) | NAT-configuratie in `01-NETWORK` als referentie voor Azure VNet-concepten |
+| [Identiteiten en governance beheren](https://learn.microsoft.com/training/paths/az-104-manage-identities-governance/) | `LAB-DC01` + Entra Connect voor hybride AD-scenario's |
+| [Virtuele netwerken implementeren en beheren](https://learn.microsoft.com/training/paths/az-104-manage-virtual-networks/) | NAT-configuratie in `Configure-HostNetwork.ps1` als referentie voor Azure VNet-concepten |
 
 **Benodigde preset:** `Minimal`
 
@@ -261,10 +261,10 @@ Dit lab is bruikbaar als oefenomgeving voor meerdere Microsoft-certificeringen. 
 
 | VM / Component | MD-102 | MS-102 | SC-300 | AZ-104 |
 |----------------|:------:|:------:|:------:|:------:|
-| SSW-DC01 | ✅ | ✅ | ✅ | ✅ |
-| SSW-MGMT01 | ✅ | ✅ | — | — |
-| SSW-W11-01/02 | ✅ | ✅ | ✅ | — |
-| SSW-W11-AUTOPILOT | ✅ | — | — | — |
+| LAB-DC01 | ✅ | ✅ | ✅ | ✅ |
+| LAB-MGMT01 | ✅ | ✅ | — | — |
+| LAB-W11-01/02 | ✅ | ✅ | ✅ | — |
+| LAB-W11-AUTOPILOT | ✅ | — | — | — |
 | NAT / vSwitch | ✅ | ✅ | — | ✅ |
 
 ---
@@ -315,4 +315,5 @@ Naast de zes setup-scripts bevat de repo **26 begeleide lab-scripts** die stap v
 | `scripts/labs/SC300/lab-week5-appregistrations.ps1` | App registraties, API-rechten, client secret, App Proxy |
 | `scripts/labs/SC300/lab-week6-governance-pim.ps1` | Access packages, access reviews, PIM JIT-activering |
 
-> **MS Learn alignment (gecontroleerd maart 2026):** Alle scripts zijn afgestemd op de actuele examendoelen. SC-300 heeft per november 2025 *Global Secure Access* als nieuw examenonderdeel; dit onderwerp is nog niet opgenomen in de lab-scripts maar staat beschreven in [docs/studieprogramma-SC300.md](docs/studieprogramma-SC300.md).
+> **MS Learn alignment (gecontroleerd maart 2026):** Alle scripts zijn afgestemd op de actuele examendoelen. SC-300 heeft per november 2025 *Global Secure Access* als nieuw examenonderdeel; dit onderwerp is nog niet opgenomen in de lab-scripts maar staat beschreven in [docs/studieprogramma-sc300.md](docs/studieprogramma-sc300.md).
+

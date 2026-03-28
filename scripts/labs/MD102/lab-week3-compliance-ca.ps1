@@ -176,7 +176,7 @@ $btnRun.Add_Click({
                     Import-Module ADSync
                     Start-ADSyncSyncCycle -PolicyType Delta
                     "Sync gestart: $(Get-Date)"
-                } else { "Azure AD Connect niet geinstalleerd op DC01 — installeer eerst via 04-SETUP-DC.ps1" }
+                } else { "Azure AD Connect niet geinstalleerd op DC01 — installeer eerst via Initialize-DomainController.ps1" }
             } | ForEach-Object { Write-Log "  $_" }
         } catch { Write-Log "  ✖ Fout: $_" }
     }
@@ -236,3 +236,4 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+

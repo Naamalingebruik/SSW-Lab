@@ -22,7 +22,7 @@ Vereiste: scripts uitvoeren als Administrator via *Uitvoeren als andere gebruike
 
 ## Kernprincipes
 
-1. **Netwerk is niet persistent.** Het gateway-IP `10.50.10.1` op `vEthernet (SSW-Internal)` verdwijnt bij host-reboot. Altijd `01-NETWORK.ps1` draaien na reboot.
+1. **Netwerk is niet persistent.** Het gateway-IP `10.50.10.1` op `vEthernet (SSW-Internal)` verdwijnt bij host-reboot. Altijd `Configure-HostNetwork.ps1` draaien na reboot.
 2. **Volgorde is verplicht.** DC vóór clients. Netwerk vóór VMs. Zie [Scenario E](#scenario-e--volledige-herinstallatie).
 3. **PS Direct via VMBus werkt altijd** (ook zonder netwerk), zolang de VM Running is en credentials kloppen:
    - DC01 / MGMT01: `LAB\labadmin`
@@ -72,7 +72,7 @@ Als VM-bestanden weg zijn → zie [Scenario E](#scenario-e--volledige-herinstall
 ```powershell
 # Herstel netwerk (vSwitch, NAT, gateway-IP, IP-forwarding)
 Set-Location D:\Github\SSW-Lab
-.\scripts\01-NETWORK.ps1
+.\scripts\Configure-HostNetwork.ps1
 ```
 
 **Verificeer vanuit DC01:**
@@ -124,7 +124,7 @@ Alleen uitvoeren als `Get-ADDomain` faalt én NTDS/ADWS stoppen steeds.
 ```powershell
 # DC-setup opnieuw draaien (idempotent — promoot alleen als domein nog niet bestaat)
 Set-Location D:\Github\SSW-Lab
-.\scripts\04-SETUP-DC.ps1
+.\scripts\Initialize-DomainController.ps1
 ```
 
 ### Stap 4 — Entra Connect herstarten als sync stopt
@@ -162,7 +162,7 @@ Als dit faalt → voer eerst [Scenario B](#scenario-b--netwerk-weg-na-host-reboo
 ```powershell
 # Domain-join script opnieuw draaien
 Set-Location D:\Github\SSW-Lab
-.\scripts\05-JOIN-DOMAIN.ps1
+.\scripts\Join-LabComputersToDomain.ps1
 ```
 
 ### Stap 3 — Entra Connect sync forceren na re-join
@@ -183,7 +183,7 @@ Gebruik dit als de laptop opnieuw geïnstalleerd is, of als je lab volledig corr
 
 **Vereisten voor je begint:**
 - [ ] Hyper-V enabled (via Windows Features)
-- [ ] MSDN ISO's beschikbaar (Windows Server 2022 + Windows 11)
+- [ ] MSDN ISO's beschikbaar (Windows Server 2025 + Windows 11)
 - [ ] `config.local.ps1` hersteld vanuit je eigen backup (bevat labwachtwoord)
 - [ ] PowerShell uitvoeren als administrator
 
@@ -193,29 +193,29 @@ Gebruik dit als de laptop opnieuw geïnstalleerd is, of als je lab volledig corr
 Set-Location D:\Github\SSW-Lab
 
 # 1. Systeemcheck
-.\scripts\00-PREFLIGHT.ps1
+.\scripts\Initialize-Preflight.ps1
 
 # 2. Netwerk aanmaken (vSwitch, NAT, gateway)
-.\scripts\01-NETWORK.ps1
+.\scripts\Configure-HostNetwork.ps1
 
 # 3. Unattended ISO's voorbereiden (MSDN ISO's vereist)
-.\scripts\02-MAKE-ISOS.ps1
+.\scripts\Build-UnattendedIsos.ps1
 
 # 4. VMs aanmaken en starten
-.\scripts\03-VMS.ps1
+.\scripts\New-LabVMs.ps1
 
 # 5. DC inrichten (AD, DNS, labadmin, UPN-suffix)
 #    LET OP: installeert ook automatisch DHCP + vaste IP-reservering voor Autopilot-VM
-.\scripts\04-SETUP-DC.ps1
+.\scripts\Initialize-DomainController.ps1
 
 # 6. Entra Connect installeren op DC01 (voor Hybrid Join)
 .\scripts\Install-EntraConnect.ps1
 
 # 7. Clients joinen aan domein
-.\scripts\05-JOIN-DOMAIN.ps1
+.\scripts\Join-LabComputersToDomain.ps1
 
 # 8. MGMT01 inrichten (modules, Entra Connect)
-.\scripts\06-SETUP-MGMT.ps1
+.\scripts\Initialize-ManagementHost.ps1
 
 # 9. Startup-taak registreren (eenmalig — start lab automatisch bij elke host-reboot)
 .\scripts\utility\Register-LabStartupTask.ps1
@@ -330,7 +330,7 @@ Invoke-Command -VMName 'LAB-W11-01' -Credential $cred -ScriptBlock {
 - `Start-LabVMs.ps1` (en de startup-taak) detecteert bij elke start automatisch statische IPs < `.100` op W11-01/W11-02 en zet ze terug naar DHCP.
 - Lab-oefeningen die een statisch IP vereisen: gebruik altijd een adres uit de range `.100–.200`, nooit lager.
 
-> **Structurele fix:** `04-SETUP-DC.ps1` installeert DHCP en de reservering nu automatisch als onderdeel van de DC-setup. Nieuwe installaties lopen dit probleem niet meer tegen.
+> **Structurele fix:** `Initialize-DomainController.ps1` installeert DHCP en de reservering nu automatisch als onderdeel van de DC-setup. Nieuwe installaties lopen dit probleem niet meer tegen.
 
 ---
 
@@ -345,3 +345,4 @@ Minimale inhoud om te bewaren:
 ```powershell
 $SSWConfig.LabPassword = 'jouw-labwachtwoord'
 ```
+

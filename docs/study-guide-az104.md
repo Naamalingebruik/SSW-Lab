@@ -1,6 +1,6 @@
 # Study Guide AZ-104 — Azure Administrator
 
-> 🌐 **Language:** English | [Nederlands](studieprogramma-AZ104.md)
+> 🌐 **Language:** English | [Nederlands](studieprogramma-az104.md)
 
 **Duration:** 8 weeks · **Lab preset:** Minimal (DC01 · W11-01) — Azure tasks run in the cloud
 **MS Learn path:** [Azure Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104)

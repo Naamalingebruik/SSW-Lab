@@ -14,10 +14,10 @@ Per certificering is een studiegids beschikbaar met MS Learn modules, lab-oefeni
 
 | Certificering | Omschrijving | Preset | Duur | Lab-scripts |
 |---|---|---|---|---|
-| [MD-102](studieprogramma-MD102.md) | Endpoint Administrator | Standard + Autopilot | 7 weken | 6 (week 1–6) |
-| [MS-102](studieprogramma-MS102.md) | Microsoft 365 Administrator | Standard | 8 weken | 7 (week 1–7) |
-| [SC-300](studieprogramma-SC300.md) | Identity and Access Administrator | Standard | 7 weken | 6 (week 1–6) |
-| [AZ-104](studieprogramma-AZ104.md) | Azure Administrator | Minimal + Azure cloud | 8 weken | 7 (week 1–7) |
+| [MD-102](studieprogramma-md102.md) | Endpoint Administrator | Standard + Autopilot | 7 weken | 6 (week 1–6) |
+| [MS-102](studieprogramma-ms102.md) | Microsoft 365 Administrator | Standard | 8 weken | 7 (week 1–7) |
+| [SC-300](studieprogramma-sc300.md) | Identity and Access Administrator | Standard | 7 weken | 6 (week 1–6) |
+| [AZ-104](studieprogramma-az104.md) | Azure Administrator | Minimal + Azure cloud | 8 weken | 7 (week 1–7) |
 
 Elk lab-script (`scripts/labs/<CERT>/lab-week<N>-*.ps1`) heeft een WPF-GUI met Dry Run-modus, stapsgewijze begeleiding en een kennischeck. Scripts linken automatisch door naar het volgende lab.
 
@@ -86,7 +86,7 @@ Laptop (Hyper-V host)
 git clone <jouw-repo-url>/SSW-Lab.git
 cd SSW-Lab\scripts
 # Start als administrator:
-.\00-PREFLIGHT.ps1
+.\Initialize-Preflight.ps1
 ```
 
 ---
@@ -94,7 +94,7 @@ cd SSW-Lab\scripts
 ## Workflow stap voor stap
 
 ### Stap 1 — Preflight (systeemcheck)
-**Script:** `00-PREFLIGHT.ps1` | **EXE:** `Stap1 - Preflight (systeemcheck).exe`
+**Script:** `Initialize-Preflight.ps1` | **EXE:** `Stap1 - Preflight (systeemcheck).exe`
 
 Controleert of het systeem klaar is:
 - Hyper-V ingeschakeld
@@ -109,7 +109,7 @@ Geeft een preset-advies op basis van beschikbare resources. Knop **Doorgaan** wo
 ---
 
 ### Stap 2 — Netwerk inrichten
-**Script:** `01-NETWORK.ps1` | **EXE:** `Stap2 - Netwerk (vSwitch en NAT).exe`
+**Script:** `Configure-HostNetwork.ps1` | **EXE:** `Stap2 - Netwerk (vSwitch en NAT).exe`
 
 Maakt aan:
 - Interne Hyper-V vSwitch (`SSW-Internal`)
@@ -121,7 +121,7 @@ Bestaande switch en NAT worden overgeslagen.
 ---
 
 ### Stap 3 — ISO voorbereiding (unattended)
-**Script:** `02-MAKE-ISOS.ps1` | **EXE:** `Stap3 - ISO voorbereiding (unattended).exe`
+**Script:** `Build-UnattendedIsos.ps1` | **EXE:** `Stap3 - ISO voorbereiding (unattended).exe`
 
 Injecteert een `autounattend.xml` in MSDN ISO's zodat Windows automatisch installeert:
 - Schijfpartitionering (EFI + MSR + Windows)
@@ -136,7 +136,7 @@ Produceert: `SSW-W11-Unattend.iso` en `SSW-WS2025-Unattend.iso`
 ---
 
 ### Stap 4 — VMs aanmaken
-**Script:** `03-VMS.ps1` | **EXE:** `Stap4 - VMs aanmaken.exe`
+**Script:** `New-LabVMs.ps1` | **EXE:** `Stap4 - VMs aanmaken.exe`
 
 Maakt Hyper-V Gen2 VMs aan op basis van profielen in `profiles/vm-profiles.json`:
 - VHDX aanmaken (dynamisch)
@@ -150,7 +150,7 @@ Kies een **preset** of selecteer handmatig de gewenste VMs.
 ---
 
 ### Stap 5 — Domain Controller inrichten
-**Script:** `04-SETUP-DC.ps1` | **EXE:** `Stap5 - Domain Controller inrichten.exe`
+**Script:** `Initialize-DomainController.ps1` | **EXE:** `Stap5 - Domain Controller inrichten.exe`
 
 Via **PowerShell Direct** (geen netwerk nodig) op LAB-DC01:
 1. Statisch IP instellen (`10.50.10.10`)
@@ -163,7 +163,7 @@ Via **PowerShell Direct** (geen netwerk nodig) op LAB-DC01:
 ---
 
 ### Stap 6 — Domain Join (clients)
-**Script:** `05-JOIN-DOMAIN.ps1` | **EXE:** `Stap6 - Domain Join (clients).exe`
+**Script:** `Join-LabComputersToDomain.ps1` | **EXE:** `Stap6 - Domain Join (clients).exe`
 
 Voegt client-VMs toe aan `ssw.lab` via PowerShell Direct:
 - Verbindt als lokale Administrator
@@ -223,5 +223,6 @@ Elk script heeft een **Dry Run** toggle (standaard AAN). In Dry Run worden actie
 
 - Groene balk = Dry Run actief
 - Rode balk = Live uitvoering
+
 
 

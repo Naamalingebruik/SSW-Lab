@@ -14,10 +14,10 @@ A study guide is available for each certification, including MS Learn modules, l
 
 | Certification | Description | Preset | Duration | Lab scripts |
 |---|---|---|---|---|
-| [MD-102](study-guide-MD102.md) | Endpoint Administrator | Standard + Autopilot | 7 weeks | 6 (week 1–6) |
-| [MS-102](study-guide-MS102.md) | Microsoft 365 Administrator | Standard | 8 weeks | 7 (week 1–7) |
-| [SC-300](study-guide-SC300.md) | Identity and Access Administrator | Standard | 7 weeks | 6 (week 1–6) |
-| [AZ-104](study-guide-AZ104.md) | Azure Administrator | Minimal + Azure cloud | 8 weeks | 7 (week 1–7) |
+| [MD-102](study-guide-md102.md) | Endpoint Administrator | Standard + Autopilot | 7 weeks | 6 (week 1–6) |
+| [MS-102](study-guide-ms102.md) | Microsoft 365 Administrator | Standard | 8 weeks | 7 (week 1–7) |
+| [SC-300](study-guide-sc300.md) | Identity and Access Administrator | Standard | 7 weeks | 6 (week 1–6) |
+| [AZ-104](study-guide-az104.md) | Azure Administrator | Minimal + Azure cloud | 8 weeks | 7 (week 1–7) |
 
 Each lab script (`scripts/labs/<CERT>/lab-week<N>-*.ps1`) provides a WPF GUI with Dry Run mode, step-by-step guidance and a knowledge check. Scripts automatically chain to the next lab.
 
@@ -86,7 +86,7 @@ Laptop (Hyper-V host)
 git clone <your-repo-url>/SSW-Lab.git
 cd SSW-Lab\scripts
 # Run as administrator:
-.\00-PREFLIGHT.ps1
+.\Initialize-Preflight.ps1
 ```
 
 ---
@@ -94,7 +94,7 @@ cd SSW-Lab\scripts
 ## Step-by-step workflow
 
 ### Step 1 — Preflight (system check)
-**Script:** `00-PREFLIGHT.ps1` | **EXE:** `Stap1 - Preflight (systeemcheck).exe`
+**Script:** `Initialize-Preflight.ps1` | **EXE:** `Stap1 - Preflight (systeemcheck).exe`
 
 Checks whether the system is ready:
 - Hyper-V enabled
@@ -118,7 +118,7 @@ The **Continue** button only becomes active when there are no blocking errors.
 ---
 
 ### Step 2 — Network setup
-**Script:** `01-NETWORK.ps1` | **EXE:** `Stap2 - Netwerk (vSwitch en NAT).exe`
+**Script:** `Configure-HostNetwork.ps1` | **EXE:** `Stap2 - Netwerk (vSwitch en NAT).exe`
 
 Creates:
 - Internal Hyper-V vSwitch (`SSW-Internal`)
@@ -130,7 +130,7 @@ Existing switch and NAT are skipped.
 ---
 
 ### Step 3 — ISO preparation (unattended)
-**Script:** `02-MAKE-ISOS.ps1` | **EXE:** `Stap3 - ISO voorbereiding (unattended).exe`
+**Script:** `Build-UnattendedIsos.ps1` | **EXE:** `Stap3 - ISO voorbereiding (unattended).exe`
 
 Builds unattended ISOs from your MSDN source ISOs:
 - Browse to each MSDN ISO (W11 Enterprise, WS2025)
@@ -140,7 +140,7 @@ Builds unattended ISOs from your MSDN source ISOs:
 ---
 
 ### Step 4 — Create VMs
-**Script:** `03-VMS.ps1` | **EXE:** `Stap4 - VMs aanmaken.exe`
+**Script:** `New-LabVMs.ps1` | **EXE:** `Stap4 - VMs aanmaken.exe`
 
 Creates VMs based on the selected preset. A preset is suggested automatically based on available RAM:
 
@@ -153,7 +153,7 @@ Creates VMs based on the selected preset. A preset is suggested automatically ba
 ---
 
 ### Step 5 — Set up Domain Controller
-**Script:** `04-SETUP-DC.ps1` | **EXE:** `Stap5 - Domain Controller inrichten.exe`
+**Script:** `Initialize-DomainController.ps1` | **EXE:** `Stap5 - Domain Controller inrichten.exe`
 
 Configures LAB-DC01:
 - Promotes to Domain Controller for `ssw.lab`
@@ -163,7 +163,7 @@ Configures LAB-DC01:
 ---
 
 ### Step 6 — Domain Join (clients)
-**Script:** `05-JOIN-DOMAIN.ps1` | **EXE:** `Stap6 - Domain Join (clients).exe`
+**Script:** `Join-LabComputersToDomain.ps1` | **EXE:** `Stap6 - Domain Join (clients).exe`
 
 Joins client VMs (MGMT01, W11-01, W11-02) to the `ssw.lab` domain.
 
@@ -213,7 +213,7 @@ Internet access via NAT on the host. No Tailscale required.
 All scripts support a `-DryRun` flag:
 
 ```powershell
-.\03-VMS.ps1 -DryRun
+.\New-LabVMs.ps1 -DryRun
 ```
 
 This shows all planned actions without making any changes.
@@ -266,3 +266,4 @@ MIT — see [LICENSE](../LICENSE)
 This is a community initiative by SSW colleagues and is **not an official Sogeti or Capgemini product**.  
 The author accepts no liability for any damage resulting from the use of these scripts.  
 Use exclusively in an isolated test environment with MSDN licences — never in production.
+

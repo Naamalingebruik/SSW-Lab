@@ -1,6 +1,6 @@
 # Study Guide SC-300 — Identity and Access Administrator
 
-> **Language:** English | [Nederlands](studieprogramma-SC300.md)
+> **Language:** English | [Nederlands](studieprogramma-sc300.md)
 
 **Duration:** 7 weeks · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02)
 **MS Learn path:** [Identity and Access Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-300)

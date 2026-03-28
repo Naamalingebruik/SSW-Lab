@@ -16,7 +16,7 @@
 
 $scriptPath = Join-Path $PSScriptRoot 'Start-LabVMs.ps1'
 $taskName   = 'SSW-Lab-Startup'
-$taskDesc   = 'SSW-Lab: netwerk herstellen en VMs starten bij systeemstart (01-NETWORK + volgorde DC→clients)'
+$taskDesc   = 'SSW-Lab: netwerk herstellen en VMs starten bij systeemstart (Configure-HostNetwork + volgorde DC→clients)'
 
 if (-not (Test-Path $scriptPath)) {
     Write-Error "Script niet gevonden: $scriptPath"

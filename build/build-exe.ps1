@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 # SSW-Lab | build\build-exe.ps1
 # Converteert alle lab-scripts naar zelfstandige .exe's via ps2exe.
 # Gebruik: .\build\build-exe.ps1
@@ -21,12 +21,12 @@ $output  = Join-Path $root "executables"
 if (-not (Test-Path $output)) { New-Item -ItemType Directory -Path $output -Force | Out-Null }
 
 $targets = @(
-    @{ Script = "00-PREFLIGHT.ps1";   Exe = "Stap1 - Preflight (systeemcheck).exe";        Description = "SSW-Lab Stap 1 - Preflight systeemcheck" }
-    @{ Script = "01-NETWORK.ps1";     Exe = "Stap2 - Netwerk (vSwitch en NAT).exe";         Description = "SSW-Lab Stap 2 - Netwerk inrichten" }
-    @{ Script = "02-MAKE-ISOS.ps1";   Exe = "Stap3 - ISO voorbereiding (unattended).exe";  Description = "SSW-Lab Stap 3 - Unattended ISOs bouwen" }
-    @{ Script = "03-VMS.ps1";         Exe = "Stap4 - VMs aanmaken.exe";                    Description = "SSW-Lab Stap 4 - VMs aanmaken" }
-    @{ Script = "04-SETUP-DC.ps1";    Exe = "Stap5 - Domain Controller inrichten.exe";     Description = "SSW-Lab Stap 5 - DC inrichten" }
-    @{ Script = "05-JOIN-DOMAIN.ps1"; Exe = "Stap6 - Domain Join (clients).exe";           Description = "SSW-Lab Stap 6 - Domain Join" }
+    @{ Script = "Initialize-Preflight.ps1";   Exe = "Stap1 - Preflight (systeemcheck).exe";        Description = "SSW-Lab Stap 1 - Preflight systeemcheck" }
+    @{ Script = "Configure-HostNetwork.ps1";     Exe = "Stap2 - Netwerk (vSwitch en NAT).exe";         Description = "SSW-Lab Stap 2 - Netwerk inrichten" }
+    @{ Script = "Build-UnattendedIsos.ps1";   Exe = "Stap3 - ISO voorbereiding (unattended).exe";  Description = "SSW-Lab Stap 3 - Unattended ISOs bouwen" }
+    @{ Script = "New-LabVMs.ps1";         Exe = "Stap4 - VMs aanmaken.exe";                    Description = "SSW-Lab Stap 4 - VMs aanmaken" }
+    @{ Script = "Initialize-DomainController.ps1";    Exe = "Stap5 - Domain Controller inrichten.exe";     Description = "SSW-Lab Stap 5 - DC inrichten" }
+    @{ Script = "Join-LabComputersToDomain.ps1"; Exe = "Stap6 - Domain Join (clients).exe";           Description = "SSW-Lab Stap 6 - Domain Join" }
 )
 
 $ok = 0; $fail = 0

@@ -6,7 +6,7 @@
 #
 # Vereisten:
 #   - config.local.ps1 met: $SSWConfig.EntraUPN = "lab.jouwdomein.nl"
-#   - LAB-DC01 is Running en domain is ingericht (na 04-SETUP-DC.ps1)
+#   - LAB-DC01 is Running en domain is ingericht (na Initialize-DomainController.ps1)
 #   - MSI gedownload via: Invoke-WebRequest -Uri 'https://aka.ms/aadconnect' -OutFile 'D:\SSW-Lab\AzureADConnect.msi'
 # ============================================================
 
@@ -222,3 +222,4 @@ Write-Host "  4. Log in met je Global Admin van de dev-tenant"
 Write-Host "  5. AD-credentials: $($env:USERDOMAIN)\Administrator"
 Write-Host "  6. Verifieer sync: Start-ADSyncSyncCycle -PolicyType Initial"
 Write-Host ""
+

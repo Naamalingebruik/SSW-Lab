@@ -30,10 +30,10 @@ Dit document legt vast welke keuzes zijn gemaakt, waarom, en wat er gewijzigd is
 **Gevolg:** `SSW-Lab` is nu de publieke bron van waarheid voor de gedeelde studiegidsen. Het private `M365-Lab` mag nog als inspiratiebron dienen, maar is geen vereiste meer voor collega's om de studieroute te volgen; de gedeelde dev-tenant blijft wel onderdeel van de beoogde leeromgeving.
 
 **Bestanden geraakt:**
-- `docs/studieprogramma-AZ104.md`
-- `docs/studieprogramma-MD102.md`
-- `docs/studieprogramma-MS102.md`
-- `docs/studieprogramma-SC300.md`
+- `docs/studieprogramma-az104.md`
+- `docs/studieprogramma-md102.md`
+- `docs/studieprogramma-ms102.md`
+- `docs/studieprogramma-sc300.md`
 - bijbehorende Engelstalige `study-guide-*.md` bestanden als referentiepunt voor consistentie
 
 ---
@@ -70,8 +70,8 @@ Dit document legt vast welke keuzes zijn gemaakt, waarom, en wat er gewijzigd is
 
 **Bestanden gewijzigd:**
 - `profiles/vm-profiles.json` — alle VM-namen bijgewerkt
-- `scripts/03-VMS.ps1`, `04-SETUP-DC.ps1`, `05-JOIN-DOMAIN.ps1` — referenties bijgewerkt
-- `scripts/05-JOIN-DOMAIN.ps1` — VM-filter aangepast van `SSW-*` naar `LAB-*`
+- `scripts/New-LabVMs.ps1`, `scripts/Initialize-DomainController.ps1`, `scripts/Join-LabComputersToDomain.ps1` — referenties bijgewerkt
+- `scripts/Join-LabComputersToDomain.ps1` — VM-filter aangepast van `SSW-*` naar `LAB-*`
 
 ---
 
@@ -159,17 +159,39 @@ $SSWConfig.EntraUPN = "lab.jouwdomein.nl"
 - Gateway: `10.50.10.1`
 - DNS: `10.50.10.10` (DC01)
 
-Ingesteld via `scripts/utility/Fix-W11-02-Network.ps1` op 2026-03-22.
+Ingesteld via `scripts/utility/Repair-W11-02Network.ps1` op 2026-03-22.
+
+---
+
+### Scriptnamen genormaliseerd
+
+**Beslissing:** De primaire setup-scripts volgen nu een consistente werkwoord-eerst naamgeving. Oude stapnummers blijven alleen nog bestaan als compatibiliteitswrappers.
+
+**Nieuwe primaire namen:**
+| Oud | Nieuw |
+|-----|-------|
+| `00-PREFLIGHT.ps1` | `Initialize-Preflight.ps1` |
+| `01-NETWORK.ps1` | `Configure-HostNetwork.ps1` |
+| `02-MAKE-ISOS.ps1` | `Build-UnattendedIsos.ps1` |
+| `03-VMS.ps1` | `New-LabVMs.ps1` |
+| `03A-CLEANUP-VMS.ps1` | `Remove-OrphanedLabVMArtifacts.ps1` |
+| `04-SETUP-DC.ps1` | `Initialize-DomainController.ps1` |
+| `05-JOIN-DOMAIN.ps1` | `Join-LabComputersToDomain.ps1` |
+| `06-SETUP-MGMT.ps1` | `Initialize-ManagementHost.ps1` |
+| `utility\\_dhcp-setup.ps1` | `utility\\Initialize-DhcpScope.ps1` |
+| `utility\\Fix-W11-02-Network.ps1` | `utility\\Repair-W11-02Network.ps1` |
+
+**Gevolg:** README, wiki, runbooks en build-output gebruiken nu dezelfde functionele namen. Bestaande snelkoppelingen of oude documentatie blijven tijdelijk werken via wrappers.
 
 ---
 
 ### Gateway IP op host: niet persistent na reboot
 
-**Aandachtspunt:** Het IP `10.50.10.1` op `vEthernet (SSW-Internal)` gaat verloren na een host-reboot. `01-NETWORK.ps1` moet opnieuw worden uitgevoerd (of als scheduled task worden geregistreerd) bij elke host-reboot.
+**Aandachtspunt:** Het IP `10.50.10.1` op `vEthernet (SSW-Internal)` gaat verloren na een host-reboot. `Configure-HostNetwork.ps1` moet opnieuw worden uitgevoerd (of als scheduled task worden geregistreerd) bij elke host-reboot.
 
 **Workaround:** Scheduled task aanmaken of handmatig uitvoeren:
 ```powershell
-.\scripts\01-NETWORK.ps1
+.\scripts\Configure-HostNetwork.ps1
 ```
 
 ---
@@ -200,7 +222,7 @@ Ingesteld via `scripts/utility/Fix-W11-02-Network.ps1` op 2026-03-22.
 
 **Historische noot:** `scripts/Switch-Lab.ps1` is eerder toegevoegd als centrale GUI voor wisselen tussen SSW-Lab en M365-Lab op de NUC.
 
-**Stijl:** Catppuccin dark theme WPF GUI, consistent met `scripts/01-NETWORK.ps1`. STA-thread vereist (script start zichzelf opnieuw in STA als nodig). Vereist Administrator-rechten.
+**Stijl:** Catppuccin dark theme WPF GUI, consistent met `scripts/Configure-HostNetwork.ps1`. STA-thread vereist (script start zichzelf opnieuw in STA als nodig). Vereist Administrator-rechten.
 
 **Functionaliteit:**
 - Live VM-statuskaarten voor beide labs (● running, ○ off, — absent)
@@ -217,10 +239,11 @@ Ingesteld via `scripts/utility/Fix-W11-02-Network.ps1` op 2026-03-22.
 
 ---
 
-### Rebase conflict opgelost: 02-MAKE-ISOS.ps1 (InstallFrom)
+### Rebase conflict opgelost: Build-UnattendedIsos.ps1 (InstallFrom)
 
 **Aanleiding:** Lokale commit (`2b0bd64`) had `<InstallFrom><MetaData><Key>EDITIONID</Key>...</MetaData></InstallFrom>` terwijl de remote 7 commits vooruit was met `<InstallFrom><MetaData><Key>IMAGE/NAME</Key>...</MetaData></InstallFrom>`.
 
-**Beslissing:** Beide `<MetaData>`-blokken behouden in het `<InstallFrom>`-element. `<WillShowUI>Never</WillShowUI>` overgenomen uit de remote versie. Conflict opgelost in zowel `scripts/02-MAKE-ISOS.ps1` als `scripts-en/02-MAKE-ISOS.ps1`.
+**Beslissing:** Beide `<MetaData>`-blokken behouden in het `<InstallFrom>`-element. `<WillShowUI>Never</WillShowUI>` overgenomen uit de remote versie. Conflict opgelost in zowel `scripts/Build-UnattendedIsos.ps1` als `scripts-en/Build-UnattendedIsos.ps1`.
 
 **Rebase succesvol afgerond en gepusht naar origin.**
+

@@ -1,6 +1,6 @@
 # Study Guide MD-102 — Endpoint Administrator
 
-> 🌐 **Language:** English | [Nederlands](studieprogramma-MD102.md)
+> 🌐 **Language:** English | [Nederlands](studieprogramma-md102.md)
 
 **Duration:** 7 weeks · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02) + W11-AUTOPILOT for week 5
 **MS Learn path:** [Endpoint Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/md-102)
@@ -76,7 +76,7 @@
 | VM | Task |
 |---|---|
 | **LAB-DC01** | Verify domain `ssw.lab` — run `Get-ADDomain` in PowerShell |
-| **LAB-MGMT01** | Install Windows ADK + Deployment Tools via `02-MAKE-ISOS.ps1` |
+| **LAB-MGMT01** | Install Windows ADK + Deployment Tools via `Build-UnattendedIsos.ps1` |
 | **LAB-W11-01** | Verify Windows 11 version: `winver` → note the build number |
 | **LAB-W11-01** | Run in-place upgrade simulation: analyse `Get-WindowsUpdateLog` |
 | **LAB-MGMT01** | Create an answer file using Windows System Image Manager (SIM) |
@@ -891,3 +891,4 @@ This section identifies topics that are tested on the MD-102 exam but are not fu
 3. You score consistently above 75% on the Microsoft Learn practice assessment and can explain — not just identify — why each incorrect answer is wrong.
 4. You can draw the Autopilot provisioning flow (OOBE → ESP phases → desktop) from memory.
 5. You can explain the difference between these six pairs without hesitation: (Wipe vs Retire) · (Update ring vs Feature update policy) · (Windows LAPS vs Legacy LAPS) · (Co-management vs Tenant Attach) · (Windows 365 vs AVD) · (MAM-WE vs MDM enrollment).
+

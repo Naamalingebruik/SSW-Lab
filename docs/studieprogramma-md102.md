@@ -1,6 +1,6 @@
 # Studieprogramma MD-102 — Endpoint Administrator
 
-> 🌐 **Taal:** Nederlands | [English](study-guide-MD102.md)
+> 🌐 **Taal:** Nederlands | [English](study-guide-md102.md)
 
 **Duur:** 7 weken · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02) + W11-AUTOPILOT voor week 5
 **MS Learn pad:** [Endpoint Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/md-102)
@@ -76,7 +76,7 @@
 | VM | Taak |
 |---|---|
 | **LAB-DC01** | Controleer domain `ssw.lab` — voer `Get-ADDomain` uit in PowerShell |
-| **LAB-MGMT01** | Installeer Windows ADK + Deployment Tools via `02-MAKE-ISOS.ps1` |
+| **LAB-MGMT01** | Installeer Windows ADK + Deployment Tools via `Build-UnattendedIsos.ps1` |
 | **LAB-W11-01** | Verifieer Windows 11 versie: `winver` → noteer build nummer |
 | **LAB-W11-01** | Voer in-place upgrade-simulatie uit: `Get-WindowsUpdateLog` analyseren |
 | **LAB-MGMT01** | Maak een antwoord-bestand aan met Windows System Image Manager (SIM) |
@@ -627,3 +627,4 @@ Doel: dit blok dicht de laatste gaten tussen het leerpad en de actuele exam-scop
 - **Devices beheren & onderhouden (30–35%):** Autopilot deployment modes, configuratieprofielen, Windows 365 vs AVD, KQL device queries, Intune Suite add-ons (EPM, Remote Help, Tunnel for MAM)
 - **Applicaties beheren (15–20%):** Win32/LOB/Store/M365 Apps, app protection policies, ODT/OCT, Enterprise App Catalog
 - **Devices beveiligen (15–20%):** Security baselines, Defender for Endpoint onboarding, update rings vs feature update policies
+

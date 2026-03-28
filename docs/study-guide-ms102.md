@@ -1,6 +1,6 @@
 # Study Guide MS-102 — Microsoft 365 Administrator
 
-> 🌐 **Language:** English | [Nederlands](studieprogramma-MS102.md)
+> 🌐 **Language:** English | [Nederlands](studieprogramma-ms102.md)
 
 **Duration:** 8 weeks · **Lab preset:** Standard (DC01 · MGMT01 · W11-01 · W11-02)
 **MS Learn path:** [Microsoft 365 Administrator](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ms-102)
