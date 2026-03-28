@@ -6,6 +6,51 @@ Dit document legt vast welke keuzes zijn gemaakt, waarom, en wat er gewijzigd is
 
 ## 2026-03-21
 
+## 2026-03-28
+
+### Studiegidsen verrijkt voor examengerichte voorbereiding
+
+**Beslissing:** De studiegidsen in `docs/` zijn aangescherpt als de primaire, deelbare examvoorbereiding voor collega's. Ze moeten zelfstandig bruikbaar zijn zonder toegang tot het private `M365-Lab`.
+
+**Doel:** Collega's moeten zich met alleen `SSW-Lab` inhoudelijk kunnen voorbereiden op de examens, inclusief:
+- weekopbouw per examendomein
+- realistische praktijkscenario's
+- lab-oefeningen die echt uitvoerbaar zijn in `SSW-Lab`
+- kennischecks en controlevragen
+- consistente Nederlandse en Engelse versies
+
+**Inhoudelijke keuzes:**
+- De officiële Microsoft Learn study guides zijn de referentie voor domeinen, accenten en examscope.
+- De Nederlandse studiegidsen zijn gelijkgetrokken met de Engelse versies qua scenario-opbouw en `Labcommando's`.
+- Waar `SSW-Lab` een onderwerp niet volledig kan afdekken, wordt dat expliciet benoemd in plaats van impliciet verondersteld.
+- Real-world scenario's zijn bewust toegevoegd zodat de gidsen niet alleen theorie opsommen, maar ook ontwerpkeuzes en operationele context trainen.
+
+**Gevolg:** `SSW-Lab` is nu de publieke bron van waarheid voor de gedeelde studiegidsen. Het private `M365-Lab` mag nog als inspiratiebron dienen, maar is geen vereiste meer voor collega's om de studieroute te volgen.
+
+**Bestanden geraakt:**
+- `docs/studieprogramma-AZ104.md`
+- `docs/studieprogramma-MD102.md`
+- `docs/studieprogramma-MS102.md`
+- `docs/studieprogramma-SC300.md`
+- bijbehorende Engelstalige `study-guide-*.md` bestanden als referentiepunt voor consistentie
+
+---
+
+### Switch-Lab GUI verplaatst naar M365-Lab
+
+**Beslissing:** `scripts/Switch-Lab.ps1` is verwijderd uit de SSW-Lab repo. De centrale GUI-switcher staat nu in `M365-Lab/scripts/host/Switch-Lab.ps1`.
+
+**Aanleiding:** Er waren meerdere varianten van `Switch-Lab.ps1` in omloop. Dat gaf dubbel onderhoud en vergrootte de kans dat start/stop-logica en VM-namen uit elkaar gingen lopen.
+
+**Nieuwe werkwijze:**
+- SSW-Lab blijft eigenaar van de SSW-config en VM-profielen
+- De centrale switcher leest die gegevens nu direct uit `config.ps1` en `profiles/vm-profiles.json`
+- Er is daarmee nog maar één GUI-script dat beide labs beheert
+
+**Gevolg:** Naamswijzigingen van SSW-VMs hoeven nog maar in de SSW-config / profielen bijgehouden te worden; de centrale switcher neemt die automatisch over.
+
+---
+
 ### VM-namen: SSW-* → LAB-*
 
 **Aanleiding:** De prefix `SSW-` was verwarrend omdat SSW ook de naam is van de Sogeti-businessunit en het Sogeti-platform. VM-namen zouden lokaal uniek en herkenbaar moeten zijn.
@@ -149,11 +194,9 @@ Ingesteld via `scripts/utility/Fix-W11-02-Network.ps1` op 2026-03-22.
 
 ---
 
-### Switch-Lab.ps1 WPF GUI toegevoegd
+### Switch-Lab.ps1 WPF GUI toegevoegd (historisch, verwijderd)
 
-**Beslissing:** `scripts/Switch-Lab.ps1` toegevoegd — centraal script voor wisselen tussen SSW-Lab en M365-Lab op de NUC.
-
-**Reden voor locatie in SSW-Lab repo:** SSW-Lab is de primaire host-management repo; het switcher-script beheert beide labs maar hoort logisch bij de host-laag, niet bij een specifiek lab.
+**Historische noot:** `scripts/Switch-Lab.ps1` is eerder toegevoegd als centrale GUI voor wisselen tussen SSW-Lab en M365-Lab op de NUC.
 
 **Stijl:** Catppuccin dark theme WPF GUI, consistent met `scripts/01-NETWORK.ps1`. STA-thread vereist (script start zichzelf opnieuw in STA als nodig). Vereist Administrator-rechten.
 
@@ -167,6 +210,8 @@ Ingesteld via `scripts/utility/Fix-W11-02-Network.ps1` op 2026-03-22.
 **Vereiste paden (NUC):**
 - `D:\GitHub\SSW-Lab\scripts\utility\Stop-LabVMs.ps1`
 - `D:\GitHub\M365-Lab\scripts\vm\Stop-LabVMs.ps1`
+
+**Status nu:** Verwijderd. De centrale GUI-switcher staat nu in `M365-Lab/scripts/host/Switch-Lab.ps1`.
 
 ---
 

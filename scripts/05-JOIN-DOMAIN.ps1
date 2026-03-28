@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | 05-JOIN-DOMAIN.ps1
 # Voegt geselecteerde VMs toe aan ssw.lab via PowerShell Direct.
@@ -188,7 +188,7 @@ function Refresh-VMs {
     }
     if ($vms.Count -eq 0) {
         $lbl = [System.Windows.Controls.TextBlock]::new()
-        $lbl.Text = "Geen SSW-VMs gevonden (behalve DC01)."
+        $lbl.Text = "Geen LAB-VMs gevonden (behalve DC01)."
         $lbl.Foreground = $conv.ConvertFrom("#F9E2AF")
         $lbl.FontSize = 12
         $vmPanel.Children.Add($lbl)

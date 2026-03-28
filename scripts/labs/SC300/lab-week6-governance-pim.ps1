@@ -110,18 +110,18 @@ $btnRun.Add_Click({
     Write-Log "${pre}Stap 1: Access package aanmaken via MS Graph"
     $progress.Value = 12
     Write-Log "  Entra portal > Identity Governance > Entitlement management > Catalogs"
-    Write-Log "  Maak catalog aan: 'SSW Lab Resources'"
-    Write-Log "  Voeg resource toe: Security Group 'SSW-LabUsers'"
+    Write-Log "  Maak catalog aan: 'LAB Resources'"
+    Write-Log "  Voeg resource toe: Security Group 'LAB-LabUsers'"
     Write-Log ""
     if ($isDry) {
         Write-Log "${pre}  Connect-MgGraph -Scopes 'EntitlementManagement.ReadWrite.All'"
         Write-Log "${pre}  # Catalog aanmaken"
-        Write-Log "${pre}  `$catalog = New-MgEntitlementManagementAccessPackageCatalog -DisplayName 'SSW Lab Resources' -IsExternallyVisible:`$false"
+        Write-Log "${pre}  `$catalog = New-MgEntitlementManagementAccessPackageCatalog -DisplayName 'LAB Resources' -IsExternallyVisible:`$false"
         Write-Log "${pre}  # Access package aanmaken"
-        Write-Log "${pre}  `$pkg = New-MgEntitlementManagementAccessPackage -DisplayName 'SSW Lab Toegang' -Description 'Toegang voor SSW lab-oefeningen' -CatalogId `$catalog.Id"
+        Write-Log "${pre}  `$pkg = New-MgEntitlementManagementAccessPackage -DisplayName 'LAB Toegang' -Description 'Toegang voor LAB-oefeningen' -CatalogId `$catalog.Id"
         Write-Log "${pre}  # Beleid toevoegen: interne gebruikers kunnen aanvragen, manager keurt goed"
         Write-Log "${pre}  `$policy = @{"
-        Write-Log "${pre}    DisplayName = 'SSW Lab Request Policy'"
+        Write-Log "${pre}    DisplayName = 'LAB Request Policy'"
         Write-Log "${pre}    RequestorSettings = @{ ScopeType = 'AllExistingDirectoryMemberUsers'; AcceptRequests = `$true }"
         Write-Log "${pre}    RequestApprovalSettings = @{ IsApprovalRequired = `$true; ApprovalMode = 'SingleStage' }"
         Write-Log "${pre}    AccessReviewSettings = @{ IsEnabled = `$true; RecurrenceType = 'quarterly' }"
@@ -132,21 +132,21 @@ $btnRun.Add_Click({
             Connect-MgGraph -Scopes "EntitlementManagement.ReadWrite.All" -ErrorAction Stop | Out-Null
 
             # Catalog
-            $existCatalog = Get-MgEntitlementManagementAccessPackageCatalog -Filter "displayName eq 'SSW Lab Resources'" -ErrorAction SilentlyContinue
+            $existCatalog = Get-MgEntitlementManagementAccessPackageCatalog -Filter "displayName eq 'LAB Resources'" -ErrorAction SilentlyContinue
             if (-not $existCatalog) {
-                $catalog = New-MgEntitlementManagementAccessPackageCatalog -DisplayName "SSW Lab Resources" -IsExternallyVisible:$false
-                Write-Log "  Catalog aangemaakt: SSW Lab Resources (ID: $($catalog.Id))"
+                $catalog = New-MgEntitlementManagementAccessPackageCatalog -DisplayName "LAB Resources" -IsExternallyVisible:$false
+                Write-Log "  Catalog aangemaakt: LAB Resources (ID: $($catalog.Id))"
             } else {
                 $catalog = $existCatalog
                 Write-Log "  Catalog bestaat al: $($catalog.DisplayName)"
             }
 
             # Access package
-            $existPkg = Get-MgEntitlementManagementAccessPackage -Filter "displayName eq 'SSW Lab Toegang'" -ErrorAction SilentlyContinue
+            $existPkg = Get-MgEntitlementManagementAccessPackage -Filter "displayName eq 'LAB Toegang'" -ErrorAction SilentlyContinue
             if (-not $existPkg) {
-                $pkg = New-MgEntitlementManagementAccessPackage -DisplayName "SSW Lab Toegang" `
-                    -Description "Toegang voor SSW lab-oefeningen" -CatalogId $catalog.Id
-                Write-Log "  Access package aangemaakt: SSW Lab Toegang (ID: $($pkg.Id))"
+                $pkg = New-MgEntitlementManagementAccessPackage -DisplayName "LAB Toegang" `
+                    -Description "Toegang voor LAB-oefeningen" -CatalogId $catalog.Id
+                Write-Log "  Access package aangemaakt: LAB Toegang (ID: $($pkg.Id))"
                 $script:accessPackageId = $pkg.Id
             } else {
                 Write-Log "  Access package bestaat al: $($existPkg.DisplayName)"
@@ -163,8 +163,8 @@ $btnRun.Add_Click({
     $progress.Value = 28
     if ($isDry) {
         Write-Log "${pre}  Connect-MgGraph -Scopes 'AccessReview.ReadWrite.All', 'Group.Read.All'"
-        Write-Log "${pre}  # Haal de groep 'SSW-LabUsers' op"
-        Write-Log "${pre}  `$grp = Get-MgGroup -Filter `"displayName eq 'SSW-LabUsers'`""
+        Write-Log "${pre}  # Haal de groep 'LAB-LabUsers' op"
+        Write-Log "${pre}  `$grp = Get-MgGroup -Filter `"displayName eq 'LAB-LabUsers'`""
         Write-Log "${pre}  `$reviewBody = @{"
         Write-Log "${pre}    DisplayName = 'SSW Lab Quarterly Review'"
         Write-Log "${pre}    StartDateTime = (Get-Date).ToUniversalTime().ToString('o')"
@@ -178,7 +178,7 @@ $btnRun.Add_Click({
         try {
             Write-Log "  Entra portal > Identity Governance > Access reviews > + New access review"
             Write-Log "  Selecteer: Review type = Groups and teams"
-            Write-Log "  Scope: Alle leden van SSW-LabUsers"
+            Write-Log "  Scope: Alle leden van LAB-LabUsers"
             Write-Log "  Reviewers: Geselecteerde gebruikers (Admin of manager)"
             Write-Log "  Herhaling: Kwartaal | Duur: 14 dagen"
             Write-Log "  Einde: Beschikking automatisch toepassen"

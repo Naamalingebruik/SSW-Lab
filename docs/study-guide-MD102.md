@@ -73,11 +73,11 @@
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-DC01** | Verify domain `ssw.lab` — run `Get-ADDomain` in PowerShell |
-| **SSW-MGMT01** | Install Windows ADK + Deployment Tools via `02-MAKE-ISOS.ps1` |
-| **SSW-W11-01** | Verify Windows 11 version: `winver` → note the build number |
-| **SSW-W11-01** | Run in-place upgrade simulation: analyse `Get-WindowsUpdateLog` |
-| **SSW-MGMT01** | Create an answer file using Windows System Image Manager (SIM) |
+| **LAB-DC01** | Verify domain `ssw.lab` — run `Get-ADDomain` in PowerShell |
+| **LAB-MGMT01** | Install Windows ADK + Deployment Tools via `02-MAKE-ISOS.ps1` |
+| **LAB-W11-01** | Verify Windows 11 version: `winver` → note the build number |
+| **LAB-W11-01** | Run in-place upgrade simulation: analyse `Get-WindowsUpdateLog` |
+| **LAB-MGMT01** | Create an answer file using Windows System Image Manager (SIM) |
 
 ### Lab commands
 
@@ -195,12 +195,12 @@ oscdimg.exe -n -m -bC:\WinPE\boot\etfsboot.com C:\WinPE_x64 C:\Output\WinPE.iso
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-W11-01** | Enroll device in Intune via **Settings → Accounts → Work or school** |
-| **SSW-W11-02** | Enroll second device — observe the difference in the Intune portal |
-| **SSW-MGMT01** | Open Intune portal (intune.microsoft.com) → verify both devices under **Devices → All devices** |
-| **SSW-MGMT01** | Create a *Configuration profile*: BitLocker enforced on W11-01 |
-| **SSW-W11-01** | Verify BitLocker status: `manage-bde -status` |
-| **SSW-MGMT01** | Review **Device compliance** — create a compliance policy (minimum OS version) |
+| **LAB-W11-01** | Enroll device in Intune via **Settings → Accounts → Work or school** |
+| **LAB-W11-02** | Enroll second device — observe the difference in the Intune portal |
+| **LAB-MGMT01** | Open Intune portal (intune.microsoft.com) → verify both devices under **Devices → All devices** |
+| **LAB-MGMT01** | Create a *Configuration profile*: BitLocker enforced on W11-01 |
+| **LAB-W11-01** | Verify BitLocker status: `manage-bde -status` |
+| **LAB-MGMT01** | Review **Device compliance** — create a compliance policy (minimum OS version) |
 
 ### Lab commands
 
@@ -322,14 +322,14 @@ Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Enrollments\*" | Select PSChildName, 
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-DC01** | Create test users in AD: `New-ADUser -Name "TestUser01" ...` |
-| **SSW-DC01** | Sync AD to Entra ID via Azure AD Connect (install on DC01) |
-| **SSW-MGMT01** | Configure a Conditional Access policy: MFA required outside corporate network |
-| **SSW-W11-01** | Test the CA policy: sign in as TestUser01, verify MFA prompt |
-| **SSW-MGMT01** | Create a compliance policy: requires Defender, BitLocker, and min. W11 22H2 |
-| **SSW-W11-02** | Demonstrate non-compliant device → verify block in CA policy |
-| **SSW-MGMT01** | Enable **Windows LAPS** in Intune: Endpoint security → Account protection → LAPS policy |
-| **SSW-W11-01** | Verify LAPS: retrieve the rotated local admin password via Intune portal |
+| **LAB-DC01** | Create test users in AD: `New-ADUser -Name "TestUser01" ...` |
+| **LAB-DC01** | Sync AD to Entra ID via Azure AD Connect (install on DC01) |
+| **LAB-MGMT01** | Configure a Conditional Access policy: MFA required outside corporate network |
+| **LAB-W11-01** | Test the CA policy: sign in as TestUser01, verify MFA prompt |
+| **LAB-MGMT01** | Create a compliance policy: requires Defender, BitLocker, and min. W11 22H2 |
+| **LAB-W11-02** | Demonstrate non-compliant device → verify block in CA policy |
+| **LAB-MGMT01** | Enable **Windows LAPS** in Intune: Endpoint security → Account protection → LAPS policy |
+| **LAB-W11-01** | Verify LAPS: retrieve the rotated local admin password via Intune portal |
 
 ### Lab commands
 
@@ -453,12 +453,12 @@ Get-LapsAADPassword -DeviceId (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Window
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Package a `.exe` app as `.intunewin` using the **Intune Win32 Content Prep Tool** |
-| **SSW-MGMT01** | Upload the Win32 app to Intune → assign to W11-01 (Required) |
-| **SSW-W11-01** | Verify installation via **Company Portal** or event log (`IntuneManagementExtension`) |
-| **SSW-MGMT01** | Create a Microsoft 365 Apps deployment in Intune (Office suite) |
-| **SSW-W11-02** | Verify Office installation after sync (`imdssync` or wait for Intune check-in) |
-| **SSW-MGMT01** | Configure an *App protection policy* (MAM) for Microsoft Edge |
+| **LAB-MGMT01** | Package a `.exe` app as `.intunewin` using the **Intune Win32 Content Prep Tool** |
+| **LAB-MGMT01** | Upload the Win32 app to Intune → assign to W11-01 (Required) |
+| **LAB-W11-01** | Verify installation via **Company Portal** or event log (`IntuneManagementExtension`) |
+| **LAB-MGMT01** | Create a Microsoft 365 Apps deployment in Intune (Office suite) |
+| **LAB-W11-02** | Verify Office installation after sync (`imdssync` or wait for Intune check-in) |
+| **LAB-MGMT01** | Configure an *App protection policy* (MAM) for Microsoft Edge |
 
 ### Lab commands
 
@@ -575,14 +575,14 @@ Restart-Service -Name IntuneManagementExtension
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-W11-AUTOPILOT** | Gather hardware hash: `Get-WindowsAutoPilotInfo -OutputFile hash.csv` |
-| **SSW-MGMT01** | Upload hash to Intune: **Devices → Windows → Enrollment → Windows Autopilot devices** |
-| **SSW-MGMT01** | Create an Autopilot deployment profile: *User-driven, Microsoft Entra join* |
-| **SSW-W11-AUTOPILOT** | Reset the VM (Settings → System → Recovery → Reset this PC) |
-| **SSW-W11-AUTOPILOT** | Walk through the Out-of-Box Experience (OOBE) → verify automatic enrollment |
-| **SSW-MGMT01** | Analyse Autopilot events in **Event Viewer → Applications and Services → Microsoft → Windows → Autopilot** |
-| **SSW-MGMT01** | Explore *Windows 365* in Intune: review Cloud PC provisioning policies |
-| **SSW-MGMT01** | Run a *device query* using KQL: **Devices → select device → Device query** |
+| **LAB-W11-AUTOPILOT** | Gather hardware hash: `Get-WindowsAutoPilotInfo -OutputFile hash.csv` |
+| **LAB-MGMT01** | Upload hash to Intune: **Devices → Windows → Enrollment → Windows Autopilot devices** |
+| **LAB-MGMT01** | Create an Autopilot deployment profile: *User-driven, Microsoft Entra join* |
+| **LAB-W11-AUTOPILOT** | Reset the VM (Settings → System → Recovery → Reset this PC) |
+| **LAB-W11-AUTOPILOT** | Walk through the Out-of-Box Experience (OOBE) → verify automatic enrollment |
+| **LAB-MGMT01** | Analyse Autopilot events in **Event Viewer → Applications and Services → Microsoft → Windows → Autopilot** |
+| **LAB-MGMT01** | Explore *Windows 365* in Intune: review Cloud PC provisioning policies |
+| **LAB-MGMT01** | Run a *device query* using KQL: **Devices → select device → Device query** |
 
 ### Lab commands
 
@@ -713,15 +713,15 @@ Import-AutoPilotCSV -csvFile C:\Temp\AutopilotHash.csv
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Configure an *Update ring* in Intune: Semi-Annual Channel, 7-day deferral |
-| **SSW-W11-01** | Check Windows Update status: `Get-WindowsUpdateLog` |
-| **SSW-MGMT01** | Enable Microsoft Defender for Endpoint via Intune *Endpoint security → Antivirus* |
-| **SSW-W11-01** | Run a Defender Quick Scan: `Start-MpScan -ScanType QuickScan` |
-| **SSW-W11-02** | Simulate a detection with EICAR test file → analyse alert in Defender portal |
-| **SSW-MGMT01** | View **Device diagnostics** in Intune portal → download diagnostics from W11-01 |
-| **SSW-MGMT01** | Explore *Endpoint Privilege Management* (EPM) in Intune Suite: create an elevation policy |
-| **SSW-MGMT01** | Review *Advanced Analytics* in Intune: check anomaly detection dashboard |
-| **SSW-MGMT01** | Explore **Enterprise App Catalog**: find a managed app and review its metadata |
+| **LAB-MGMT01** | Configure an *Update ring* in Intune: Semi-Annual Channel, 7-day deferral |
+| **LAB-W11-01** | Check Windows Update status: `Get-WindowsUpdateLog` |
+| **LAB-MGMT01** | Enable Microsoft Defender for Endpoint via Intune *Endpoint security → Antivirus* |
+| **LAB-W11-01** | Run a Defender Quick Scan: `Start-MpScan -ScanType QuickScan` |
+| **LAB-W11-02** | Simulate a detection with EICAR test file → analyse alert in Defender portal |
+| **LAB-MGMT01** | View **Device diagnostics** in Intune portal → download diagnostics from W11-01 |
+| **LAB-MGMT01** | Explore *Endpoint Privilege Management* (EPM) in Intune Suite: create an elevation policy |
+| **LAB-MGMT01** | Review *Advanced Analytics* in Intune: check anomaly detection dashboard |
+| **LAB-MGMT01** | Explore **Enterprise App Catalog**: find a managed app and review its metadata |
 
 ### Lab commands
 

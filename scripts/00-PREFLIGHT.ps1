@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | 00-PREFLIGHT.ps1
 # Controleert of de laptop klaar is voor SSW-Lab.
@@ -323,10 +323,10 @@ $radioAZ104      = $reader.FindName("RadioAZ104")
 $script:currentCert = $null
 
 $studyGuideUrls = @{
-    "MD-102" = "https://github.com/Naamalingebruik/SSW-Lab/blob/main/docs/study-guide-MD102.md"
-    "MS-102" = "https://github.com/Naamalingebruik/SSW-Lab/blob/main/docs/study-guide-MS102.md"
-    "SC-300" = "https://github.com/Naamalingebruik/SSW-Lab/blob/main/docs/study-guide-SC300.md"
-    "AZ-104" = "https://github.com/Naamalingebruik/SSW-Lab/blob/main/docs/study-guide-AZ104.md"
+    "MD-102" = "d:\GitHub\SSW-Lab\docs\study-guide-MD102.md"
+    "MS-102" = "d:\GitHub\SSW-Lab\docs\study-guide-MS102.md"
+    "SC-300" = "d:\GitHub\SSW-Lab\docs\study-guide-SC300.md"
+    "AZ-104" = "d:\GitHub\SSW-Lab\docs\study-guide-AZ104.md"
 }
 
 $certClickHandler = {

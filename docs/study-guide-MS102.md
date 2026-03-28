@@ -74,13 +74,13 @@
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Open the **Microsoft 365 admin center** (admin.microsoft.com) in Edge |
-| **SSW-MGMT01** | Configure tenant settings: name, region, time zone |
-| **SSW-MGMT01** | Add a custom domain (or verify `ssw.lab` equivalent in tenant) |
-| **SSW-DC01** | Install Azure AD Connect → synchronise `ssw.lab` AD users to Entra ID |
-| **SSW-MGMT01** | Verify synchronised users in **Entra admin center → Users** |
-| **SSW-MGMT01** | Assign Microsoft 365 E5 licenses to synchronised users |
-| **SSW-MGMT01** | Enable and configure **Microsoft 365 Backup**: set a backup policy for Exchange and OneDrive |
+| **LAB-MGMT01** | Open the **Microsoft 365 admin center** (admin.microsoft.com) in Edge |
+| **LAB-MGMT01** | Configure tenant settings: name, region, time zone |
+| **LAB-MGMT01** | Add a custom domain (or verify `ssw.lab` equivalent in tenant) |
+| **LAB-DC01** | Install Azure AD Connect → synchronise `ssw.lab` AD users to Entra ID |
+| **LAB-MGMT01** | Verify synchronised users in **Entra admin center → Users** |
+| **LAB-MGMT01** | Assign Microsoft 365 E5 licenses to synchronised users |
+| **LAB-MGMT01** | Enable and configure **Microsoft 365 Backup**: set a backup policy for Exchange and OneDrive |
 
 ### Lab commands
 
@@ -188,14 +188,14 @@ Set-MgUserLicense -UserId "user@ssw.lab" -AddLicenses @{SkuId = "<E5-SKU-GUID>"}
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-DC01** | Create OU structure: `OU=SSW, OU=Users, DC=ssw, DC=lab` |
-| **SSW-DC01** | Bulk-create test accounts via CSV + `Import-Csv | New-ADUser` |
-| **SSW-MGMT01** | Assign roles in M365: create a *Helpdesk Administrator* |
-| **SSW-MGMT01** | Create a dynamic group in Entra ID (attribute-based: `department -eq "IT"`) |
-| **SSW-MGMT01** | Enable *Self-Service Password Reset* (SSPR) for the IT department |
-| **SSW-W11-01** | Test SSPR as TestUser01 via `aka.ms/sspr` |
-| **SSW-MGMT01** | Configure **Privileged Identity Management (PIM)**: make the Global Administrator role *eligible* for labadmin |
-| **SSW-MGMT01** | Activate the GA role Just-in-Time via PIM → verify the audit trail under **Entra → PIM → Audit history** |
+| **LAB-DC01** | Create OU structure: `OU=LAB, OU=Users, DC=ssw, DC=lab` |
+| **LAB-DC01** | Bulk-create test accounts via CSV + `Import-Csv | New-ADUser` |
+| **LAB-MGMT01** | Assign roles in M365: create a *Helpdesk Administrator* |
+| **LAB-MGMT01** | Create a dynamic group in Entra ID (attribute-based: `department -eq "IT"`) |
+| **LAB-MGMT01** | Enable *Self-Service Password Reset* (SSPR) for the IT department |
+| **LAB-W11-01** | Test SSPR as TestUser01 via `aka.ms/sspr` |
+| **LAB-MGMT01** | Configure **Privileged Identity Management (PIM)**: make the Global Administrator role *eligible* for labadmin |
+| **LAB-MGMT01** | Activate the GA role Just-in-Time via PIM → verify the audit trail under **Entra → PIM → Audit history** |
 
 ### Lab commands
 
@@ -303,14 +303,14 @@ Get-MgRoleManagementDirectoryRoleEligibilitySchedule -All | Select-Object Princi
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-DC01** | Check sync status: `Get-ADSyncScheduler` → verify cycle |
-| **SSW-MGMT01** | Configure MFA via **Entra admin center → Security → Multifactor authentication** |
-| **SSW-W11-01** | Register MFA method as TestUser01 (Authenticator app) |
-| **SSW-MGMT01** | Review *Sign-in logs* in Entra ID → filter on MFA events |
-| **SSW-MGMT01** | Invite an external user (B2B guest) via Entra ID |
-| **SSW-MGMT01** | Configure *Cross-tenant access settings* for external organisations |
-| **SSW-MGMT01** | Review **Entra Connect Health** → verify sync agent status and error report |
-| **SSW-MGMT01** | Enable **Entra Password Protection** → configure banned password list |
+| **LAB-DC01** | Check sync status: `Get-ADSyncScheduler` → verify cycle |
+| **LAB-MGMT01** | Configure MFA via **Entra admin center → Security → Multifactor authentication** |
+| **LAB-W11-01** | Register MFA method as TestUser01 (Authenticator app) |
+| **LAB-MGMT01** | Review *Sign-in logs* in Entra ID → filter on MFA events |
+| **LAB-MGMT01** | Invite an external user (B2B guest) via Entra ID |
+| **LAB-MGMT01** | Configure *Cross-tenant access settings* for external organisations |
+| **LAB-MGMT01** | Review **Entra Connect Health** → verify sync agent status and error report |
+| **LAB-MGMT01** | Enable **Entra Password Protection** → configure banned password list |
 
 ### Lab commands
 
@@ -419,12 +419,12 @@ Get-MgAuditLogSignIn -Filter "authenticationRequirement eq 'multiFactorAuthentic
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Create shared mailboxes via the Exchange Admin Center (EAC) |
-| **SSW-MGMT01** | Configure a *Distribution list* and a *Microsoft 365 Group* |
-| **SSW-MGMT01** | Set up a *mail flow rule*: append disclaimer to outbound mail |
-| **SSW-MGMT01** | Configure *Anti-spam* and *Anti-phishing* policies in Defender for Office 365 |
-| **SSW-W11-01** | Run a *message trace* via EAC → analyse delivery status |
-| **SSW-MGMT01** | Configure *DKIM* and review DMARC settings for the tenant domain |
+| **LAB-MGMT01** | Create shared mailboxes via the Exchange Admin Center (EAC) |
+| **LAB-MGMT01** | Configure a *Distribution list* and a *Microsoft 365 Group* |
+| **LAB-MGMT01** | Set up a *mail flow rule*: append disclaimer to outbound mail |
+| **LAB-MGMT01** | Configure *Anti-spam* and *Anti-phishing* policies in Defender for Office 365 |
+| **LAB-W11-01** | Run a *message trace* via EAC → analyse delivery status |
+| **LAB-MGMT01** | Configure *DKIM* and review DMARC settings for the tenant domain |
 
 ### Lab commands
 
@@ -527,12 +527,12 @@ Get-MessageTrace -SenderAddress "sender@external.com" -StartDate (Get-Date).AddH
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Create a SharePoint site collection (Team site) and assign permissions |
-| **SSW-MGMT01** | Configure *external sharing* settings in the SharePoint admin center |
-| **SSW-W11-01** | Upload documents to SharePoint → test sharing with TestUser02 |
-| **SSW-MGMT01** | Create a Teams team via the Teams admin center → add members |
-| **SSW-MGMT01** | Configure *Meetings policies* in Teams: restrict recording for guests |
-| **SSW-MGMT01** | Review **Teams usage reports** in the M365 admin center |
+| **LAB-MGMT01** | Create a SharePoint site collection (Team site) and assign permissions |
+| **LAB-MGMT01** | Configure *external sharing* settings in the SharePoint admin center |
+| **LAB-W11-01** | Upload documents to SharePoint → test sharing with TestUser02 |
+| **LAB-MGMT01** | Create a Teams team via the Teams admin center → add members |
+| **LAB-MGMT01** | Configure *Meetings policies* in Teams: restrict recording for guests |
+| **LAB-MGMT01** | Review **Teams usage reports** in the M365 admin center |
 
 ### Lab commands
 
@@ -636,13 +636,13 @@ Set-Team -GroupId "<team-group-id>" -Sensitivity "<label-GUID>"
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Open the **Microsoft Defender XDR portal** (security.microsoft.com) |
-| **SSW-W11-01** | Onboard W11-01 to Defender for Endpoint via Intune policy |
-| **SSW-W11-01** | Simulate suspicious activity: download the EICAR test file → check alert |
-| **SSW-MGMT01** | Analyse the incident in the Defender portal → review the *Attack story* graph |
-| **SSW-MGMT01** | Review the **Exposure Management** dashboard → check the Microsoft Secure Score |
-| **SSW-MGMT01** | Run *Attack Simulation Training* → phishing simulation to TestUser01 |
-| **SSW-MGMT01** | Analyse *Secure Score* → select an improvement action and implement it |
+| **LAB-MGMT01** | Open the **Microsoft Defender XDR portal** (security.microsoft.com) |
+| **LAB-W11-01** | Onboard W11-01 to Defender for Endpoint via Intune policy |
+| **LAB-W11-01** | Simulate suspicious activity: download the EICAR test file → check alert |
+| **LAB-MGMT01** | Analyse the incident in the Defender portal → review the *Attack story* graph |
+| **LAB-MGMT01** | Review the **Exposure Management** dashboard → check the Microsoft Secure Score |
+| **LAB-MGMT01** | Run *Attack Simulation Training* → phishing simulation to TestUser01 |
+| **LAB-MGMT01** | Analyse *Secure Score* → select an improvement action and implement it |
 
 ### Lab commands
 
@@ -750,12 +750,12 @@ Get-MgSecuritySecureScore -Top 1 | Select-Object CurrentScore, MaxScore, Created
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Open the **Microsoft Purview portal** (compliance.microsoft.com) |
-| **SSW-MGMT01** | Create a *sensitivity label*: "Confidential - Internal" with encryption |
-| **SSW-W11-01** | Apply the label to a Word document → verify encryption |
-| **SSW-MGMT01** | Create a *DLP policy*: block sending of Social Security Numbers via email |
-| **SSW-W11-01** | Test the DLP policy: send email with a fictitious SSN → verify block |
-| **SSW-MGMT01** | Run a *Core eDiscovery* search on the TestUser01 mailbox |
+| **LAB-MGMT01** | Open the **Microsoft Purview portal** (compliance.microsoft.com) |
+| **LAB-MGMT01** | Create a *sensitivity label*: "Confidential - Internal" with encryption |
+| **LAB-W11-01** | Apply the label to a Word document → verify encryption |
+| **LAB-MGMT01** | Create a *DLP policy*: block sending of Social Security Numbers via email |
+| **LAB-W11-01** | Test the DLP policy: send email with a fictitious SSN → verify block |
+| **LAB-MGMT01** | Run a *Core eDiscovery* search on the TestUser01 mailbox |
 
 ### Lab commands
 

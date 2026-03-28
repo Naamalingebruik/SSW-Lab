@@ -41,11 +41,13 @@
 ---
 
 ## Week 1 — Azure identiteiten en governance
-> **Examendomein:** Manage Azure identities and governance · **Gewicht:** 20–25%
+> **Examendomein:** Azure-identiteiten en governance beheren · **Gewicht:** 20–25%
+
+> **Praktijkscenario:** Een Sogeti-consultant begeleidt de onboarding van een recent overgenomen dochterbedrijf van een financiële klant. De dochter heeft een eigen Active Directory, 200 medewerkers en moet toegang krijgen tot specifieke Azure-workloads zonder zicht te krijgen op de subscriptions van het moederbedrijf. Je ontwerpt het RBAC-delegatiemodel, bouwt een management group-hiërarchie en dwingt via Azure Policy af dat resources alleen in goedgekeurde regio's mogen worden uitgerold.
 
 ### Leerdoelen
 - [ ] Entra ID-gebruikers en -groepen aanmaken en beheren via Azure portal en Azure CLI
-- [ ] Azure RBAC-rollen toewijzen op resource group- en subscription-niveau en het verschil begrijpen met Entra ID-directoryrrollen
+- [ ] Azure RBAC-rollen toewijzen op resource group- en subscription-niveau en het verschil begrijpen met Entra ID-directoryrollen
 - [ ] Een Management Group-hiërarchie opbouwen (Root → tussenliggend niveau → Dev/Prod)
 - [ ] Een Azure Policy toewijzen die resourcelocaties beperkt tot toegestane regio's
 - [ ] Cost Management gebruiken: budgetten instellen en alertmeldingen configureren
@@ -58,11 +60,11 @@
 - [Configure subscriptions and governance](https://learn.microsoft.com/en-us/training/modules/configure-subscriptions/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Entra ID (Azure AD) | Microsofts cloud-identiteitsservice voor Azure en Microsoft 365; beheert gebruikers, groepen en applicaties |
 | Azure RBAC | Role-Based Access Control voor Azure-resources; rollen worden toegewezen op een scope (MG, subscription, RG, resource) |
-| Entra ID-rollen | Directoryrrollen die beheer van Entra ID zelf regelen (bijv. Global Admin, User Admin) — los van Azure RBAC |
+| Entra ID-rollen | Directoryrollen die beheer van Entra ID zelf regelen (bijv. Global Admin, User Admin) — los van Azure RBAC |
 | Management Group | Hiërarchische container boven subscriptions; policies en RBAC-toewijzingen gelden voor alle onderliggende subscriptions |
 | Subscription | Factuur- en isolatie-eenheid voor Azure-resources; RBAC en policies gelden per subscription |
 | Resource Group | Logische container voor Azure-resources; lifecycle-eenheid (samen aanmaken, samen verwijderen) |
@@ -79,8 +81,27 @@
 | **Azure portal** | Ken de rol *Contributor* toe aan `az-admin` op de resource group via IAM |
 | **Azure portal** | Maak een *Management group* structuur aan: Root → SSW → Dev/Prod |
 | **Azure portal** | Wijs een *Azure Policy* toe: "Allowed locations = West Europe, North Europe" |
-| **SSW-W11-01** | Gebruik Azure CLI: `az group list --output table` |
+| **LAB-W11-01** | Gebruik Azure CLI: `az group list --output table` |
 | **Azure portal** | Maak een *Cost budget alert* in op €50 voor `rg-sswlab-dev` |
+
+### Labcommando's
+
+```powershell
+# Maak een nieuwe Entra ID-gebruiker aan
+az ad user create --display-name "AZ Admin" --user-principal-name az-admin@<tenant>.onmicrosoft.com --password "P@ssw0rd123!"
+
+# Wijs de rol Contributor toe op een resource group
+az role assignment create --assignee az-admin@<tenant>.onmicrosoft.com --role "Contributor" --scope /subscriptions/<sub-id>/resourceGroups/rg-sswlab-dev
+
+# Toon alle roltoewijzingen in een resource group
+az role assignment list --resource-group rg-sswlab-dev --output table
+
+# Wijs een ingebouwde Azure Policy toe (Allowed locations)
+az policy assignment create --name "allowed-locations" --policy "e56962a6-4747-49cd-b67b-bf8b01975c4f" --params '{"listOfAllowedLocations":{"value":["westeurope","northeurope"]}}'
+
+# Maak een budgetwaarschuwing aan
+az consumption budget create --budget-name "sswlab-budget" --amount 50 --time-grain Monthly --resource-group rg-sswlab-dev --notifications '[{"enabled":true,"operator":"GreaterThan","threshold":80,"contactEmails":["admin@example.com"]}]'
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen *Azure RBAC* en *Entra ID rollen*?
@@ -104,14 +125,16 @@
 ---
 
 ## Week 2 — Storage implementeren en beheren
-> **Examendomein:** Implement and manage storage · **Gewicht:** 15–20%
+> **Examendomein:** Storage implementeren en beheren · **Gewicht:** 15–20%
+
+> **Praktijkscenario:** Een data-analyseteam bij een retailklant genereert maandelijks ongeveer 500 GB aan ruwe data. Rapporten ouder dan 90 dagen worden zelden geraadpleegd en data ouder dan twee jaar moet om compliance-redenen bewaard blijven maar wordt vrijwel nooit gelezen. De opslagkosten lopen snel op en je moet een lifecycle-strategie ontwerpen en de juiste redundantieoptie adviseren voor een businesskritische workload vanuit een Nederlands kantoor.
 
 ### Leerdoelen
 - [ ] Een Storage Account aanmaken met de juiste redundantieoptie (LRS/ZRS/GRS/GZRS) voor het scenario
 - [ ] Blob containers aanmaken, bestanden uploaden en access tiers (Hot/Cool/Cold/Archive) correct toepassen
 - [ ] Een Shared Access Signature (SAS) genereren met beperkte rechten en geldigheidsduur
-- [ ] Een Azure File Share aanmaken en koppelen als netwerkschijf via SMB op SSW-W11-01
-- [ ] Azure File Sync installeren op SSW-DC01, een server registreren en cloud tiering begrijpen
+- [ ] Een Azure File Share aanmaken en koppelen als netwerkschijf via SMB op LAB-W11-01
+- [ ] Azure File Sync installeren op LAB-DC01, een server registreren en cloud tiering begrijpen
 - [ ] Een Lifecycle Management Policy configureren die blobs automatisch verplaatst of verwijdert
 
 ### MS Learn modules
@@ -121,7 +144,7 @@
 - [Configure Azure Storage security](https://learn.microsoft.com/en-us/training/modules/configure-storage-security/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Storage Account | Container op accountniveau voor alle Azure-opslag (blob, files, queue, table); General Purpose v2 is de standaard keuze |
 | LRS | Locally Redundant Storage: 3 synchrone kopieën binnen één datacenter; geen bescherming bij datacenteruitval |
@@ -141,10 +164,30 @@
 | **Azure portal** | Maak een Storage Account aan: LRS, General Purpose v2, Hot tier |
 | **Azure portal** | Maak een Blob container aan → upload een testbestand |
 | **Azure portal** | Genereer een *Shared Access Signature (SAS)* met leesrechten, 1 uur geldig |
-| **SSW-W11-01** | Gebruik Azure Storage Explorer of `azcopy` om naar blob te uploaden |
+| **LAB-W11-01** | Gebruik Azure Storage Explorer of `azcopy` om naar blob te uploaden |
 | **Azure portal** | Maak een *Azure File Share* aan → verbind via SMB (`net use Z: \\...`) |
-| **SSW-DC01** | Installeer Azure File Sync agent → registreer server → sync SSW-DC01-map |
+| **LAB-DC01** | Installeer Azure File Sync agent → registreer server → sync LAB-DC01-map |
 | **Azure portal** | Configureer *Lifecycle management policy*: verplaats naar Cool na 30 dagen |
+
+### Labcommando's
+
+```powershell
+# Maak een storage account aan
+az storage account create --name sswlabstorage --resource-group rg-sswlab-dev --location westeurope --sku Standard_LRS --kind StorageV2
+
+# Genereer een SAS-token voor een container (alleen-lezen, 1 uur)
+az storage container generate-sas --account-name sswlabstorage --name mycontainer --permissions r --expiry (Get-Date).AddHours(1).ToString("yyyy-MM-ddTHH:mmZ") --output tsv
+
+# Zet een bestand over met azcopy
+azcopy copy "C:\testfile.txt" "https://sswlabstorage.blob.core.windows.net/mycontainer/testfile.txt?<SAS-token>"
+
+# Toon blobs in een container
+az storage blob list --account-name sswlabstorage --container-name mycontainer --output table
+
+# Maak een Azure File Share aan en koppel deze
+az storage share create --name myfileshare --account-name sswlabstorage --quota 5
+net use Z: \\sswlabstorage.file.core.windows.net\myfileshare /u:AZURE\sswlabstorage <storage-key>
+```
 
 ### Kennischeck
 1. Wat zijn de storage tiers en wanneer gebruik je welke?
@@ -161,14 +204,16 @@
 
 3. Azure File Sync koppelt een on-premises Windows File Server aan een Azure File Share. Bestanden worden bidirectioneel gesynchroniseerd. Cloud tiering: als de lokale schijf vol dreigt te raken, worden zelden gebruikte bestanden vervangen door een verwijzingsstub op de lokale server — het bestand zelf staat alleen in Azure Files. Bij toegang wordt het bestand transparant vanuit de cloud geladen. Voordeel: lokale schijfruimte wordt geoptimaliseerd terwijl alle bestanden bereikbaar blijven.
 
-4. LRS: 3 kopieën in één datacenter; bescherming tegen server- of schijfuitval, niet bij datacenteruitval. ZRS: 3 kopieën in 3 aparte availability zones binnen dezelfde regio; beschermt bij uitval van één datacenter. GRS: LRS in primaire regio plus asynchroon repliceren naar een secundaire regio (honderden km's weg); beschermt bij volledige regio-uitval, maar de secundaire regio is standaard alleen leesbaar via Microsoft-initiated failover (RA-GRS maakt de secundaire altijd leesbaar). GZRS: combineert ZRS in de primaire regio met GRS naar de secundaire regio; maximale bescherming zowel bij zoneals bij regio-uitval.
+4. LRS: 3 kopieën in één datacenter; bescherming tegen server- of schijfuitval, niet bij datacenteruitval. ZRS: 3 kopieën in 3 aparte availability zones binnen dezelfde regio; beschermt bij uitval van één datacenter. GRS: LRS in primaire regio plus asynchroon repliceren naar een secundaire regio (honderden km's weg); beschermt bij volledige regio-uitval, maar de secundaire regio is standaard alleen leesbaar via Microsoft-initiated failover (RA-GRS maakt de secundaire altijd leesbaar). GZRS: combineert ZRS in de primaire regio met GRS naar de secundaire regio; maximale bescherming zowel bij zone- als bij regio-uitval.
 
 </details>
 
 ---
 
 ## Week 3 — Virtual Machines deployen en beheren
-> **Examendomein:** Deploy and manage Azure compute resources · **Gewicht:** 20–25%
+> **Examendomein:** Azure compute-resources deployen en beheren · **Gewicht:** 20–25%
+
+> **Praktijkscenario:** Een logistiek bedrijf migreert zijn on-premises applicatielaag naar Azure. De oplossing bestaat uit twee webservers en een applicatieserver die beschikbaar moeten blijven tijdens gepland platformonderhoud. De SLA vereist 99,95% uptime. Jij ontwerpt de VM-opzet met Availability Sets, richt back-ups in en demonstreert een herstelprocedure die tijdens een klantreview standhoudt.
 
 ### Leerdoelen
 - [ ] Een Windows Server VM deployen via Azure portal (juiste SKU, regio, schijftype kiezen)
@@ -184,7 +229,7 @@
 - [Configure virtual machine extensions](https://learn.microsoft.com/en-us/training/modules/configure-virtual-machine-extensions/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | VM-grootte (SKU) | Combinatie van vCPU, RAM en tijdelijke opslag; bijv. Standard_B2s (2 vCPU, 4 GB RAM) voor dev/test |
 | Managed disk | Azure-beheerde virtuele schijf; typen: Premium SSD (productie), Standard SSD (dev/test), Standard HDD (archief) |
@@ -209,6 +254,26 @@
 | **Azure portal** | Deployeer een *Availability Set* met 2 VMs → verifieer fault/update domain spreiding |
 | **Azure portal** | Activeer *Azure Backup* voor de VM → voer een on-demand backup uit |
 
+### Labcommando's
+
+```powershell
+# Rol een VM uit via Azure CLI
+az vm create --resource-group rg-sswlab-dev --name sswlab-vm01 --image Win2022AzureEditionCore --size Standard_B2s --admin-username azureadmin --admin-password "P@ssw0rd123!" --location westeurope
+
+# Koppel een datadisk aan een bestaande VM
+az vm disk attach --resource-group rg-sswlab-dev --vm-name sswlab-vm01 --name sswlab-datadisk01 --new --size-gb 32 --sku Standard_LRS
+
+# Maak een snapshot van de OS-disk
+$diskId = az vm show --resource-group rg-sswlab-dev --name sswlab-vm01 --query "storageProfile.osDisk.managedDisk.id" -o tsv
+az snapshot create --resource-group rg-sswlab-dev --name sswlab-snapshot01 --source $diskId
+
+# Schakel Azure Backup in voor een VM
+az backup protection enable-for-vm --resource-group rg-sswlab-dev --vault-name sswlab-rsv --vm sswlab-vm01 --policy-name DefaultPolicy
+
+# Start een on-demand back-uptaak
+az backup protection backup-now --resource-group rg-sswlab-dev --vault-name sswlab-rsv --container-name sswlab-vm01 --item-name sswlab-vm01 --backup-management-type AzureIaasVM
+```
+
 ### Kennischeck
 1. Wat is het verschil tussen *Availability Sets* en *Availability Zones*?
 2. Wanneer gebruik je *Azure VM Scale Sets* versus losse VMs?
@@ -231,7 +296,9 @@
 ---
 
 ## Week 4 — Containers en Azure App Service
-> **Examendomein:** Deploy and manage Azure compute resources · **Gewicht:** 20–25%
+> **Examendomein:** Azure compute-resources deployen en beheren · **Gewicht:** 20–25%
+
+> **Praktijkscenario:** Een softwareteam bij een Sogeti-klant wil de release-aanpak moderniseren. Hun monolithische .NET-app wordt nog handmatig naar VMs gedeployed, wat bij elke release tot ongeveer 30 minuten downtime leidt. Je migreert de webapp naar Azure App Service, richt deployment slots in voor vrijwel zero-downtime releases en verkent Azure Container Apps voor een nieuwe microservices-API die parallel wordt ontwikkeld.
 
 ### Leerdoelen
 - [ ] Een Azure App Service web-app deployen via Azure CLI en deployment slots configureren
@@ -247,7 +314,7 @@
 - [Configure Azure Container Apps](https://learn.microsoft.com/en-us/training/modules/introduction-to-azure-container-apps/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | App Service Plan | Compute-laag voor web-apps: bepaalt de grootte (CPU/RAM), het aantal instanties en de beschikbare features (slots, autoscaling) |
 | Deployment slot | Aparte instantie van een web-app binnen hetzelfde App Service Plan; gebruikt voor staging en zero-downtime deployments |
@@ -271,6 +338,25 @@
 | **Azure portal** | Configureer een *App Service plan* → schaal uit naar 2 instanties |
 | **Azure portal** | Bekijk *App Service Diagnostics* → analyseer beschikbaarheids-grafiek |
 
+### Labcommando's
+
+```bash
+# Rol een App Service-webapp uit (Free tier)
+az webapp create --resource-group rg-sswlab-dev --plan sswlab-asp --name sswlab-app --runtime "DOTNET|8.0"
+
+# Voeg een deployment slot toe
+az webapp deployment slot create --name sswlab-app --resource-group rg-sswlab-dev --slot staging
+
+# Wissel staging om naar productie
+az webapp deployment slot swap --name sswlab-app --resource-group rg-sswlab-dev --slot staging --target-slot production
+
+# Maak een Container Registry aan en push een image
+az acr create --resource-group rg-sswlab-dev --name sswlabacr --sku Basic
+az acr login --name sswlabacr
+docker tag myapp sswlabacr.azurecr.io/myapp:v1
+docker push sswlabacr.azurecr.io/myapp:v1
+```
+
 ### Kennischeck
 1. Wat is het verschil tussen *Azure Container Instances*, *Azure Container Apps* en *Azure Kubernetes Service*?
 2. Hoe werken *deployment slots* en waarom is *slot swap* nuttig?
@@ -293,7 +379,9 @@
 ---
 
 ## Week 5 — Virtuele netwerken
-> **Examendomein:** Implement and manage virtual networking · **Gewicht:** 15–20%
+> **Examendomein:** Virtuele netwerken implementeren en beheren · **Gewicht:** 15–20%
+
+> **Praktijkscenario:** Een zorginstelling wil een Azure-hosted applicatie voor patiëntgegevens uitrollen. Door regelgeving mag patiëntdata nooit via het publieke internet lopen en moeten storage- en database-endpoints alleen vanuit het interne Azure-VNet bereikbaar zijn. Tegelijk moet het on-premises netwerk veilig kunnen koppelen aan Azure. Jij ontwerpt segmentatie, Private Endpoints en de VPN-verbinding vanuit de SSW-Lab-omgeving.
 
 ### Leerdoelen
 - [ ] Een VNet aanmaken met meerdere subnetten en correcte CIDR-bereiken definiëren
@@ -310,7 +398,7 @@
 - [Configure virtual network peering](https://learn.microsoft.com/en-us/training/modules/configure-vnet-peering/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | VNet | Virtueel netwerk: geïsoleerde netwerkomgeving in Azure; resources in hetzelfde VNet kunnen standaard met elkaar communiceren |
 | Subnet | Adresruimte-segment binnen een VNet; NSGs en route tables worden aan subnetten gekoppeld |
@@ -331,10 +419,27 @@
 | **Azure portal** | Koppel NSG aan het frontend-subnet → test met VM in backend |
 | **Azure portal** | Maak een tweede VNet aan → configureer *VNet peering* tussen beide |
 | **Azure portal** | Configureer een *Azure Private DNS Zone* → registreer VMs automatisch |
-| **SSW-W11-01** | Configureer een *Point-to-Site VPN* naar het Azure VNet → test verbinding |
+| **LAB-W11-01** | Configureer een *Point-to-Site VPN* naar het Azure VNet → test verbinding |
 | **Azure portal** | Deployeer *Azure Bastion* → verbind met een VM zonder publiek IP of RDP-poort |
 | **Azure portal** | Configureer een *Private Endpoint* voor een Storage Account → verifieer DNS-resolutie |
 | **Azure portal** | Bekijk *Effective routes* op de NIC van een VM |
+
+### Labcommando's
+
+```bash
+# Maak een VNet aan met twee subnetten
+az network vnet create --resource-group rg-sswlab-dev --name sswlab-vnet --address-prefix 10.100.0.0/16 --subnet-name frontend --subnet-prefix 10.100.1.0/24
+az network vnet subnet create --resource-group rg-sswlab-dev --vnet-name sswlab-vnet --name backend --address-prefix 10.100.2.0/24
+
+# Maak een NSG aan en koppel deze aan een subnet
+az network nsg create --resource-group rg-sswlab-dev --name sswlab-nsg-frontend
+az network nsg rule create --resource-group rg-sswlab-dev --nsg-name sswlab-nsg-frontend --name AllowHTTP --priority 100 --protocol Tcp --destination-port-range 80 443 --access Allow --direction Inbound
+az network vnet subnet update --resource-group rg-sswlab-dev --vnet-name sswlab-vnet --name frontend --network-security-group sswlab-nsg-frontend
+
+# Configureer VNet-peering in beide richtingen
+az network vnet peering create --resource-group rg-sswlab-dev --name vnet1-to-vnet2 --vnet-name sswlab-vnet --remote-vnet sswlab-vnet2 --allow-vnet-access
+az network vnet peering create --resource-group rg-sswlab-dev --name vnet2-to-vnet1 --vnet-name sswlab-vnet2 --remote-vnet sswlab-vnet --allow-vnet-access
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen een *NSG* op subnet-niveau en op NIC-niveau?
@@ -358,7 +463,9 @@
 ---
 
 ## Week 6 — Load balancing en netwerkrouting
-> **Examendomein:** Implement and manage virtual networking · **Gewicht:** 15–20%
+> **Examendomein:** Virtuele netwerken implementeren en beheren · **Gewicht:** 15–20%
+
+> **Praktijkscenario:** Een Sogeti-klant runt een publiek e-commerceplatform met een webtier en API-tier op Azure VMs achter een load balancer. Tijdens een piekcampagne bleef een webserver verkeer ontvangen terwijl die al onresponsief was, met fouten voor klanten tot gevolg. Je moet health probes correct inrichten, routing tussen web- en API-verkeer scheiden en Azure Network Watcher inzetten om intermitterende connectiviteitsproblemen te analyseren.
 
 ### Leerdoelen
 - [ ] Een Standard Load Balancer deployen met een backend pool, health probe en load balancing rule
@@ -375,7 +482,7 @@
 - [Configure Azure Firewall](https://learn.microsoft.com/en-us/training/modules/configure-azure-firewall/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Azure Load Balancer | Laag-4 (TCP/UDP) load balancer; distribueert verkeer op basis van IP-adres en poort; geen inhoudsinspectie |
 | Health probe | Controleert periodiek de gezondheid van backend-VM's; bij uitval wordt de VM uit de pool verwijderd |
@@ -397,6 +504,22 @@
 | **Azure portal** | Deployeer een *Application Gateway* met WAF → configureer een path-based routing rule |
 | **Azure portal** | Bekijk *Azure Network Watcher → IP Flow Verify* om NSG-blokkering te diagnosticeren |
 | **Azure portal** | Gebruik *Connection Troubleshoot* om verbindingsproblemen te analyseren |
+
+### Labcommando's
+
+```bash
+# Maak een Standard Load Balancer aan met een publiek IP-adres
+az network lb create --resource-group rg-sswlab-dev --name sswlab-lb --sku Standard --frontend-ip-name frontendConfig --public-ip-address sswlab-lb-pip
+
+# Voeg een health probe toe
+az network lb probe create --resource-group rg-sswlab-dev --lb-name sswlab-lb --name httpProbe --protocol Http --port 80 --path /
+
+# Voeg een load balancing-regel toe
+az network lb rule create --resource-group rg-sswlab-dev --lb-name sswlab-lb --name httpRule --protocol Tcp --frontend-port 80 --backend-port 80 --frontend-ip-name frontendConfig --backend-pool-name backendPool --probe-name httpProbe
+
+# Gebruik Network Watcher IP Flow Verify
+az network watcher test-ip-flow --resource-group rg-sswlab-dev --vm sswlab-vm01 --direction Inbound --protocol Tcp --local 10.100.1.4:80 --remote 203.0.113.10:12345
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen *Azure Load Balancer* (L4) en *Application Gateway* (L7)?
@@ -420,7 +543,9 @@
 ---
 
 ## Week 7 — Monitoring en Azure Monitor
-> **Examendomein:** Monitor and maintain Azure resources · **Gewicht:** 10–15%
+> **Examendomein:** Azure-resources monitoren en onderhouden · **Gewicht:** 10–15%
+
+> **Praktijkscenario:** Een Sogeti-klant draait een productie-ERP op Azure VMs en meldt op maandagochtend terugkerende performanceproblemen. Het operations-team heeft geen centrale logging en werkt vooral via ad-hoc RDP-sessies en Event Viewer. Je moet Azure Monitor en Log Analytics implementeren, CPU-alerting automatiseren en Azure Backup met aantoonbare restore-procedure inrichten voor de volgende kwartaalreview.
 
 ### Leerdoelen
 - [ ] Een Log Analytics Workspace aanmaken en Azure VMs verbinden via de Azure Monitor Agent
@@ -437,7 +562,7 @@
 - [Configure Azure Backup and recovery](https://learn.microsoft.com/en-us/training/modules/configure-azure-backup/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Azure Monitor | Overkoepelend platform voor metrics, logs, alerts, dashboards en workbooks |
 | Metrics | Numerieke tijdreeksdata (CPU %, netwerk-bytes, schijf-IOPS); bewaard 93 dagen; ideaal voor trends en alerts |
@@ -458,10 +583,31 @@
 | **Azure portal** | Schakel *VM Insights* in → bekijk Performance en Map tabblad |
 | **Azure portal** | Schrijf een KQL-query: CPU > 80% in de afgelopen 24 uur |
 | **Azure portal** | Maak een *Alert rule* aan: CPU > 85% → email naar beheerder |
-| **SSW-DC01** | Installeer de *Azure Monitor Agent (AMA)* → verifieer in Log Analytics |
+| **LAB-DC01** | Installeer de *Azure Monitor Agent (AMA)* → verifieer in Log Analytics |
 | **Azure portal** | Configureer een *Recovery Services Vault* → backup DC01-bestanden |
 | **Azure portal** | Voer een *test restore* uit → herstel een bestand naar alternatieve locatie |
 | **Azure portal** | Configureer *Azure Site Recovery* voor een VM → voer een test-failover uit naar een secundaire regio |
+
+### Labcommando's
+
+```powershell
+# Query CPU-gebruik boven 80% voor een VM in de afgelopen 24 uur (KQL in Log Analytics)
+Perf
+| where TimeGenerated > ago(24h)
+| where CounterName == "% Processor Time"
+| where CounterValue > 80
+| project TimeGenerated, Computer, CounterValue
+| order by TimeGenerated desc
+
+# Maak een Log Analytics-workspace aan via CLI
+az monitor log-analytics workspace create --resource-group rg-sswlab-dev --workspace-name sswlab-law --location westeurope
+
+# Maak een action group aan voor e-mailwaarschuwingen
+az monitor action-group create --resource-group rg-sswlab-dev --name sswlab-ag --short-name ssw-ag --email-receiver name=AdminEmail email=admin@example.com
+
+# Maak een CPU-metrische waarschuwingsregel aan
+az monitor metrics alert create --resource-group rg-sswlab-dev --name "HighCPU-Alert" --scopes /subscriptions/<sub-id>/resourceGroups/rg-sswlab-dev/providers/Microsoft.Compute/virtualMachines/sswlab-vm01 --condition "avg Percentage CPU > 85" --window-size 5m --evaluation-frequency 1m --action sswlab-ag
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen *Azure Monitor Metrics* en *Azure Monitor Logs*?
@@ -494,7 +640,7 @@
 
 ## Week 8 — Examenvoorbereiding
 
-### Exam Coverage Gaps en Must-Do Labs
+### Examendekking en verplichte labs
 
 Doel: van goede basis naar volledige exam-dekking met cloudpraktijk.
 
@@ -504,7 +650,7 @@ Doel: van goede basis naar volledige exam-dekking met cloudpraktijk.
 3. Storage security details, zoals firewalls, soft delete, versioning en replicatiekeuzes.
 4. Backup-vault varianten en herstelrapportage.
 
-### Must-do labs voor slaagkans
+### Verplichte labs voor slaagkans
 1. Deploy 1 resource set met ARM en 1 met Bicep, en leg verschillen vast.
 2. Maak een VM Scale Set met autoscale regels en voer een loadtest uit.
 3. Configureer storage firewall plus private endpoint en valideer toegangsbeperkingen.

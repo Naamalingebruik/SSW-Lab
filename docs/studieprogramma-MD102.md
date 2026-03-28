@@ -43,6 +43,8 @@
 ## Week 1 — Windows client deployment
 > **Examendomein:** Infrastructuur voor devices voorbereiden · **Gewicht:** 25–30%
 
+> **Praktijkscenario:** Een consultant bij een middelgrote financiële dienstverlener moet Windows 11 uitrollen naar 400 desktops die nog op Windows 10 21H2 draaien. De IT-manager wil bestaande applicaties en gebruikersprofielen behouden, maar voor 50 nieuwe OEM-machines is een schone deployment nodig. Je kiest tussen in-place upgrade en wipe-and-load, bereidt answer files voor de nieuwe hardware voor en controleert vooraf of alle apparaten aan de Windows 11-eisen voldoen.
+
 ### Leerdoelen
 - [ ] De minimale systeemvereisten voor Windows 11 kunnen opnoemen (TPM 2.0, UEFI/Secure Boot, 64 GB opslag, 4 GB RAM)
 - [ ] Het verschil uitleggen tussen wipe-and-load, in-place upgrade, en fresh start deployment
@@ -57,7 +59,7 @@
 - [Windows Deployment Services en imaging](https://learn.microsoft.com/en-us/training/modules/configure-windows-deployment-services/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Wipe-and-load | Volledige herinstallatie van Windows; alle bestaande data en apps worden verwijderd |
 | In-place upgrade | Windows-versie-upgrade waarbij apps, instellingen en data behouden blijven |
@@ -71,11 +73,30 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-DC01** | Controleer domain `ssw.lab` — voer `Get-ADDomain` uit in PowerShell |
-| **SSW-MGMT01** | Installeer Windows ADK + Deployment Tools via `02-MAKE-ISOS.ps1` |
-| **SSW-W11-01** | Verifieer Windows 11 versie: `winver` → noteer build nummer |
-| **SSW-W11-01** | Voer in-place upgrade-simulatie uit: `Get-WindowsUpdateLog` analyseren |
-| **SSW-MGMT01** | Maak een antwoord-bestand aan met Windows System Image Manager (SIM) |
+| **LAB-DC01** | Controleer domain `ssw.lab` — voer `Get-ADDomain` uit in PowerShell |
+| **LAB-MGMT01** | Installeer Windows ADK + Deployment Tools via `02-MAKE-ISOS.ps1` |
+| **LAB-W11-01** | Verifieer Windows 11 versie: `winver` → noteer build nummer |
+| **LAB-W11-01** | Voer in-place upgrade-simulatie uit: `Get-WindowsUpdateLog` analyseren |
+| **LAB-MGMT01** | Maak een antwoord-bestand aan met Windows System Image Manager (SIM) |
+
+### Labcommando's
+
+```powershell
+# Controleer het huidige Windows-buildnummer
+(Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion').CurrentBuild
+
+# Mount een WIM-image met DISM voor offline servicing
+dism /Mount-Image /ImageFile:"C:\Images\install.wim" /Index:1 /MountDir:"C:\Mount"
+
+# Unmount de image en commit de wijzigingen
+dism /Unmount-Image /MountDir:"C:\Mount" /Commit
+
+# Generaliseer de referentiemachine voor het capturen
+C:\Windows\System32\Sysprep\sysprep.exe /generalize /oobe /shutdown
+
+# Maak een opstartbare ISO vanuit een map (Windows ADK)
+oscdimg.exe -n -m -bC:\WinPE\boot\etfsboot.com C:\WinPE_x64 C:\Output\WinPE.iso
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen een *wipe-and-load* en een *in-place upgrade*?
@@ -101,6 +122,8 @@
 ## Week 2 — Intune enrollment en device management
 > **Examendomein:** Infrastructuur voor devices voorbereiden · **Gewicht:** 25–30%
 
+> **Praktijkscenario:** Een Sogeti-consultant onboardt een nieuwe klant van 200 medewerkers zonder on-premises domeininfrastructuur. Alle Windows 11-laptops moeten via Intune beheerd worden en BitLocker moet op elk device verplicht zijn. Nieuwe medewerkers krijgen hun laptop rechtstreeks van de leverancier en moeten zichzelf zonder helpdesk kunnen provisionen. Jij kiest de juiste enrollmentmethode, richt BitLocker-beleid in en zorgt dat het compliance-overzicht voor livegang bruikbaar is.
+
 ### Leerdoelen
 - [ ] De verschillende Intune-enrollmentmethoden kennen: handmatig, Autopilot, bulk enrollment (PPKG), co-management
 - [ ] Het verschil uitleggen tussen MDM-enrollment en MAM (App Protection Policies zonder enrollment)
@@ -115,7 +138,7 @@
 - [Monitor devices with Intune](https://learn.microsoft.com/en-us/training/modules/monitor-devices-microsoft-intune/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | MDM-enrollment | Het apparaat wordt volledig beheerd via Intune: policies, apps, remote actions, wipe |
 | MAM (zonder enrollment) | App Protection Policies beschermen alleen app-data op niet-enrolled (BYOD) apparaten — geen apparaatbeheer |
@@ -129,12 +152,30 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-W11-01** | Enroll device in Intune via **Instellingen → Accounts → Werk of school** |
-| **SSW-W11-02** | Enroll second device — observeer verschil in Intune-portal |
-| **SSW-MGMT01** | Open Intune-portal (intune.microsoft.com) → controleer beide devices onder **Devices → All devices** |
-| **SSW-MGMT01** | Maak een *Configuration profile* aan: BitLocker enforced op W11-01 |
-| **SSW-W11-01** | Verifieer BitLocker-status: `manage-bde -status` |
-| **SSW-MGMT01** | Bekijk **Device compliance** — maak een compliance policy aan (minimale OS-versie) |
+| **LAB-W11-01** | Enroll device in Intune via **Instellingen → Accounts → Werk of school** |
+| **LAB-W11-02** | Enroll second device — observeer verschil in Intune-portal |
+| **LAB-MGMT01** | Open Intune-portal (intune.microsoft.com) → controleer beide devices onder **Devices → All devices** |
+| **LAB-MGMT01** | Maak een *Configuration profile* aan: BitLocker enforced op W11-01 |
+| **LAB-W11-01** | Verifieer BitLocker-status: `manage-bde -status` |
+| **LAB-MGMT01** | Bekijk **Device compliance** — maak een compliance policy aan (minimale OS-versie) |
+
+### Labcommando's
+
+```powershell
+# Controleer de BitLocker-versleutelingsstatus van schijf C:
+manage-bde -status C:
+
+# Forceer direct een Intune-beleidssynchronisatie vanaf het apparaat
+Start-Process "ms-device-enrollment://enroll"
+# Of start de synchronisatie via een Scheduled Task:
+Start-ScheduledTask -TaskPath "\Microsoft\Windows\EnterpriseMgmt\" -TaskName "Schedule to run OMADMClient by client"
+
+# Verzamel een MDM-diagnosepakket voor enrollment-troubleshooting
+MdmDiagnosticsTool.exe -out C:\Temp\MdmDiag
+
+# Controleer de Intune-enrollmentstatus in het register
+Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Enrollments\*" | Select PSChildName, EnrollmentType, UPN
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen MDM-enrollment en Hybrid Azure AD Join?
@@ -165,6 +206,8 @@
 ## Week 3 — Compliance, Conditional Access en identiteit
 > **Examendomein:** Infrastructuur voor devices voorbereiden · **Gewicht:** 25–30%
 
+> **Praktijkscenario:** Een productiebedrijf schakelt Sogeti in nadat een gerichte phishingaanval meerdere accounts heeft gecompromitteerd. De CISO eist MFA voor cloudtoegang buiten kantoor, alleen toegang tot Microsoft 365 vanaf Intune-ingeschreven en compliant devices, en Windows LAPS om laterale beweging met gedeelde lokale admin-wachtwoorden te beperken. Jij richt Conditional Access, Named Locations, LAPS en de hybride synchronisatie via Entra Connect correct in.
+
 ### Leerdoelen
 - [ ] Een Conditional Access-policy aanmaken met de juiste signalen (gebruiker, apparaat, locatie, risico)
 - [ ] Het verschil uitleggen tussen *Block access* en *Grant with controls* (bijv. MFA, compliant device vereisen)
@@ -179,7 +222,7 @@
 - [Manage user and device identities](https://learn.microsoft.com/en-us/training/modules/manage-user-device-identities/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Conditional Access (CA) | Toegangsbeleid in Entra ID dat op basis van signalen (gebruiker, apparaat, locatie, risico) toegang verleent of blokkeert |
 | Named Locations | Vertrouwde IP-bereiken of landen die in CA als "bedrijfsnetwerk" of "vertrouwde locatie" gemarkeerd zijn |
@@ -195,14 +238,31 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-DC01** | Maak test-gebruikers aan in AD: `New-ADUser -Name "TestUser01" ...` |
-| **SSW-DC01** | Sync AD naar Entra ID via Azure AD Connect (installeer op DC01) |
-| **SSW-MGMT01** | Configureer een Conditional Access-policy: MFA verplicht buiten het bedrijfsnetwerk |
-| **SSW-W11-01** | Test de CA-policy: log in met TestUser01, verifieer MFA-prompt |
-| **SSW-MGMT01** | Maak een compliance policy: vereist Defender, BitLocker, en min. W11 22H2 |
-| **SSW-W11-02** | Demonstreer niet-compliant device → controleer block in CA-policy |
-| **SSW-MGMT01** | Schakel **Windows LAPS** in via Intune: Endpoint security → Account protection → LAPS-policy |
-| **SSW-W11-01** | Verifieer LAPS: haal het geroteerde lokale adminwachtwoord op via de Intune-portal |
+| **LAB-DC01** | Maak test-gebruikers aan in AD: `New-ADUser -Name "TestUser01" ...` |
+| **LAB-DC01** | Sync AD naar Entra ID via Azure AD Connect (installeer op DC01) |
+| **LAB-MGMT01** | Configureer een Conditional Access-policy: MFA verplicht buiten het bedrijfsnetwerk |
+| **LAB-W11-01** | Test de CA-policy: log in met TestUser01, verifieer MFA-prompt |
+| **LAB-MGMT01** | Maak een compliance policy: vereist Defender, BitLocker, en min. W11 22H2 |
+| **LAB-W11-02** | Demonstreer niet-compliant device → controleer block in CA-policy |
+| **LAB-MGMT01** | Schakel **Windows LAPS** in via Intune: Endpoint security → Account protection → LAPS-policy |
+| **LAB-W11-01** | Verifieer LAPS: haal het geroteerde lokale adminwachtwoord op via de Intune-portal |
+
+### Labcommando's
+
+```powershell
+# Maak een testgebruiker aan in Active Directory
+New-ADUser -Name "TestUser01" -SamAccountName "testuser01" -UserPrincipalName "testuser01@ssw.lab" `
+  -AccountPassword (ConvertTo-SecureString "P@ssw0rd!" -AsPlainText -Force) -Enabled $true
+
+# Forceer een Azure AD Connect-delta-sync
+Start-ADSyncSyncCycle -PolicyType Delta
+
+# Haal het door LAPS beheerde lokale adminwachtwoord op via Microsoft Graph (vereist Az- of Graph-module)
+Get-MgDeviceLocalCredentials -DeviceId "<device-object-id>" -IncludeSecrets
+
+# Controleer de Windows LAPS-status op het lokale apparaat
+Get-LapsAADPassword -DeviceId (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon").DefaultDomainName
+```
 
 ### Kennischeck
 1. Welke signalen gebruikt Conditional Access voor een access-beslissing?
@@ -238,6 +298,8 @@
 ## Week 4 — Applicatiebeheer met Intune
 > **Examendomein:** Applicaties beheren · **Gewicht:** 15–20%
 
+> **Praktijkscenario:** Een retailketen met 600 Windows 11-endpoints gebruikt Intune voor volledig devicebeheer. De IT-afdeling wil een legacy ERP-app met complexe EXE-installer stil uitrollen, Adobe Acrobat Reader optioneel beschikbaar maken via Company Portal en tegelijk voorkomen dat medewerkers op privé-iPhones bedrijfsdata vanuit Outlook naar persoonlijke apps kopiëren. Jij verpakt de Win32-app, bepaalt assignment-intents en configureert App Protection Policies voor BYOD.
+
 ### Leerdoelen
 - [ ] De verschillende app-typen in Intune kennen: Win32, MSI/MSIX, Microsoft Store, LOB, webapplicatie, M365 Apps
 - [ ] Een Win32-app verpakken met de IntuneWinAppUtil en uploaden naar Intune inclusief detectieregel
@@ -252,7 +314,7 @@
 - [Configure Microsoft 365 Apps deployment](https://learn.microsoft.com/en-us/training/modules/configure-microsoft-365-apps/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Win32 app | App verpakt als `.intunewin` bestand — het meest flexibele app-type voor complexe installaties met custom detect- en installatiecommando's |
 | IntuneWinAppUtil | Gratis Microsoft-tool die een installatiemap omzet naar een `.intunewin` pakket voor Intune |
@@ -268,12 +330,28 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Pak een `.exe` app in als `.intunewin` met de **Intune Win32 Content Prep Tool** |
-| **SSW-MGMT01** | Upload de Win32 app naar Intune → assign aan W11-01 (Required) |
-| **SSW-W11-01** | Controleer installatie via **Company Portal** of eventlog (`IntuneManagementExtension`) |
-| **SSW-MGMT01** | Maak een Microsoft 365 Apps deployment aan via Intune (Office-suite) |
-| **SSW-W11-02** | Verifieer Office-installatie na sync (`imdssync` of wacht op Intune check-in) |
-| **SSW-MGMT01** | Configureer een *App protection policy* (MAM) voor Microsoft Edge |
+| **LAB-MGMT01** | Pak een `.exe` app in als `.intunewin` met de **Intune Win32 Content Prep Tool** |
+| **LAB-MGMT01** | Upload de Win32 app naar Intune → assign aan W11-01 (Required) |
+| **LAB-W11-01** | Controleer installatie via **Company Portal** of eventlog (`IntuneManagementExtension`) |
+| **LAB-MGMT01** | Maak een Microsoft 365 Apps deployment aan via Intune (Office-suite) |
+| **LAB-W11-02** | Verifieer Office-installatie na sync (`imdssync` of wacht op Intune check-in) |
+| **LAB-MGMT01** | Configureer een *App protection policy* (MAM) voor Microsoft Edge |
+
+### Labcommando's
+
+```powershell
+# Verpak een Win32-appinstaller naar .intunewin-formaat
+.\IntuneWinAppUtil.exe -c "C:\AppSource\MyApp" -s "setup.exe" -o "C:\IntunePackages"
+
+# Volg het IntuneManagementExtension-log realtime voor troubleshooting
+Get-Content "C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log" -Wait -Tail 50
+
+# Controleer of een specifieke app wordt gedetecteerd (simuleer detection rule op bestandspad)
+Test-Path "C:\Program Files\MyApp\myapp.exe"
+
+# Start een IME-herbeoordeling van apps (herstart de service)
+Restart-Service -Name IntuneManagementExtension
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen een *Required* en *Available* app-assignment?
@@ -304,6 +382,8 @@
 ## Week 5 — Windows Autopilot
 > **Examendomein:** Infrastructuur voor devices voorbereiden · **Gewicht:** 25–30%
 
+> **Praktijkscenario:** Een logistiek bedrijf ontvangt maandelijks 50 nieuwe laptops rechtstreeks van een reseller. Nieuwe medewerkers moeten het apparaat uit de doos kunnen halen, verbinden met internet en binnen 30 minuten een volledig ingericht Windows 11-device hebben zonder tussenkomst van IT. Daarnaast zijn er gedeelde kioskterminals in magazijnen die zonder gebruikerslogin automatisch moeten configureren. Jij richt User-Driven en Self-Deploying Autopilot-scenario's, de Enrollment Status Page en hardware hash-registratie via de reseller in.
+
 ### Leerdoelen
 - [ ] De vier Autopilot-scenario's kennen en toepassen: User-driven, Self-deploying, Pre-provisioning (White Glove), Existing Device
 - [ ] Een hardware hash ophalen via PowerShell en uploaden naar Intune
@@ -319,7 +399,7 @@
 - [Troubleshoot Windows Autopilot](https://learn.microsoft.com/en-us/training/modules/troubleshoot-windows-autopilot/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Hardware hash | Unieke apparaat-fingerprint die via PowerShell (`Get-WindowsAutoPilotInfo`) verzameld wordt en in Intune geregistreerd wordt voor Autopilot |
 | User-driven mode | Autopilot-scenario waarbij de gebruiker inlogt met een Entra ID-account tijdens OOBE — het apparaat wordt persoonlijk ingericht |
@@ -334,14 +414,32 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-W11-AUTOPILOT** | Haal hardware hash op: `Get-WindowsAutoPilotInfo -OutputFile hash.csv` |
-| **SSW-MGMT01** | Upload hash naar Intune: **Devices → Windows → Enrollment → Windows Autopilot devices** |
-| **SSW-MGMT01** | Maak een Autopilot deployment profile aan: *User-driven, Microsoft Entra join* |
-| **SSW-W11-AUTOPILOT** | Reset de VM (Instellingen → Systeem → Herstel → Reset deze pc) |
-| **SSW-W11-AUTOPILOT** | Doorloop de Out-of-Box Experience (OOBE) → verifieer automatische enrollment |
-| **SSW-MGMT01** | Analyseer de Autopilot-events in **Event Viewer → Applications and Services → Microsoft → Windows → Autopilot** |
-| **SSW-MGMT01** | Verken *Windows 365* in Intune: bekijk Cloud PC-inrichtingsbeleid |
-| **SSW-MGMT01** | Voer een *device query* uit met KQL: **Devices → selecteer device → Device query** |
+| **LAB-W11-AUTOPILOT** | Haal hardware hash op: `Get-WindowsAutoPilotInfo -OutputFile hash.csv` |
+| **LAB-MGMT01** | Upload hash naar Intune: **Devices → Windows → Enrollment → Windows Autopilot devices** |
+| **LAB-MGMT01** | Maak een Autopilot deployment profile aan: *User-driven, Microsoft Entra join* |
+| **LAB-W11-AUTOPILOT** | Reset de VM (Instellingen → Systeem → Herstel → Reset deze pc) |
+| **LAB-W11-AUTOPILOT** | Doorloop de Out-of-Box Experience (OOBE) → verifieer automatische enrollment |
+| **LAB-MGMT01** | Analyseer de Autopilot-events in **Event Viewer → Applications and Services → Microsoft → Windows → Autopilot** |
+| **LAB-MGMT01** | Verken *Windows 365* in Intune: bekijk Cloud PC-inrichtingsbeleid |
+| **LAB-MGMT01** | Voer een *device query* uit met KQL: **Devices → selecteer device → Device query** |
+
+### Labcommando's
+
+```powershell
+# Verzamel de hardware-hash en exporteer naar CSV (vereist WindowsAutoPilotIntune-module)
+Install-Script -Name Get-WindowsAutoPilotInfo
+Get-WindowsAutoPilotInfo -OutputFile C:\Temp\AutopilotHash.csv
+
+# Upload de hardware-hash direct naar Intune (vereist MS Graph / WindowsAutoPilotIntune-module)
+Install-Module -Name WindowsAutoPilotIntune
+Connect-MgGraph -Scopes "DeviceManagementServiceConfig.ReadWrite.All"
+Import-AutoPilotCSV -csvFile C:\Temp\AutopilotHash.csv
+
+# Voorbeelden van KQL device queries in Intune Device Query
+# Voer deze uit in: Intune → Devices → [select device] → Device query
+# InstalledApplications | project ApplicationName, ApplicationVersion | order by ApplicationName asc
+# SystemInfo | project DeviceName, Manufacturer, Model, OSVersion, TotalMemory
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen *User-driven* en *Self-deploying* Autopilot mode?
@@ -373,6 +471,8 @@
 ## Week 6 — Security, updates, Intune Suite en monitoring
 > **Examendomein:** Devices beveiligen · **Gewicht:** 15–20%
 
+> **Praktijkscenario:** Een zorgorganisatie schakelt Sogeti in na een ransomware-incident waarbij meerdere fileservers zijn versleuteld. De CISO wil binnen zeven dagen na release updates afdwingen, alle endpoints onboarden naar Microsoft Defender for Endpoint, lokale administratorrechten voor standaardgebruikers wegnemen terwijl bepaalde beheertools verhoogd mogen draaien, en proactieve monitoring invoeren. Jij richt update rings, Defender-onboarding, Endpoint Privilege Management en Endpoint Analytics in.
+
 ### Leerdoelen
 - [ ] Het verschil uitleggen tussen een Update ring (WUfB) en een Feature update policy en ze naast elkaar configureren
 - [ ] Co-management tussen Intune en Configuration Manager beschrijven en de workload-verdeling uitleggen
@@ -389,7 +489,7 @@
 - [Intune Suite add-on capabilities](https://learn.microsoft.com/en-us/mem/intune/fundamentals/intune-add-ons)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Update ring (WUfB) | Windows Update for Business-beleid dat de deferral van kwaliteits- en feature-updates instelt (in dagen) |
 | Quality Update | Maandelijkse cumulatieve beveiligings- en bugfixpatch (Patch Tuesday) |
@@ -407,15 +507,34 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Configureer een *Update ring* in Intune: Semi-Annual Channel, 7 dagen defer |
-| **SSW-W11-01** | Controleer Windows Update-status: `Get-WindowsUpdateLog` |
-| **SSW-MGMT01** | Activeer Microsoft Defender for Endpoint via Intune *Endpoint security → Antivirus* |
-| **SSW-W11-01** | Voer een Defender Quick Scan uit: `Start-MpScan -ScanType QuickScan` |
-| **SSW-W11-02** | Simuleer een detectie met EICAR testbestand → analyseer alert in Defender portal |
-| **SSW-MGMT01** | Bekijk **Device diagnostics** in Intune-portal → download diagnostics van W11-01 |
-| **SSW-MGMT01** | Verken *Endpoint Privilege Management* (EPM) in Intune Suite: maak een elevation policy aan |
-| **SSW-MGMT01** | Bekijk *Advanced Analytics* in Intune: controleer het anomaliedetectie-dashboard |
-| **SSW-MGMT01** | Verken de **Enterprise App Catalog**: zoek een beheerde app en bekijk de metadata |
+| **LAB-MGMT01** | Configureer een *Update ring* in Intune: Semi-Annual Channel, 7 dagen defer |
+| **LAB-W11-01** | Controleer Windows Update-status: `Get-WindowsUpdateLog` |
+| **LAB-MGMT01** | Activeer Microsoft Defender for Endpoint via Intune *Endpoint security → Antivirus* |
+| **LAB-W11-01** | Voer een Defender Quick Scan uit: `Start-MpScan -ScanType QuickScan` |
+| **LAB-W11-02** | Simuleer een detectie met EICAR testbestand → analyseer alert in Defender portal |
+| **LAB-MGMT01** | Bekijk **Device diagnostics** in Intune-portal → download diagnostics van W11-01 |
+| **LAB-MGMT01** | Verken *Endpoint Privilege Management* (EPM) in Intune Suite: maak een elevation policy aan |
+| **LAB-MGMT01** | Bekijk *Advanced Analytics* in Intune: controleer het anomaliedetectie-dashboard |
+| **LAB-MGMT01** | Verken de **Enterprise App Catalog**: zoek een beheerde app en bekijk de metadata |
+
+### Labcommando's
+
+```powershell
+# Controleer de status van de Windows Defender-service (SENSE = MDE-sensor)
+sc query sense
+
+# Start een Defender Quick Scan
+Start-MpScan -ScanType QuickScan
+
+# Controleer de huidige Windows Update-uitstelinstellingen in het register
+Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" | Select DeferQualityUpdates, DeferQualityUpdatesPeriodInDays
+
+# Controleer de versie van de Defender-definities
+Get-MpComputerStatus | Select AntivirusSignatureVersion, AntispywareSignatureLastUpdated, RealTimeProtectionEnabled
+
+# Start een update van de Defender-signatures
+Update-MpSignature
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen een *Update ring* en een *Feature update policy*?
@@ -455,7 +574,7 @@
 
 ---
 
-### Exam Coverage Gaps en Must-Do Labs
+### Examendekking en verplichte labs
 
 Doel: dit blok dicht de laatste gaten tussen het leerpad en de actuele exam-scope per 23 januari 2026.
 
@@ -473,7 +592,7 @@ Doel: dit blok dicht de laatste gaten tussen het leerpad en de actuele exam-scop
 
 6. **App supersedence en de Enterprise App Catalog:** weet hoe app-vervanging (supersedence) werkt in Intune en wat de Enterprise App Catalog toevoegt boven handmatig verpakken (automatische updates, voorgeconfigureerde detectie/install/uninstall-commando's).
 
-### Must-do labs voor slaagkans
+### Verplichte labs voor slaagkans
 
 1. Maak minimaal 1 Android enrollment-profiel (Fully managed) aan en documenteer welke instellingen exam-relevant zijn (camera block, copy-paste tussen werk/privé, update behavior).
 2. Maak minimaal 1 iOS of macOS configuratieprofiel aan met een filter (bijv. alleen iOS 16+) — oefen hoe filters anders evalueren dan dynamische groepen.

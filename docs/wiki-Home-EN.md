@@ -2,7 +2,7 @@
 
 > 🌐 **Language:** English | [Nederlands](wiki-Home.md)
 
-Automated lab environment for Microsoft certifications on a Sogeti laptop with MSDN licences.
+Automated Hyper-V lab environment for Microsoft certifications with MSDN licences.
 
 **Supported certifications:** MD-102 · MS-102 · SC-300 · AZ-104
 
@@ -10,7 +10,7 @@ Automated lab environment for Microsoft certifications on a Sogeti laptop with M
 
 ## Study guides
 
-A complete study guide is available for each certification, including MS Learn modules, lab exercises and knowledge checks:
+A study guide is available for each certification, including MS Learn modules, lab exercises and knowledge checks:
 
 | Certification | Description | Preset | Duration | Lab scripts |
 |---|---|---|---|---|
@@ -59,11 +59,11 @@ https://go.microsoft.com/fwlink/?linkid=2289980
 ```
 Laptop (Hyper-V host)
   └── SSW-Internal (Hyper-V vSwitch, internal + NAT)
-        ├── SSW-DC01            10.50.10.10   Windows Server 2025 — Domain Controller
-        ├── SSW-MGMT01          10.50.10.20   Windows 11 Enterprise — Management
-        ├── SSW-W11-01          DHCP          Windows 11 Enterprise — Client 1
-        ├── SSW-W11-02          DHCP          Windows 11 Enterprise — Client 2
-        └── SSW-W11-AUTOPILOT   DHCP          Windows 11 Enterprise — Autopilot
+        ├── LAB-DC01            10.50.10.10   Windows Server 2025 — Domain Controller
+        ├── LAB-MGMT01          10.50.10.20   Windows 11 Enterprise — Management
+        ├── LAB-W11-01          DHCP          Windows 11 Enterprise — Client 1
+        ├── LAB-W11-02          DHCP          Windows 11 Enterprise — Client 2
+        └── LAB-W11-AUTOPILOT   DHCP          Windows 11 Enterprise — Autopilot
 ```
 
 **Domain:** `ssw.lab`  
@@ -78,12 +78,12 @@ Laptop (Hyper-V host)
 
 1. Download the latest release from the [Releases page](../../releases)
 2. Extract the zip to a folder of your choice
-3. Run the EXEs as administrator in order (see below)
+3. Run the EXEs as administrator in order
 
 ### Option B — PowerShell scripts
 
 ```powershell
-git clone https://github.com/Naamalingebruik/SSW-Lab.git
+git clone <your-repo-url>/SSW-Lab.git
 cd SSW-Lab\scripts
 # Run as administrator:
 .\00-PREFLIGHT.ps1
@@ -113,7 +113,7 @@ Select your **certification track** to receive a personalised hardware assessmen
 | SC-300 | Standard | 14 GB | 300 GB |
 | AZ-104 | Minimal | 6 GB | 140 GB |
 
-The **Continue** button only becomes active once there are no blocking errors.
+The **Continue** button only becomes active when there are no blocking errors.
 
 ---
 
@@ -125,7 +125,7 @@ Creates:
 - NAT adapter with IP `10.50.10.1`
 - NetNAT (`SSW-NAT`) for internet access from VMs
 
-Existing switch and NAT are skipped. Choose whether to build ISOs next or proceed directly to VM creation.
+Existing switch and NAT are skipped.
 
 ---
 
@@ -142,7 +142,7 @@ Builds unattended ISOs from your MSDN source ISOs:
 ### Step 4 — Create VMs
 **Script:** `03-VMS.ps1` | **EXE:** `Stap4 - VMs aanmaken.exe`
 
-Creates VMs based on the selected preset. Preset is auto-suggested based on available RAM:
+Creates VMs based on the selected preset. A preset is suggested automatically based on available RAM:
 
 | Preset | VMs | RAM usage |
 |---|---|---|
@@ -155,7 +155,7 @@ Creates VMs based on the selected preset. Preset is auto-suggested based on avai
 ### Step 5 — Set up Domain Controller
 **Script:** `04-SETUP-DC.ps1` | **EXE:** `Stap5 - Domain Controller inrichten.exe`
 
-Configures SSW-DC01:
+Configures LAB-DC01:
 - Promotes to Domain Controller for `ssw.lab`
 - Configures DNS
 - Creates base OU structure and lab user accounts
@@ -177,7 +177,7 @@ Joins client VMs (MGMT01, W11-01, W11-02) to the `ssw.lab` domain.
 | Account | VM | Role |
 |---|---|---|
 | `Administrator` | All VMs | Local admin, set interactively |
-| `SSW\labadmin` | Domain | Domain admin, set interactively |
+| `LAB\labadmin` | Domain | Domain admin, set interactively |
 
 Passwords are entered interactively and are **never stored in scripts or config files**.
 
@@ -199,8 +199,8 @@ Passwords are entered interactively and are **never stored in scripts or config 
 Laptop (Hyper-V host)
 └── SSW-Internal (vSwitch, internal)
     ├── 10.50.10.1   → Gateway / NAT
-    ├── 10.50.10.10  → SSW-DC01
-    ├── 10.50.10.20  → SSW-MGMT01
+    ├── 10.50.10.10  → LAB-DC01
+    ├── 10.50.10.20  → LAB-MGMT01
     └── 10.50.10.30+ → W11 clients (DHCP)
 ```
 
@@ -216,7 +216,7 @@ All scripts support a `-DryRun` flag:
 .\03-VMS.ps1 -DryRun
 ```
 
-This shows all planned actions without making any changes — useful for reviewing before committing.
+This shows all planned actions without making any changes.
 
 ---
 

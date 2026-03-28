@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
   Grondige cleanup van SSW-Lab VM-residu.
@@ -18,7 +18,7 @@
   Voert echte wijzigingen uit. Zonder -Live is het een preview.
 
 .PARAMETER IncludeLabPrefixOrphans
-  Verwijder ook orphan disks met naam SSW-*.vhdx / SSW-*.avhdx in VMPath.
+  Verwijder ook orphan disks met naam LAB-*.vhdx / LAB-*.avhdx en oude SSW-*.vhdx / SSW-*.avhdx in VMPath.
 
 .EXAMPLE
   .\03A-CLEANUP-VMS.ps1
@@ -143,8 +143,10 @@ foreach ($vmName in $targetVmNames) {
 }
 
 if ($IncludeLabPrefixOrphans) {
-    Write-Host "--- Extra orphan cleanup: SSW-* ---" -ForegroundColor Magenta
+    Write-Host "--- Extra orphan cleanup: LAB-* + oud SSW-* ---" -ForegroundColor Magenta
     $prefixOrphans = @(
+        Get-ChildItem -Path $SSWConfig.VMPath -Filter "LAB-*.vhdx" -File -ErrorAction SilentlyContinue
+        Get-ChildItem -Path $SSWConfig.VMPath -Filter "LAB-*.avhdx" -File -ErrorAction SilentlyContinue
         Get-ChildItem -Path $SSWConfig.VMPath -Filter "SSW-*.vhdx" -File -ErrorAction SilentlyContinue
         Get-ChildItem -Path $SSWConfig.VMPath -Filter "SSW-*.avhdx" -File -ErrorAction SilentlyContinue
     ) | Sort-Object FullName -Unique

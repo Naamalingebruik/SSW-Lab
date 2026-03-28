@@ -46,6 +46,8 @@
 ## Week 1 — Entra ID fundamenten en hybride identiteit
 > **Examendomein:** Gebruikersidentiteiten implementeren en beheren · **Gewicht:** 20–25%
 
+> **Praktijkscenario:** Een middelgroot productiebedrijf met 800 on-premises Active Directory-gebruikers migreert naar Microsoft 365. Volgens het securitybeleid mogen wachtwoordhashes niet in de cloud worden opgeslagen. Tegelijk moet SSPR beschikbaar zijn zodat medewerkers hun wachtwoord vanaf het inlogscherm kunnen resetten zonder tussenkomst van de helpdesk. Jij moet de juiste hybride authenticatiemethode kiezen en het selfservice-herstelproces betrouwbaar inrichten.
+
 ### Leerdoelen
 - [ ] De drie hybride authenticatiemethoden (PHS, PTA, ADFS) benoemen en het juiste scenario voor elk kiezen
 - [ ] Entra Connect Sync installeren en Password Hash Synchronization configureren
@@ -60,7 +62,7 @@
 - [Implement and manage hybrid identity](https://learn.microsoft.com/en-us/training/modules/implement-manage-hybrid-identity/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Entra Connect Sync | On-premises synchronisatieagent die Active Directory-objecten synchroniseert naar Entra ID |
 | Password Hash Sync (PHS) | Gesynchroniseerde wachtwoordhashes in Entra ID — authenticatie vindt in de cloud plaats; werkt ook als on-prem AD offline is |
@@ -76,12 +78,28 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-DC01** | Verifieer AD-structuur: `Get-ADForest`, `Get-ADDomain`, `Get-ADUser -Filter *` |
-| **SSW-DC01** | Installeer Azure AD Connect Sync → configureer *Password Hash Sync* |
-| **SSW-DC01** | Controleer sync: `Start-ADSyncSyncCycle -PolicyType Delta` |
-| **SSW-MGMT01** | Open **Entra admin center** (entra.microsoft.com) → verifieer sync-status |
-| **SSW-MGMT01** | Configureer *Custom Security Attributes* voor gebruikersclassificatie |
-| **SSW-MGMT01** | Bekijk *Audit logs* in Entra ID → filter op gebruikers-aanmaak events |
+| **LAB-DC01** | Verifieer AD-structuur: `Get-ADForest`, `Get-ADDomain`, `Get-ADUser -Filter *` |
+| **LAB-DC01** | Installeer Azure AD Connect Sync → configureer *Password Hash Sync* |
+| **LAB-DC01** | Controleer sync: `Start-ADSyncSyncCycle -PolicyType Delta` |
+| **LAB-MGMT01** | Open **Entra admin center** (entra.microsoft.com) → verifieer sync-status |
+| **LAB-MGMT01** | Configureer *Custom Security Attributes* voor gebruikersclassificatie |
+| **LAB-MGMT01** | Bekijk *Audit logs* in Entra ID → filter op gebruikers-aanmaak events |
+
+### Labcommando's
+
+```powershell
+# Start een delta-synccyclus vanaf de AD Connect-server
+Start-ADSyncSyncCycle -PolicyType Delta
+
+# Bekijk de status van de syncconnector
+Get-ADSyncConnector | Select-Object Name, ConnectorTypeName, LastSyncTime
+
+# Herstel een soft-deleted gebruiker via Microsoft Graph PowerShell
+Restore-MgDirectoryDeletedItem -DirectoryObjectId "<object-id>"
+
+# Forceer een volledige synccyclus (spaarzaam gebruiken)
+Start-ADSyncSyncCycle -PolicyType Initial
+```
 
 ### Kennischeck
 1. Wat zijn de drie authenticatiemethoden bij hybride identiteit en wanneer gebruik je welke?
@@ -107,6 +125,8 @@
 ## Week 2 — Externe identiteiten en Entra B2B
 > **Examendomein:** Gebruikersidentiteiten implementeren en beheren · **Gewicht:** 20–25%
 
+> **Praktijkscenario:** Een Sogeti-consultant helpt een financiële klant drie strategische partners toegang te geven tot een gedeelde SharePoint-site en Teams-werkruimte. De securityafdeling eist dat partnergebruikers hun eigen bedrijfsidentiteit gebruiken, dat MFA-claims van een vertrouwde partner-tenant worden geaccepteerd zonder dubbele prompts, en dat accounts met hoog risico direct worden geblokkeerd. Jij ontwerpt B2B-toegang, cross-tenant trust en Identity Protection-beleid dat dit afdwingt.
+
 ### Leerdoelen
 - [ ] Het verschil tussen B2B Collaboration en B2B Direct Connect uitleggen en het juiste scenario kiezen
 - [ ] Cross-tenant access settings configureren: inbound en outbound vertrouwen instellen per partner-tenant
@@ -120,7 +140,7 @@
 - [Implement and manage Microsoft Entra ID Protection](https://learn.microsoft.com/en-us/training/modules/implement-manage-azure-ad-identity-protection/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | B2B Collaboration | Externe gebruikers uitnodigen als gastgebruikers; zij krijgen een guest-object in jouw tenant en authenticeren bij hun eigen tenant of via OTP |
 | B2B Direct Connect | Directe vertrouwensrelatie tussen twee tenants zonder guest-objecten; de externe gebruiker verschijnt niet in jouw directory (momenteel primair voor Teams shared channels) |
@@ -136,12 +156,30 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Nodig een externe B2B-gebruiker uit (gebruik een persoonlijk of second tenant-account) |
-| **SSW-MGMT01** | Configureer *Cross-tenant access settings*: blokkeer inbound access voor specifieke tenants |
-| **SSW-MGMT01** | Schakel *Entra ID Protection* in → bekijk *Risk detections* dashboard |
-| **SSW-MGMT01** | Configureer *User risk policy*: hoog risico → wachtwoordwijziging verplicht |
-| **SSW-MGMT01** | Configureer *Sign-in risk policy*: medium risico → MFA verplicht |
-| **SSW-W11-01** | Simuleer risky sign-in: log in met TestUser01 vanuit anonieme browser-sessie |
+| **LAB-MGMT01** | Nodig een externe B2B-gebruiker uit (gebruik een persoonlijk of second tenant-account) |
+| **LAB-MGMT01** | Configureer *Cross-tenant access settings*: blokkeer inbound access voor specifieke tenants |
+| **LAB-MGMT01** | Schakel *Entra ID Protection* in → bekijk *Risk detections* dashboard |
+| **LAB-MGMT01** | Configureer *User risk policy*: hoog risico → wachtwoordwijziging verplicht |
+| **LAB-MGMT01** | Configureer *Sign-in risk policy*: medium risico → MFA verplicht |
+| **LAB-W11-01** | Simuleer risky sign-in: log in met TestUser01 vanuit anonieme browser-sessie |
+
+### Labcommando's
+
+```powershell
+# Nodig een B2B-gastgebruiker uit via Microsoft Graph PowerShell
+New-MgInvitation -InvitedUserEmailAddress "partner@contoso.com" `
+    -InviteRedirectUrl "https://myapps.microsoft.com" `
+    -SendInvitationMessage:$true
+
+# Toon alle gastgebruikers in de tenant
+Get-MgUser -Filter "userType eq 'Guest'" | Select-Object DisplayName, Mail, UserPrincipalName
+
+# Verwerp een user risk (markeer als false positive)
+Invoke-MgDismissRiskyUser -UserIds "<user-object-id>"
+
+# Bevestig accountcompromittering (start aanvullende beschermingsacties)
+Invoke-MgConfirmRiskyUserCompromised -UserIds "<user-object-id>"
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen *B2B direct connect* en *B2B collaboration*?
@@ -167,6 +205,8 @@
 ## Week 3 — Authenticatiemethoden en MFA
 > **Examendomein:** Authenticatie en toegangsbeheer implementeren · **Gewicht:** 25–30%
 
+> **Praktijkscenario:** Een overheidsorganisatie wil phishing-resistente MFA voor 2.500 medewerkers als onderdeel van een Zero Trust-programma. De helpdesk verwerkt wekelijks tientallen wachtwoordresetverzoeken. Jij moet een strategie ontwerpen waarin FIDO2-sleutels voor bevoorrechte gebruikers, Microsoft Authenticator met passkeys voor reguliere medewerkers en Temporary Access Pass voor onboarding en herstel logisch samenkomen in een modern beleid.
+
 ### Leerdoelen
 - [ ] Het Authentication methods-beleid configureren en de migratie van legacy per-user MFA uitleggen
 - [ ] FIDO2, Microsoft Authenticator passwordless en passkeys vergelijken op beveiligingsniveau
@@ -181,7 +221,7 @@
 - [Manage user authentication](https://learn.microsoft.com/en-us/training/modules/manage-user-authentication/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | FIDO2 | Passwordless hardwaresleutel (bijv. YubiKey, Feitian) — phishing-resistent omdat de sleutel gebonden is aan een specifiek domein; sterkste beschikbare methode |
 | Microsoft Authenticator passwordless | Aanmelding via push-notificatie met number matching op de telefoon; geen wachtwoord vereist; phishing-resistent via number matching |
@@ -197,12 +237,31 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Open **Entra → Security → Authentication methods** → activeer FIDO2 en Authenticator |
-| **SSW-W11-01** | Registreer *Microsoft Authenticator* als MFA-methode voor TestUser01 |
-| **SSW-W11-01** | Registreer *Windows Hello for Business* op W11-01 |
-| **SSW-MGMT01** | Configureer *Authentication strength* in Conditional Access: Phishing-resistant MFA |
-| **SSW-MGMT01** | Bekijk *Authentication methods activity* report → analyseer methode-gebruik |
-| **SSW-MGMT01** | Schakel *legacy per-user MFA* uit → migreer naar Conditional Access-based MFA |
+| **LAB-MGMT01** | Open **Entra → Security → Authentication methods** → activeer FIDO2 en Authenticator |
+| **LAB-W11-01** | Registreer *Microsoft Authenticator* als MFA-methode voor TestUser01 |
+| **LAB-W11-01** | Registreer *Windows Hello for Business* op W11-01 |
+| **LAB-MGMT01** | Configureer *Authentication strength* in Conditional Access: Phishing-resistant MFA |
+| **LAB-MGMT01** | Bekijk *Authentication methods activity* report → analyseer methode-gebruik |
+| **LAB-MGMT01** | Schakel *legacy per-user MFA* uit → migreer naar Conditional Access-based MFA |
+
+### Labcommando's
+
+```powershell
+# Maak een Temporary Access Pass aan voor een gebruiker
+New-MgUserAuthenticationTemporaryAccessPassMethod -UserId "<user-id>" `
+    -LifetimeInMinutes 60 -IsUsableOnce:$true
+
+# Toon geregistreerde authenticatiemethoden voor een gebruiker
+Get-MgUserAuthenticationMethod -UserId "<user-id>"
+
+# Verwijder een specifieke authenticatiemethode (bijv. een verloren FIDO2-sleutel)
+Remove-MgUserAuthenticationFido2Method -UserId "<user-id>" `
+    -Fido2AuthenticationMethodId "<method-id>"
+
+# Rapporteer over registraties van authenticatiemethoden in de tenant
+Get-MgReportAuthenticationMethodUserRegistrationDetail |
+    Select-Object UserPrincipalName, IsMfaRegistered, IsPasswordlessCapable
+```
 
 ### Kennischeck
 1. Wat is *phishing-resistant MFA* en welke methoden vallen hieronder?
@@ -228,6 +287,8 @@
 ## Week 4 — Conditional Access en Global Secure Access
 > **Examendomein:** Authenticatie en toegangsbeheer implementeren · **Gewicht:** 25–30%
 
+> **Praktijkscenario:** Een advocatenkantoor met 350 gebruikers en veel thuiswerkers wil afdwingen dat alleen beheerde of compliant apparaten bij SharePoint en Teams kunnen, dat toegang van buiten de EU step-up authenticatie vereist en dat het uitschakelen van een Conditional Access-policy altijd een extra goedkeuring nodig heeft. Tegelijk onderzoekt men de overstap van klassieke VPN naar zero-trust toegang per applicatie. Jij vertaalt deze eisen naar Conditional Access, protected actions en Global Secure Access-keuzes.
+
 ### Leerdoelen
 - [ ] Een Conditional Access-policy aanmaken met signals, conditions en grant/session controls
 - [ ] De What If-tool gebruiken om CA-beleid te simuleren en te troubleshooten
@@ -243,7 +304,7 @@
 - [Implement Global Secure Access](https://learn.microsoft.com/en-us/training/modules/implement-global-secure-access/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | CA Signals | De invoerparameters voor de CA-beleidsengine: gebruiker/groep/rol, applicatie, locatie, apparaatcompliance, sign-in risico, user risico |
 | Grant control | CA-uitkomst die toegang verleent of weigert, eventueel met voorwaarden: MFA vereisen, compliant device, hybride join, of Block |
@@ -260,15 +321,35 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Maak CA-policy: blokkeer toegang tot alle apps van buiten compliance-devices |
-| **SSW-MGMT01** | Maak CA-policy: MFA verplicht voor beheerderrollen bij elke sign-in |
-| **SSW-MGMT01** | Gebruik *What If* tool in CA om access-beslissingen te simuleren |
-| **SSW-W11-01** | Test CA-policy als TestUser01 → verifieer welke controls worden afgedwongen |
-| **SSW-W11-02** | Test met niet-enrolled device → verifieer blokkering |
-| **SSW-MGMT01** | Schakel *Sign-in frequency* in voor gevoelige applicaties (elke 4 uur re-auth) |
-| **SSW-MGMT01** | Bekijk **CA insights and reporting** workbook in Entra ID |
-| **SSW-MGMT01** | Open **Global Secure Access** in het Entra admin center → verken Private Access en Internet Access-instellingen |
-| **SSW-MGMT01** | Schakel *Internet Access voor Microsoft 365* in via Global Secure Access → bekijk verkeerslogboeken |
+| **LAB-MGMT01** | Maak CA-policy: blokkeer toegang tot alle apps van buiten compliance-devices |
+| **LAB-MGMT01** | Maak CA-policy: MFA verplicht voor beheerderrollen bij elke sign-in |
+| **LAB-MGMT01** | Gebruik *What If* tool in CA om access-beslissingen te simuleren |
+| **LAB-W11-01** | Test CA-policy als TestUser01 → verifieer welke controls worden afgedwongen |
+| **LAB-W11-02** | Test met niet-enrolled device → verifieer blokkering |
+| **LAB-MGMT01** | Schakel *Sign-in frequency* in voor gevoelige applicaties (elke 4 uur re-auth) |
+| **LAB-MGMT01** | Bekijk **CA insights and reporting** workbook in Entra ID |
+| **LAB-MGMT01** | Open **Global Secure Access** in het Entra admin center → verken Private Access en Internet Access-instellingen |
+| **LAB-MGMT01** | Schakel *Internet Access voor Microsoft 365* in via Global Secure Access → bekijk verkeerslogboeken |
+
+### Labcommando's
+
+```powershell
+# Toon alle Conditional Access-policies en hun status
+Get-MgIdentityConditionalAccessPolicy |
+    Select-Object DisplayName, State, CreatedDateTime
+
+# Haal sign-in-logs op gefilterd op CA-policyfouten (vereist Log Analytics of MS Graph)
+# Via Microsoft Graph PowerShell:
+Get-MgAuditLogSignIn -Filter "conditionalAccessStatus eq 'failure'" -Top 20 |
+    Select-Object UserPrincipalName, AppDisplayName, ConditionalAccessStatus
+
+# Toon alle named locations
+Get-MgIdentityConditionalAccessNamedLocation | Select-Object DisplayName, Id
+
+# Schakel een CA-policystatus in of werk deze bij (enabled/disabled/enabledForReportingButNotEnforced)
+Update-MgIdentityConditionalAccessPolicy -ConditionalAccessPolicyId "<policy-id>" `
+    -State "enabledForReportingButNotEnforced"
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen *Block* en *Grant with MFA* in Conditional Access?
@@ -300,6 +381,8 @@
 ## Week 5 — Applicatietoegang en app registraties
 > **Examendomein:** Workload-identiteiten plannen en implementeren · **Gewicht:** 20–25%
 
+> **Praktijkscenario:** Een Sogeti DevOps-team bouwt voor een bank een intern automatiseringsplatform dat via een Azure Function e-mail uit een shared mailbox leest, resultaten naar SharePoint schrijft en een interne REST-API aanroept. De securityafdeling staat geen wachtwoorden of client secrets toe: alleen managed identities en app-only toestemming met expliciete admin consent zijn toegestaan. Daarnaast moeten bestaande derdepartij-apps met te brede rechten worden opgeschoond. Jij moet workload identities, API-permissies en governance rond enterprise apps correct inrichten.
+
 ### Leerdoelen
 - [ ] Het verschil tussen een App Registration en een Enterprise Application uitleggen en de relatie beschrijven
 - [ ] Delegated en Application API permissions configureren en het effect van admin consent benoemen
@@ -314,7 +397,7 @@
 - [Integrate single sign-on in Microsoft Entra ID](https://learn.microsoft.com/en-us/training/modules/authenticate-external-apps/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | App Registration | Technische registratie van een applicatie bij Entra ID voor OAuth/OIDC; geconfigureerd door de app-ontwikkelaar (redirect URIs, secrets, scopes) |
 | Enterprise Application | Serviceprincipal-instantie van een app in jouw tenant; hier beheer je wie toegang heeft, SSO-instellingen en SCIM-provisioning |
@@ -330,12 +413,30 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Registreer een test-app in **Entra → App registrations** |
-| **SSW-MGMT01** | Voeg *API permissions* toe: `User.Read` en `Mail.Read` → admin consent verlenen |
-| **SSW-MGMT01** | Maak een *client secret* aan → noteer de waarde |
-| **SSW-MGMT01** | Configureer SSO voor een gallery-app (bijv. GitHub) via *Enterprise applications* |
-| **SSW-MGMT01** | Configureer *App proxy* voor een on-premises app (gebruik MGMT01 als testserver) |
-| **SSW-MGMT01** | Wijs de app toe aan een groep → bekijk toegang in *My Apps* portal |
+| **LAB-MGMT01** | Registreer een test-app in **Entra → App registrations** |
+| **LAB-MGMT01** | Voeg *API permissions* toe: `User.Read` en `Mail.Read` → admin consent verlenen |
+| **LAB-MGMT01** | Maak een *client secret* aan → noteer de waarde |
+| **LAB-MGMT01** | Configureer SSO voor een gallery-app (bijv. GitHub) via *Enterprise applications* |
+| **LAB-MGMT01** | Configureer *App proxy* voor een on-premises app (gebruik MGMT01 als testserver) |
+| **LAB-MGMT01** | Wijs de app toe aan een groep → bekijk toegang in *My Apps* portal |
+
+### Labcommando's
+
+```powershell
+# Toon alle app registrations in de tenant
+Get-MgApplication | Select-Object DisplayName, AppId, CreatedDateTime
+
+# Toon API-permissies voor een specifieke app registration
+Get-MgApplicationRequiredResourceAccess -ApplicationId "<app-object-id>"
+
+# Maak een nieuw client secret aan voor een app registration
+Add-MgApplicationPassword -ApplicationId "<app-object-id>" `
+    -PasswordCredential @{ DisplayName = "LabSecret"; EndDateTime = "2026-01-01" }
+
+# Toon alle enterprise applications (service principals) met app-permissies
+Get-MgServicePrincipal -Filter "servicePrincipalType eq 'Application'" |
+    Select-Object DisplayName, AppId, AppRoles
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen een *App registration* en een *Enterprise application*?
@@ -361,6 +462,8 @@
 ## Week 6 — Identity governance: Entitlement en Access Reviews
 > **Examendomein:** Identity governance plannen en automatiseren · **Gewicht:** 20–25%
 
+> **Praktijkscenario:** Een zorgorganisatie met 3.000 medewerkers moet identity governance professionaliseren onder strikte NEN 7510- en ISO 27001-eisen. Artsen, verpleegkundigen en stafmedewerkers hebben verschillende access packages nodig die automatisch verlopen als een project eindigt. De complianceafdeling wil kwartaalreviews voor alle bevoorrechte rollen en HR wil uitdiensttreding binnen 24 uur terugzien in toegangsintrekking. Jij ontwerpt access packages, access reviews, lifecycle-automatisering en PIM-governance met goedkeuringsflow.
+
 ### Leerdoelen
 - [ ] Een Access Package aanmaken met resources, goedkeuringsworkflow en vervaldatum
 - [ ] Het verschil tussen Entitlement Management en Access Reviews uitleggen
@@ -376,7 +479,7 @@
 - [Implement Privileged Identity Management](https://learn.microsoft.com/en-us/training/modules/implement-privileged-identity-management/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Entitlement Management | Governance-framework voor het gestructureerd verlenen van toegang: catalogi, access packages, aanvraagworkflows, vervaldatums |
 | Catalog | Container in Entitlement Management die resources groepeert (Entra-groepen, apps, SharePoint-sites) voor gebruik in access packages |
@@ -392,13 +495,33 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Maak een *Access package* aan via **Entra → Identity Governance → Entitlement management** |
-| **SSW-MGMT01** | Configureer *policy*: gebruikers kunnen zelf toegang aanvragen, manager moet goedkeuren |
-| **SSW-W11-01** | Vraag het Access package aan als TestUser01 via *My Access* portal (`myaccess.microsoft.com`) |
-| **SSW-MGMT01** | Keur de aanvraag goed → verifieer toewijzing |
-| **SSW-MGMT01** | Maak een *Access review* aan voor een groep → wijs reviewer aan |
-| **SSW-MGMT01** | Activeer **Privileged Identity Management (PIM)** voor de rol *Global Administrator* |
-| **SSW-MGMT01** | Activeer de GA-rol *Just-in-time* via PIM → verifieer audit trail |
+| **LAB-MGMT01** | Maak een *Access package* aan via **Entra → Identity Governance → Entitlement management** |
+| **LAB-MGMT01** | Configureer *policy*: gebruikers kunnen zelf toegang aanvragen, manager moet goedkeuren |
+| **LAB-W11-01** | Vraag het Access package aan als TestUser01 via *My Access* portal (`myaccess.microsoft.com`) |
+| **LAB-MGMT01** | Keur de aanvraag goed → verifieer toewijzing |
+| **LAB-MGMT01** | Maak een *Access review* aan voor een groep → wijs reviewer aan |
+| **LAB-MGMT01** | Activeer **Privileged Identity Management (PIM)** voor de rol *Global Administrator* |
+| **LAB-MGMT01** | Activeer de GA-rol *Just-in-time* via PIM → verifieer audit trail |
+
+### Labcommando's
+
+```powershell
+# Toon alle PIM-eligible roltoewijzingen
+Get-MgRoleManagementDirectoryRoleEligibilitySchedule |
+    Select-Object PrincipalId, RoleDefinitionId, Status
+
+# Haal de PIM-activatiegeschiedenis op (audit)
+Get-MgRoleManagementDirectoryRoleAssignmentScheduleRequest |
+    Select-Object PrincipalId, Action, Status, CreatedDateTime, Justification
+
+# Toon alle access packages in een catalogus
+Get-MgEntitlementManagementAccessPackage |
+    Select-Object DisplayName, Id, CreatedDateTime
+
+# Haal openstaande access package-toewijzingsaanvragen op
+Get-MgEntitlementManagementAssignmentRequest -Filter "state eq 'pendingApproval'" |
+    Select-Object Id, RequestType, State
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen *entitlement management* en *access reviews*?
@@ -423,7 +546,7 @@
 
 ## Week 7 — Examenvoorbereiding
 
-### Exam Coverage Gaps en Must-Do Labs
+### Examendekking en verplichte labs
 
 Doel: de huidige labs expliciet laten aansluiten op alle exam-doelstellingen.
 
@@ -435,7 +558,7 @@ Doel: de huidige labs expliciet laten aansluiten op alle exam-doelstellingen.
 
 > **Noot over Global Secure Access (toegevoegd november 2025):** GSA is een volledig nieuw examenonderwerp dat per november 2025 is opgenomen in het SC-300-examen. De SSW-Lab-scripts dekken de GSA-clientinstallatie en Private Access-configuratie nog niet volledig. Besteed extra aandacht aan de [MS Learn module voor Global Secure Access](https://learn.microsoft.com/en-us/training/modules/deploy-configure-microsoft-entra-global-secure-access/) als aanvulling op de lab-oefeningen in week 4. Zorg dat je de drie verkeersprofielen, Universal Conditional Access en de rol van de GSA-client kunt uitleggen en configureren.
 
-### Must-do labs voor slaagkans
+### Verplichte labs voor slaagkans
 1. Voer een end-to-end Global Secure Access test uit met policy, client en logging-resultaat.
 2. Configureer cross-tenant synchronization met een testtenant en valideer lifecycle gedrag.
 3. Maak een app registration met delegated en application permissions en leg consent impact vast.

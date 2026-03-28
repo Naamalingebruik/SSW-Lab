@@ -64,12 +64,12 @@
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-DC01** | Verify AD structure: `Get-ADForest`, `Get-ADDomain`, `Get-ADUser -Filter *` |
-| **SSW-DC01** | Install Azure AD Connect Sync → configure *Password Hash Sync* |
-| **SSW-DC01** | Verify sync: `Start-ADSyncSyncCycle -PolicyType Delta` |
-| **SSW-MGMT01** | Open **Entra admin center** (entra.microsoft.com) → verify sync status |
-| **SSW-MGMT01** | Configure *Custom Security Attributes* for user classification |
-| **SSW-MGMT01** | Review *Audit logs* in Entra ID → filter on user creation events |
+| **LAB-DC01** | Verify AD structure: `Get-ADForest`, `Get-ADDomain`, `Get-ADUser -Filter *` |
+| **LAB-DC01** | Install Azure AD Connect Sync → configure *Password Hash Sync* |
+| **LAB-DC01** | Verify sync: `Start-ADSyncSyncCycle -PolicyType Delta` |
+| **LAB-MGMT01** | Open **Entra admin center** (entra.microsoft.com) → verify sync status |
+| **LAB-MGMT01** | Configure *Custom Security Attributes* for user classification |
+| **LAB-MGMT01** | Review *Audit logs* in Entra ID → filter on user creation events |
 
 ### Lab commands
 
@@ -166,12 +166,12 @@ Start-ADSyncSyncCycle -PolicyType Initial
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Invite an external B2B user (use a personal or second tenant account) |
-| **SSW-MGMT01** | Configure *Cross-tenant access settings*: block inbound access for specific tenants |
-| **SSW-MGMT01** | Enable *Entra ID Protection* → review the *Risk detections* dashboard |
-| **SSW-MGMT01** | Configure *User risk policy*: high risk → force password change |
-| **SSW-MGMT01** | Configure *Sign-in risk policy*: medium risk → require MFA |
-| **SSW-W11-01** | Simulate a risky sign-in: sign in as TestUser01 from an anonymous browser session |
+| **LAB-MGMT01** | Invite an external B2B user (use a personal or second tenant account) |
+| **LAB-MGMT01** | Configure *Cross-tenant access settings*: block inbound access for specific tenants |
+| **LAB-MGMT01** | Enable *Entra ID Protection* → review the *Risk detections* dashboard |
+| **LAB-MGMT01** | Configure *User risk policy*: high risk → force password change |
+| **LAB-MGMT01** | Configure *Sign-in risk policy*: medium risk → require MFA |
+| **LAB-W11-01** | Simulate a risky sign-in: sign in as TestUser01 from an anonymous browser session |
 
 ### Lab commands
 
@@ -271,12 +271,12 @@ Invoke-MgConfirmRiskyUserCompromised -UserIds "<user-object-id>"
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Open **Entra → Security → Authentication methods** → enable FIDO2 and Authenticator |
-| **SSW-W11-01** | Register *Microsoft Authenticator* as MFA method for TestUser01 |
-| **SSW-W11-01** | Register *Windows Hello for Business* on W11-01 |
-| **SSW-MGMT01** | Configure *Authentication strength* in Conditional Access: Phishing-resistant MFA |
-| **SSW-MGMT01** | Review the *Authentication methods activity* report → analyse method usage |
-| **SSW-MGMT01** | Disable *legacy per-user MFA* → migrate to Conditional Access-based MFA |
+| **LAB-MGMT01** | Open **Entra → Security → Authentication methods** → enable FIDO2 and Authenticator |
+| **LAB-W11-01** | Register *Microsoft Authenticator* as MFA method for TestUser01 |
+| **LAB-W11-01** | Register *Windows Hello for Business* on W11-01 |
+| **LAB-MGMT01** | Configure *Authentication strength* in Conditional Access: Phishing-resistant MFA |
+| **LAB-MGMT01** | Review the *Authentication methods activity* report → analyse method usage |
+| **LAB-MGMT01** | Disable *legacy per-user MFA* → migrate to Conditional Access-based MFA |
 
 ### Lab commands
 
@@ -377,15 +377,15 @@ Get-MgReportAuthenticationMethodUserRegistrationDetail |
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Create CA policy: block access to all apps from non-compliant devices |
-| **SSW-MGMT01** | Create CA policy: MFA required for admin roles on every sign-in |
-| **SSW-MGMT01** | Use the *What If* tool in CA to simulate access decisions |
-| **SSW-W11-01** | Test CA policy as TestUser01 → verify which controls are enforced |
-| **SSW-W11-02** | Test with a non-enrolled device → verify block |
-| **SSW-MGMT01** | Enable *Sign-in frequency* for sensitive applications (re-auth every 4 hours) |
-| **SSW-MGMT01** | Review the **CA insights and reporting** workbook in Entra ID |
-| **SSW-MGMT01** | In the Entra admin center, explore **Global Secure Access**: review Private Access and Internet Access settings |
-| **SSW-MGMT01** | Enable *Internet Access for Microsoft 365* in Global Secure Access → review traffic logs |
+| **LAB-MGMT01** | Create CA policy: block access to all apps from non-compliant devices |
+| **LAB-MGMT01** | Create CA policy: MFA required for admin roles on every sign-in |
+| **LAB-MGMT01** | Use the *What If* tool in CA to simulate access decisions |
+| **LAB-W11-01** | Test CA policy as TestUser01 → verify which controls are enforced |
+| **LAB-W11-02** | Test with a non-enrolled device → verify block |
+| **LAB-MGMT01** | Enable *Sign-in frequency* for sensitive applications (re-auth every 4 hours) |
+| **LAB-MGMT01** | Review the **CA insights and reporting** workbook in Entra ID |
+| **LAB-MGMT01** | In the Entra admin center, explore **Global Secure Access**: review Private Access and Internet Access settings |
+| **LAB-MGMT01** | Enable *Internet Access for Microsoft 365* in Global Secure Access → review traffic logs |
 
 ### Lab commands
 
@@ -496,12 +496,12 @@ Update-MgIdentityConditionalAccessPolicy -ConditionalAccessPolicyId "<policy-id>
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Register a test app in **Entra → App registrations** |
-| **SSW-MGMT01** | Add *API permissions*: `User.Read` and `Mail.Read` → grant admin consent |
-| **SSW-MGMT01** | Create a *client secret* → note the value |
-| **SSW-MGMT01** | Configure SSO for a gallery app (e.g. GitHub) via *Enterprise applications* |
-| **SSW-MGMT01** | Configure *App proxy* for an on-premises app (use MGMT01 as test server) |
-| **SSW-MGMT01** | Assign the app to a group → verify access in the *My Apps* portal |
+| **LAB-MGMT01** | Register a test app in **Entra → App registrations** |
+| **LAB-MGMT01** | Add *API permissions*: `User.Read` and `Mail.Read` → grant admin consent |
+| **LAB-MGMT01** | Create a *client secret* → note the value |
+| **LAB-MGMT01** | Configure SSO for a gallery app (e.g. GitHub) via *Enterprise applications* |
+| **LAB-MGMT01** | Configure *App proxy* for an on-premises app (use MGMT01 as test server) |
+| **LAB-MGMT01** | Assign the app to a group → verify access in the *My Apps* portal |
 
 ### Lab commands
 
@@ -602,13 +602,13 @@ Get-MgServicePrincipal -Filter "servicePrincipalType eq 'Application'" |
 ### Lab exercises (SSW-Lab)
 | VM | Task |
 |---|---|
-| **SSW-MGMT01** | Create an *Access package* via **Entra → Identity Governance → Entitlement management** |
-| **SSW-MGMT01** | Configure *policy*: users can self-request access, manager must approve |
-| **SSW-W11-01** | Request the Access package as TestUser01 via the *My Access* portal (`myaccess.microsoft.com`) |
-| **SSW-MGMT01** | Approve the request → verify the assignment |
-| **SSW-MGMT01** | Create an *Access review* for a group → assign a reviewer |
-| **SSW-MGMT01** | Enable **Privileged Identity Management (PIM)** for the *Global Administrator* role |
-| **SSW-MGMT01** | Activate the GA role *Just-in-time* via PIM → verify audit trail |
+| **LAB-MGMT01** | Create an *Access package* via **Entra → Identity Governance → Entitlement management** |
+| **LAB-MGMT01** | Configure *policy*: users can self-request access, manager must approve |
+| **LAB-W11-01** | Request the Access package as TestUser01 via the *My Access* portal (`myaccess.microsoft.com`) |
+| **LAB-MGMT01** | Approve the request → verify the assignment |
+| **LAB-MGMT01** | Create an *Access review* for a group → assign a reviewer |
+| **LAB-MGMT01** | Enable **Privileged Identity Management (PIM)** for the *Global Administrator* role |
+| **LAB-MGMT01** | Activate the GA role *Just-in-time* via PIM → verify audit trail |
 
 ### Lab commands
 

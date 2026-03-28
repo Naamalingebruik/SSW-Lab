@@ -44,6 +44,8 @@
 ## Week 1 — Microsoft 365 tenant inrichten
 > **Examendomein:** Microsoft 365 tenant deployen en beheren · **Gewicht:** 25–30%
 
+> **Praktijkscenario:** Een Sogeti-consultant begeleidt de onboarding van een middelgrote zakelijke dienstverlener met 350 gebruikers naar Microsoft 365. De klant heeft een custom domein bij een externe DNS-provider en beheert alle accounts nog in on-premises Active Directory. Jij moet de tenant inrichten, het domein verifiëren, directorysynchronisatie koppelen en ervoor zorgen dat alle gebruikers voor de geplande cutover de juiste licenties ontvangen.
+
 ### Leerdoelen
 - [ ] Het Microsoft 365 admin center navigeren en tenantinstellingen configureren
 - [ ] Een custom domein toevoegen en de vereiste DNS-records instellen (MX, TXT, CNAME)
@@ -58,7 +60,7 @@
 - [Manage Microsoft 365 tenants](https://learn.microsoft.com/en-us/training/modules/manage-your-microsoft-365-tenant/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Managed domain | Domein waarbij Microsoft 365 direct de authenticatie afhandelt; wachtwoorden worden gesynchroniseerd via PHS of PTA |
 | Federated domain | Domein waarbij authenticatie wordt doorverwezen naar een externe identiteitsprovider (bijv. AD FS); Microsoft 365 vertrouwt op een externe STS |
@@ -72,13 +74,29 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Open **Microsoft 365 admin center** (admin.microsoft.com) in Edge |
-| **SSW-MGMT01** | Configureer tenantinformatie: naam, bezochte landsinstellingen, tijdzone |
-| **SSW-MGMT01** | Voeg een custom domein toe (of verifieer `ssw.lab`-equivalent in tenant) |
-| **SSW-DC01** | Installeer Azure AD Connect → synchroniseer `ssw.lab` AD-gebruikers naar Entra ID |
-| **SSW-MGMT01** | Verifieer gesynchroniseerde gebruikers in **Entra admin center → Users** |
-| **SSW-MGMT01** | Activeer Microsoft 365 E5-licenties voor gesynchroniseerde gebruikers |
-| **SSW-MGMT01** | Schakel **Microsoft 365 Backup** in: stel een back-upbeleid in voor Exchange en OneDrive |
+| **LAB-MGMT01** | Open **Microsoft 365 admin center** (admin.microsoft.com) in Edge |
+| **LAB-MGMT01** | Configureer tenantinformatie: naam, bezochte landsinstellingen, tijdzone |
+| **LAB-MGMT01** | Voeg een custom domein toe (of verifieer `ssw.lab`-equivalent in tenant) |
+| **LAB-DC01** | Installeer Azure AD Connect → synchroniseer `ssw.lab` AD-gebruikers naar Entra ID |
+| **LAB-MGMT01** | Verifieer gesynchroniseerde gebruikers in **Entra admin center → Users** |
+| **LAB-MGMT01** | Activeer Microsoft 365 E5-licenties voor gesynchroniseerde gebruikers |
+| **LAB-MGMT01** | Schakel **Microsoft 365 Backup** in: stel een back-upbeleid in voor Exchange en OneDrive |
+
+### Labcommando's
+
+```powershell
+# Maak verbinding met Microsoft Graph (vereist voor de meeste tenantbeheertaken)
+Connect-MgGraph -Scopes "User.ReadWrite.All", "Organization.ReadWrite.All"
+
+# Controleer de domeinstatus na het toevoegen van een custom domein
+Get-MgDomain | Select-Object Id, IsVerified, IsDefault
+
+# Start handmatig een delta-sync vanaf de Entra Connect-server
+Start-ADSyncSyncCycle -PolicyType Delta
+
+# Wijs een E5-licentie toe aan een gebruiker (vervang door de echte SKU-GUID uit Get-MgSubscribedSku)
+Set-MgUserLicense -UserId "user@ssw.lab" -AddLicenses @{SkuId = "<E5-SKU-GUID>"} -RemoveLicenses @()
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen een *managed domain* en een *federated domain* in Microsoft 365?
@@ -107,6 +125,8 @@
 ## Week 2 — Gebruikers- en groepsbeheer
 > **Examendomein:** Microsoft 365 tenant deployen en beheren · **Gewicht:** 25–30%
 
+> **Praktijkscenario:** Een logistiek bedrijf met 800 gebruikers en 12 afdelingen wil het Microsoft 365-beheer stroomlijnen. De IT-afdeling kent licenties nu handmatig toe en reset wachtwoorden nog individueel. Jij implementeert dynamische groepen voor automatische licentietoewijzing, configureert SSPR om de helpdesk te ontlasten en gebruikt PIM om drie permanent actieve Global Administrator-accounts veiliger te maken.
+
 ### Leerdoelen
 - [ ] Het principe van *least privilege* toepassen bij het toewijzen van beheerderrollen in M365
 - [ ] Het verschil uitleggen tussen beveiligingsgroepen, Microsoft 365-groepen en distributiegroepen
@@ -121,7 +141,7 @@
 - [Manage password policies](https://learn.microsoft.com/en-us/training/modules/manage-password-policies/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Least privilege | Beheerdersprincipe: geef gebruikers alleen de minimale rechten die nodig zijn voor hun taak — geen onnodige beheerdersrollen |
 | Beveiligingsgroep | Entra ID-groep voor toegangsbeheer tot resources (bijv. SharePoint, apps) — geen e-mailadres |
@@ -135,14 +155,33 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-DC01** | Maak OU-structuur aan: `OU=SSW, OU=Users, DC=ssw, DC=lab` |
-| **SSW-DC01** | Bulk-aanmaken van test-accounts via CSV + `Import-Csv | New-ADUser` |
-| **SSW-MGMT01** | Wijs rollen toe in M365: maak een *Helpdesk Administrator* aan |
-| **SSW-MGMT01** | Maak een dynamische groep aan in Entra ID (attribute-based: `department -eq "IT"`) |
-| **SSW-MGMT01** | Activeer *Self-Service Password Reset* (SSPR) voor de IT-afdeling |
-| **SSW-W11-01** | Test SSPR als TestUser01 via `aka.ms/sspr` |
-| **SSW-MGMT01** | Configureer **Privileged Identity Management (PIM)**: maak de rol Global Administrator *eligible* voor labadmin |
-| **SSW-MGMT01** | Activeer de GA-rol Just-in-Time via PIM → verifieer de audit trail onder **Entra → PIM → Controlegeschiedenis** |
+| **LAB-DC01** | Maak OU-structuur aan: `OU=LAB, OU=Users, DC=ssw, DC=lab` |
+| **LAB-DC01** | Bulk-aanmaken van test-accounts via CSV + `Import-Csv | New-ADUser` |
+| **LAB-MGMT01** | Wijs rollen toe in M365: maak een *Helpdesk Administrator* aan |
+| **LAB-MGMT01** | Maak een dynamische groep aan in Entra ID (attribute-based: `department -eq "IT"`) |
+| **LAB-MGMT01** | Activeer *Self-Service Password Reset* (SSPR) voor de IT-afdeling |
+| **LAB-W11-01** | Test SSPR als TestUser01 via `aka.ms/sspr` |
+| **LAB-MGMT01** | Configureer **Privileged Identity Management (PIM)**: maak de rol Global Administrator *eligible* voor labadmin |
+| **LAB-MGMT01** | Activeer de GA-rol Just-in-Time via PIM → verifieer de audit trail onder **Entra → PIM → Controlegeschiedenis** |
+
+### Labcommando's
+
+```powershell
+# Maak on-premises AD-gebruikers in bulk aan vanuit CSV
+Import-Csv .\users.csv | ForEach-Object {
+    New-ADUser -Name $_.DisplayName -UserPrincipalName $_.UPN -AccountPassword (ConvertTo-SecureString $_.Password -AsPlainText -Force) -Enabled $true
+}
+
+# Maak een dynamische groep aan via Microsoft Graph PowerShell
+Connect-MgGraph -Scopes "Group.ReadWrite.All"
+New-MgGroup -DisplayName "IT Department" -MailEnabled:$false -SecurityEnabled:$true `
+    -GroupTypes @("DynamicMembership") `
+    -MembershipRule '(user.department -eq "IT")' `
+    -MembershipRuleProcessingState "On" -MailNickname "it-dept"
+
+# Toon PIM-eligible roltoewijzingen
+Get-MgRoleManagementDirectoryRoleEligibilitySchedule -All | Select-Object PrincipalId, RoleDefinitionId, Status
+```
 
 ### Kennischeck
 1. Wat is het principe van *least privilege* bij het toewijzen van beheerderrollen?
@@ -171,6 +210,8 @@
 ## Week 3 — Entra ID en hybride identiteit
 > **Examendomein:** Microsoft Entra identiteit en toegang implementeren en beheren · **Gewicht:** 25–30%
 
+> **Praktijkscenario:** Een productiebedrijf heeft na een overname twee aparte Active Directory-forests. De overgenomen dochter met 300 gebruikers moet worden geïntegreerd in de Microsoft 365-tenant van het moederbedrijf zonder extra on-premises infrastructuur uit te rollen. Het moederbedrijf gebruikt al Entra Connect Sync voor zijn hoofdforest. Jij beoordeelt of Entra Cloud Sync geschikt is voor het tweede forest en richt tegelijk MFA en B2B-toegang in voor samenwerking tussen beide organisaties.
+
 ### Leerdoelen
 - [ ] Het verschil uitleggen tussen Entra Connect Sync en Entra Cloud Sync en het juiste scenario kiezen
 - [ ] MFA configureren via Entra ID en het verschil begrijpen met Security Defaults
@@ -185,7 +226,7 @@
 - [Manage external identities](https://learn.microsoft.com/en-us/training/modules/manage-external-identities/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Entra Connect Sync | On-premises server die AD-objecten synchroniseert naar Entra ID; ondersteunt complexe multi-forest topologieën |
 | Entra Cloud Sync | Lichtgewichte sync-agent (zonder on-premises server) voor eenvoudige hybride scenario's; beperkte filteropties |
@@ -200,14 +241,33 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-DC01** | Controleer sync-status: `Get-ADSyncScheduler` → verifieer cycle |
-| **SSW-MGMT01** | Configureer MFA via **Entra admin center → Security → Multifactor authentication** |
-| **SSW-W11-01** | Registreer MFA-methode als TestUser01 (Authenticator app) |
-| **SSW-MGMT01** | Bekijk *Sign-in logs* in Entra ID → filter op MFA-events |
-| **SSW-MGMT01** | Nodig een externe gebruiker (B2B guest) uit via Entra ID |
-| **SSW-MGMT01** | Configureer *Cross-tenant access settings* voor externe organisaties |
-| **SSW-MGMT01** | Controleer **Entra Connect Health** → verifieer sync-agentstatus en foutrapport |
-| **SSW-MGMT01** | Schakel **Entra Password Protection** in → configureer verboden wachtwoordenlijst |
+| **LAB-DC01** | Controleer sync-status: `Get-ADSyncScheduler` → verifieer cycle |
+| **LAB-MGMT01** | Configureer MFA via **Entra admin center → Security → Multifactor authentication** |
+| **LAB-W11-01** | Registreer MFA-methode als TestUser01 (Authenticator app) |
+| **LAB-MGMT01** | Bekijk *Sign-in logs* in Entra ID → filter op MFA-events |
+| **LAB-MGMT01** | Nodig een externe gebruiker (B2B guest) uit via Entra ID |
+| **LAB-MGMT01** | Configureer *Cross-tenant access settings* voor externe organisaties |
+| **LAB-MGMT01** | Controleer **Entra Connect Health** → verifieer sync-agentstatus en foutrapport |
+| **LAB-MGMT01** | Schakel **Entra Password Protection** in → configureer verboden wachtwoordenlijst |
+
+### Labcommando's
+
+```powershell
+# Controleer de status van de Entra Connect-syncscheduler
+Get-ADSyncScheduler
+
+# Start handmatig een delta-sync
+Start-ADSyncSyncCycle -PolicyType Delta
+
+# Nodig een B2B-gastgebruiker uit via Microsoft Graph
+Connect-MgGraph -Scopes "User.Invite.All"
+New-MgInvitation -InvitedUserEmailAddress "partner@externalcompany.com" `
+    -InviteRedirectUrl "https://myapps.microsoft.com" -SendInvitationMessage:$true
+
+# Haal sign-in-logregels op gefilterd op MFA-events (vereist AuditLog.Read.All)
+Get-MgAuditLogSignIn -Filter "authenticationRequirement eq 'multiFactorAuthentication'" -Top 20 |
+    Select-Object UserDisplayName, CreatedDateTime, Status
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen MFA per gebruiker en *Security Defaults*?
@@ -239,6 +299,8 @@
 ## Week 4 — Exchange Online beheer
 > **Examendomein:** Microsoft 365 tenant deployen en beheren · **Gewicht:** 25–30%
 
+> **Praktijkscenario:** Een advocatenkantoor met 180 gebruikers merkt dat uitgaande e-mails door externe partners als spam worden geweigerd. Onderzoek laat zien dat SPF ontbreekt, DKIM uitstaat en DMARC niet is ingericht. Tegelijk gebruiken vijf medewerkers samen de mailbox info@ zonder duidelijke rechtenstructuur. Jij moet e-mailauthenticatie correct implementeren en het gedeelde mailboxmodel professioneel herontwerpen.
+
 ### Leerdoelen
 - [ ] Shared mailboxen, room mailboxen en resource mailboxen aanmaken en beheren
 - [ ] Mail flow rules (transport rules) configureren voor disclaimers en routering
@@ -253,7 +315,7 @@
 - [Manage Exchange Online protection](https://learn.microsoft.com/en-us/training/modules/manage-exchange-online-protection/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Shared mailbox | Mailbox zonder eigen licentie die door meerdere gebruikers kan worden geopend; max. 50 GB gratis |
 | Room mailbox | Resource mailbox voor vergaderruimtes — kan automatisch afspraken accepteren of weigeren op basis van beschikbaarheid |
@@ -268,12 +330,30 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Maak shared mailboxen aan via Exchange Admin Center (EAC) |
-| **SSW-MGMT01** | Configureer een *Distribution list* en *Microsoft 365 Group* |
-| **SSW-MGMT01** | Stel een *mail flow rule* in: voeg disclaimer toe aan uitgaande mail |
-| **SSW-MGMT01** | Configureer *Anti-spam* en *Anti-phishing* policies in Defender for Office 365 |
-| **SSW-W11-01** | Test een *message trace* via EAC → analyseer bezorgstatus |
-| **SSW-MGMT01** | Configureer *DKIM* en bekijk DMARC-instellingen voor het tenant-domein |
+| **LAB-MGMT01** | Maak shared mailboxen aan via Exchange Admin Center (EAC) |
+| **LAB-MGMT01** | Configureer een *Distribution list* en *Microsoft 365 Group* |
+| **LAB-MGMT01** | Stel een *mail flow rule* in: voeg disclaimer toe aan uitgaande mail |
+| **LAB-MGMT01** | Configureer *Anti-spam* en *Anti-phishing* policies in Defender for Office 365 |
+| **LAB-W11-01** | Test een *message trace* via EAC → analyseer bezorgstatus |
+| **LAB-MGMT01** | Configureer *DKIM* en bekijk DMARC-instellingen voor het tenant-domein |
+
+### Labcommando's
+
+```powershell
+# Maak verbinding met Exchange Online PowerShell
+Connect-ExchangeOnline -UserPrincipalName admin@ssw.lab
+
+# Maak een shared mailbox aan
+New-Mailbox -Shared -Name "Info" -DisplayName "Info Shared Mailbox" -Alias "info"
+
+# Geef Full Access- en Send As-machtigingen
+Add-MailboxPermission -Identity "info" -User "user1@ssw.lab" -AccessRights FullAccess -InheritanceType All
+Add-RecipientPermission -Identity "info" -Trustee "user1@ssw.lab" -AccessRights SendAs -Confirm:$false
+
+# Voer een message trace uit voor de afgelopen 48 uur
+Get-MessageTrace -SenderAddress "sender@external.com" -StartDate (Get-Date).AddHours(-48) -EndDate (Get-Date) |
+    Select-Object Received, SenderAddress, RecipientAddress, Subject, Status
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen een *shared mailbox* en een *room mailbox*?
@@ -299,6 +379,8 @@
 ## Week 5 — SharePoint Online en Microsoft Teams
 > **Examendomein:** Microsoft 365 tenant deployen en beheren · **Gewicht:** 25–30%
 
+> **Praktijkscenario:** Een consultancyorganisatie met 500 gebruikers en meerdere klantteams herstructureert haar Microsoft 365-samenwerking. Projectteams klagen dat extern delen te open staat en compliance wil gevoeligheidslabels afdwingen op alle klantgerichte Teams en SharePoint-sites. Jij moet extern delen aanscherpen en een werkbare labelstructuur ontwerpen die zowel governance als dagelijkse samenwerking ondersteunt.
+
 ### Leerdoelen
 - [ ] Het verschil uitleggen tussen een Group site, Communication site en Hub site in SharePoint
 - [ ] Externe delinstellingen beheren op tenant-, site- en documentniveau
@@ -313,7 +395,7 @@
 - [Manage Teams collaboration settings](https://learn.microsoft.com/en-us/training/modules/manage-teams-collaboration-settings/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Group site (teamsite) | SharePoint-site gekoppeld aan een Microsoft 365-groep; leden van de groep hebben automatisch toegang |
 | Communication site | SharePoint-site voor brede interne communicatie (intranet, nieuws); geen gekoppelde M365-groep |
@@ -327,12 +409,29 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Maak een SharePoint-sitecollectie aan (Team site) en wijs rechten toe |
-| **SSW-MGMT01** | Configureer *external sharing* settings in SharePoint admin center |
-| **SSW-W11-01** | Upload documenten naar SharePoint → test deling met TestUser02 |
-| **SSW-MGMT01** | Maak een Teams-team aan via Teams admin center → voeg leden toe |
-| **SSW-MGMT01** | Configureer *Meetings policies* in Teams: beperk opname voor gasten |
-| **SSW-MGMT01** | Bekijk **Teams usage reports** in M365 admin center |
+| **LAB-MGMT01** | Maak een SharePoint-sitecollectie aan (Team site) en wijs rechten toe |
+| **LAB-MGMT01** | Configureer *external sharing* settings in SharePoint admin center |
+| **LAB-W11-01** | Upload documenten naar SharePoint → test deling met TestUser02 |
+| **LAB-MGMT01** | Maak een Teams-team aan via Teams admin center → voeg leden toe |
+| **LAB-MGMT01** | Configureer *Meetings policies* in Teams: beperk opname voor gasten |
+| **LAB-MGMT01** | Bekijk **Teams usage reports** in M365 admin center |
+
+### Labcommando's
+
+```powershell
+# Maak verbinding met SharePoint Online via PnP
+Connect-PnPOnline -Url "https://sswlab.sharepoint.com" -Interactive
+
+# Stel extern delen op een specifieke site in op alleen bestaande gasten
+Set-PnPTenantSite -Url "https://sswlab.sharepoint.com/sites/ClientProject" -SharingCapability ExistingExternalUserSharingOnly
+
+# Maak verbinding met de Microsoft Teams-module en toon alle teams met hun gastinstellingen
+Connect-MicrosoftTeams
+Get-Team | Select-Object DisplayName, AllowGuestCreateUpdateChannels, AllowGuestDeleteChannels | Export-Csv .\teams-guest-settings.csv -NoTypeInformation
+
+# Pas een sensitivity label toe op een Teams-team (vereist label-GUID uit Get-Label in de compliance-module)
+Set-Team -GroupId "<team-group-id>" -Sensitivity "<label-GUID>"
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen een *Group site*, *Communication site* en *Hub site* in SharePoint?
@@ -358,6 +457,8 @@
 ## Week 6 — Microsoft Defender XDR en bedreigingsbeheer
 > **Examendomein:** Beveiliging en bedreigingen beheren via Microsoft Defender XDR · **Gewicht:** 30–35%
 
+> **Praktijkscenario:** Een retailorganisatie met 1.200 gebruikers schakelt Sogeti in na een ransomware-incident dat begon met een phishingmail, zich via drie endpoints verplaatste en een fileserver versleutelde. Er was nog geen EDR-oplossing aanwezig. Jij moet alle Windows-devices onboarden naar Defender for Endpoint, een incidentresponse-werkwijze in Defender XDR inrichten en Attack Simulation Training opzetten om de weerbaarheid tegen phishing te vergroten.
+
 ### Leerdoelen
 - [ ] Het Defender XDR-portal navigeren en de relatie tussen MDE, MDO, MDI en MDCA uitleggen
 - [ ] Een apparaat onboarden naar Defender for Endpoint via Intune-policy
@@ -372,7 +473,7 @@
 - [Manage Microsoft Secure Score and Exposure Management](https://learn.microsoft.com/en-us/training/modules/manage-microsoft-secure-score/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Defender XDR | Extended Detection & Response-platform dat MDE, MDO, MDI en MDCA samenvoegt in één portal (security.microsoft.com) |
 | Incident | Samenvoeging van meerdere gerelateerde alerts uit verschillende Defender-services tot één aanvalsscenario |
@@ -386,13 +487,33 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Open het **Microsoft Defender XDR-portal** (security.microsoft.com) |
-| **SSW-W11-01** | Onboard W11-01 naar Defender for Endpoint via Intune-policy |
-| **SSW-W11-01** | Simuleer verdachte activiteit: download het EICAR-testbestand → controleer alert |
-| **SSW-MGMT01** | Analyseer het incident in de Defender portal → bekijk de *Attack story*-grafiek |
-| **SSW-MGMT01** | Bekijk het **Exposure Management**-dashboard → controleer de Microsoft Secure Score |
-| **SSW-MGMT01** | Voer *Attack Simulation Training* uit → phishing-simulatie naar TestUser01 |
-| **SSW-MGMT01** | Analyseer *Secure Score* → kies een verbeteractie en implementeer deze |
+| **LAB-MGMT01** | Open het **Microsoft Defender XDR-portal** (security.microsoft.com) |
+| **LAB-W11-01** | Onboard W11-01 naar Defender for Endpoint via Intune-policy |
+| **LAB-W11-01** | Simuleer verdachte activiteit: download het EICAR-testbestand → controleer alert |
+| **LAB-MGMT01** | Analyseer het incident in de Defender portal → bekijk de *Attack story*-grafiek |
+| **LAB-MGMT01** | Bekijk het **Exposure Management**-dashboard → controleer de Microsoft Secure Score |
+| **LAB-MGMT01** | Voer *Attack Simulation Training* uit → phishing-simulatie naar TestUser01 |
+| **LAB-MGMT01** | Analyseer *Secure Score* → kies een verbeteractie en implementeer deze |
+
+### Labcommando's
+
+```powershell
+# Advanced Hunting-query: zoek EICAR-gerelateerde alerts op onboarded devices
+# Voer uit in Defender XDR portal > Advanced Hunting (KQL)
+# DeviceAlertEvents
+# | where Title contains "EICAR"
+# | project Timestamp, DeviceName, Title, Severity, AlertId
+
+# Isoleer een apparaat via Microsoft Graph Security API (vereist SecurityEvents.ReadWrite.All)
+Connect-MgGraph -Scopes "SecurityEvents.ReadWrite.All"
+Invoke-MgRestMethod -Method POST `
+    -Uri "https://graph.microsoft.com/v1.0/security/alerts/<alert-id>/comments" `
+    -Body (@{ comment = "Isolating device pending investigation" } | ConvertTo-Json)
+
+# Haal Secure Score op via Microsoft Graph
+Connect-MgGraph -Scopes "SecurityEvents.Read.All"
+Get-MgSecuritySecureScore -Top 1 | Select-Object CurrentScore, MaxScore, CreatedDateTime
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen Defender for Office 365 Plan 1 en Plan 2?
@@ -421,6 +542,8 @@
 ## Week 7 — Microsoft Purview Compliance
 > **Examendomein:** Compliance beheren via Microsoft Purview · **Gewicht:** 10–15%
 
+> **Praktijkscenario:** Een financiële dienstverlener met 600 gebruikers moet voldoen aan MiFID II-eisen rond communicatiecontrole. Tegelijk heeft de juridische afdeling een litigation hold nodig voor alle e-mail van een specifieke ex-medewerker. De compliance officer wil bovendien DLP-beleid invoeren om onbedoeld delen van klantdata te voorkomen. Jij implementeert Communication Compliance, een eDiscovery hold en passende DLP-controls.
+
 ### Leerdoelen
 - [ ] Sensitivity labels aanmaken, configureren met encryptie en publiceren via een labelbeleid
 - [ ] Een DLP-policy maken die BSN-nummers detecteert en verzenden blokkeert
@@ -435,7 +558,7 @@
 - [Manage Microsoft Purview eDiscovery](https://learn.microsoft.com/en-us/training/modules/manage-ediscovery/)
 
 ### Kernbegrippen
-| Begriff | Uitleg |
+| Begrip | Uitleg |
 |---------|--------|
 | Sensitivity label | Classificatietag (bijv. Vertrouwelijk, Strikt Vertrouwelijk) die encryptie, visuele markering en toegangsrechten afdwingt |
 | Retention label | Label op item-niveau dat een specifieke bewaar- of verwijdertijdlijn instelt; kan een item als juridisch record declareren |
@@ -450,12 +573,29 @@
 ### Lab oefeningen (SSW-Lab)
 | VM | Taak |
 |---|---|
-| **SSW-MGMT01** | Open **Microsoft Purview portal** (compliance.microsoft.com) |
-| **SSW-MGMT01** | Maak een *sensitivity label* aan: "Vertrouwelijk - Intern" met encryptie |
-| **SSW-W11-01** | Pas het label toe op een Word-document → verifieer encryptie |
-| **SSW-MGMT01** | Maak een *DLP-policy* aan: blokkeer verzenden van BSN-nummers via mail |
-| **SSW-W11-01** | Test de DLP-policy: stuur mail met fictief BSN → controleer blokkering |
-| **SSW-MGMT01** | Voer een *eDiscovery Core* zoekopdracht uit op TestUser01-mailbox |
+| **LAB-MGMT01** | Open **Microsoft Purview portal** (compliance.microsoft.com) |
+| **LAB-MGMT01** | Maak een *sensitivity label* aan: "Vertrouwelijk - Intern" met encryptie |
+| **LAB-W11-01** | Pas het label toe op een Word-document → verifieer encryptie |
+| **LAB-MGMT01** | Maak een *DLP-policy* aan: blokkeer verzenden van BSN-nummers via mail |
+| **LAB-W11-01** | Test de DLP-policy: stuur mail met fictief BSN → controleer blokkering |
+| **LAB-MGMT01** | Voer een *eDiscovery Core* zoekopdracht uit op TestUser01-mailbox |
+
+### Labcommando's
+
+```powershell
+# Maak verbinding met Security & Compliance (Purview) PowerShell
+Connect-IPPSSession -UserPrincipalName admin@ssw.lab
+
+# Maak een retentiebeleid aan voor Exchange-mailboxen (5 jaar bewaren)
+New-RetentionCompliancePolicy -Name "Exchange-Retain-5Y" -ExchangeLocation All -RetentionAction Keep -RetentionDuration 1825
+
+# Maak een eDiscovery-hold aan op een specifieke mailbox
+New-CaseHoldPolicy -Name "Litigation-Hold-TestUser01" -Case "LitigationCase01" -ExchangeLocation "testuser01@ssw.lab"
+
+# Zoek naar inhoud in een eDiscovery-zaak
+New-ComplianceSearch -Name "TestUser01-MailSearch" -ExchangeLocation "testuser01@ssw.lab" -ContentMatchQuery "subject:confidential"
+Start-ComplianceSearch -Identity "TestUser01-MailSearch"
+```
 
 ### Kennischeck
 1. Wat is het verschil tussen *sensitivity labels* en *retention labels*?
@@ -478,7 +618,7 @@
 
 ---
 
-### Exam Coverage Gaps en Must-Do Labs
+### Examendekking en verplichte labs
 
 Doel: de resterende exam-gaten sluiten met gerichte praktijkopdrachten.
 
@@ -488,7 +628,7 @@ Doel: de resterende exam-gaten sluiten met gerichte praktijkopdrachten.
 3. Defender for Cloud Apps onderdelen, inclusief Cloud Discovery en app connectoren.
 4. Purview retentiebeleid en retentielabels naast sensitivity labels.
 
-### Must-do labs voor slaagkans
+### Verplichte labs voor slaagkans
 1. Configureer Service Health notificaties en leg vast welke signalen actie vereisen.
 2. Implementeer group-based licensing op een testgroep en valideer automatische toekenning.
 3. Koppel Defender for Cloud Apps aan Microsoft 365 en analyseer activity log events.

@@ -51,7 +51,7 @@
 - [ ] Build a management group hierarchy and understand policy inheritance across scopes
 - [ ] Assign and evaluate Azure Policy definitions to enforce allowed locations
 - [ ] Configure Cost Management budget alerts to control lab spending
-- [ ] Run basic Azure CLI commands from SSW-W11-01 to list and inspect resources
+- [ ] Run basic Azure CLI commands from LAB-W11-01 to list and inspect resources
 
 ### MS Learn modules
 - [Manage Azure identities and governance](https://learn.microsoft.com/en-us/training/paths/az-104-manage-identities-governance/)
@@ -79,7 +79,7 @@
 | **Azure portal** | Assign the *Contributor* role to `az-admin` on the resource group via IAM |
 | **Azure portal** | Create a *Management group* structure: Root → SSW → Dev/Prod |
 | **Azure portal** | Assign an *Azure Policy*: "Allowed locations = West Europe, North Europe" |
-| **SSW-W11-01** | Use Azure CLI: `az group list --output table` |
+| **LAB-W11-01** | Use Azure CLI: `az group list --output table` |
 | **Azure portal** | Set up a *Cost budget alert* at €50 for `rg-sswlab-dev` |
 
 ### Lab commands
@@ -156,8 +156,8 @@ az consumption budget create --budget-name "sswlab-budget" --amount 50 --time-gr
 - [ ] Understand and compare storage redundancy options: LRS, ZRS, GRS, RA-GRS, GZRS
 - [ ] Generate and test a Shared Access Signature (SAS) token with scoped permissions
 - [ ] Configure a lifecycle management policy to automatically tier blobs to Cool
-- [ ] Create an Azure File Share and mount it via SMB from SSW-W11-01
-- [ ] Install and configure Azure File Sync on SSW-DC01 with cloud tiering enabled
+- [ ] Create an Azure File Share and mount it via SMB from LAB-W11-01
+- [ ] Install and configure Azure File Sync on LAB-DC01 with cloud tiering enabled
 
 ### MS Learn modules
 - [Configure storage accounts](https://learn.microsoft.com/en-us/training/modules/configure-storage-accounts/)
@@ -185,9 +185,9 @@ az consumption budget create --budget-name "sswlab-budget" --amount 50 --time-gr
 | **Azure portal** | Create a Storage Account: LRS, General Purpose v2, Hot tier |
 | **Azure portal** | Create a Blob container → upload a test file |
 | **Azure portal** | Generate a *Shared Access Signature (SAS)* with read permissions, valid for 1 hour |
-| **SSW-W11-01** | Use Azure Storage Explorer or `azcopy` to upload to blob |
+| **LAB-W11-01** | Use Azure Storage Explorer or `azcopy` to upload to blob |
 | **Azure portal** | Create an *Azure File Share* → map via SMB (`net use Z: \\...`) |
-| **SSW-DC01** | Install Azure File Sync agent → register server → sync an SSW-DC01 folder |
+| **LAB-DC01** | Install Azure File Sync agent → register server → sync an LAB-DC01 folder |
 | **Azure portal** | Configure a *Lifecycle management policy*: move to Cool tier after 30 days |
 
 ### Lab commands
@@ -478,7 +478,7 @@ docker push sswlabacr.azurecr.io/myapp:v1
 - [ ] Create and configure NSG rules, and understand the difference between subnet-level and NIC-level application
 - [ ] Configure VNet peering between two VNets and verify connectivity
 - [ ] Create an Azure Private DNS Zone and enable automatic VM registration
-- [ ] Configure a Point-to-Site VPN from SSW-W11-01 to an Azure VNet
+- [ ] Configure a Point-to-Site VPN from LAB-W11-01 to an Azure VNet
 - [ ] Deploy Azure Bastion and connect to a VM without a public IP or open RDP port
 - [ ] Create a Private Endpoint for a Storage Account and validate DNS resolution
 
@@ -499,7 +499,7 @@ docker push sswlabacr.azurecr.io/myapp:v1
 | Azure Bastion | Managed PaaS RDP/SSH gateway deployed into a dedicated `AzureBastionSubnet` (/26 or larger); provides secure browser-based access without exposing VM ports publicly |
 | Service endpoint | Secures a subnet's outbound route to an Azure PaaS service via the Azure backbone — the PaaS service still has a public IP |
 | Private endpoint | Places an Azure PaaS service (storage, SQL, etc.) behind a private IP in your VNet; traffic never traverses the public internet |
-| Point-to-Site VPN | VPN connection from an individual device (e.g. SSW-W11-01) to an Azure VNet; uses certificate or Entra ID authentication |
+| Point-to-Site VPN | VPN connection from an individual device (e.g. LAB-W11-01) to an Azure VNet; uses certificate or Entra ID authentication |
 
 ### Lab exercises (Azure portal + SSW-Lab)
 | Environment | Task |
@@ -509,7 +509,7 @@ docker push sswlabacr.azurecr.io/myapp:v1
 | **Azure portal** | Attach NSG to the frontend subnet → test from a VM in the backend subnet |
 | **Azure portal** | Create a second VNet → configure *VNet peering* between both |
 | **Azure portal** | Configure an *Azure Private DNS Zone* → auto-register VMs |
-| **SSW-W11-01** | Configure a *Point-to-Site VPN* to the Azure VNet → test the connection |
+| **LAB-W11-01** | Configure a *Point-to-Site VPN* to the Azure VNet → test the connection |
 | **Azure portal** | Deploy *Azure Bastion* → connect to a VM without public IP or RDP port |
 | **Azure portal** | Configure a *Private Endpoint* for a Storage Account → verify DNS resolution |
 | **Azure portal** | Review *Effective routes* on the NIC of a VM |
@@ -689,7 +689,7 @@ az network watcher test-ip-flow --resource-group rg-sswlab-dev --vm sswlab-vm01 
 - [ ] Enable VM Insights and interpret the Performance and Map tabs
 - [ ] Write KQL queries to filter, aggregate, and project log data
 - [ ] Create an alert rule with a metric trigger and configure an action group for email notification
-- [ ] Install the Azure Monitor Agent (AMA) on SSW-DC01 and verify data ingestion
+- [ ] Install the Azure Monitor Agent (AMA) on LAB-DC01 and verify data ingestion
 - [ ] Configure a Recovery Services Vault, back up DC01 files, and perform a test file restore
 - [ ] Configure Azure Site Recovery for a VM and execute a test failover to a secondary region
 
@@ -720,7 +720,7 @@ az network watcher test-ip-flow --resource-group rg-sswlab-dev --vm sswlab-vm01 
 | **Azure portal** | Enable *VM Insights* → review the Performance and Map tabs |
 | **Azure portal** | Write a KQL query: CPU > 80% in the past 24 hours |
 | **Azure portal** | Create an *Alert rule*: CPU > 85% → email notification to admin |
-| **SSW-DC01** | Install the *Azure Monitor Agent (AMA)* → verify in Log Analytics |
+| **LAB-DC01** | Install the *Azure Monitor Agent (AMA)* → verify in Log Analytics |
 | **Azure portal** | Configure a *Recovery Services Vault* → back up DC01 files |
 | **Azure portal** | Run a *test restore* → recover a file to an alternate location |
 | **Azure portal** | Configure *Azure Site Recovery* for a VM → perform a test failover to a secondary region |

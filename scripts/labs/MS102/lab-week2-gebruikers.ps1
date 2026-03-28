@@ -46,7 +46,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Stappen in dit lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. DC01: maak OU-structuur aan (SSW > IT, HR, Finance)"/>
+        <Run Text="1. DC01: maak OU-structuur aan (LAB > IT, HR, Finance)"/>
         <LineBreak/><Run Text="2. DC01: maak bulk testgebruikers aan via CSV"/>
         <LineBreak/><Run Text="3. DC01: start delta sync naar Entra ID"/>
         <LineBreak/><Run Text="4. Manueel: wijs Helpdesk Administrator rol toe in M365"/>
@@ -140,17 +140,17 @@ $btnRun.Add_Click({
     Write-Log "${pre}Stap 1: DC01 — OU-structuur aanmaken"
     $progress.Value = 14
     if ($isDry) {
-        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'SSW' -Path 'DC=ssw,DC=lab'"
-        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'IT'  -Path 'OU=SSW,DC=ssw,DC=lab'"
-        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'HR'  -Path 'OU=SSW,DC=ssw,DC=lab'"
-        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'Finance' -Path 'OU=SSW,DC=ssw,DC=lab'"
+        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'LAB' -Path 'DC=ssw,DC=lab'"
+        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'IT'  -Path 'OU=LAB,DC=ssw,DC=lab'"
+        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'HR'  -Path 'OU=LAB,DC=ssw,DC=lab'"
+        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'Finance' -Path 'OU=LAB,DC=ssw,DC=lab'"
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $dcVM" -UserName "$dcVM\$($SSWConfig.AdminUser)"
             $ouResult = Invoke-Command -VMName $dcVM -Credential $cred -ScriptBlock {
                 param($dom)
                 $base = "DC=" + ($dom -replace "\.",",.DC=")
-                $ous  = @("SSW", "IT:OU=SSW,$base", "HR:OU=SSW,$base", "Finance:OU=SSW,$base")
+                $ous  = @("LAB", "IT:OU=LAB,$base", "HR:OU=LAB,$base", "Finance:OU=LAB,$base")
                 foreach ($ou in $ous) {
                     $parts = $ou -split ":"
                     $name  = $parts[0]
@@ -186,9 +186,9 @@ $btnRun.Add_Click({
                 if (-not (Test-Path $csvPath)) { Write-Warning "CSV niet gevonden op $csvPath"; return }
                 $users   = Import-Csv $csvPath
                 foreach ($u in $users) {
-                    $ouPath = "OU=$($u.Department),OU=SSW,$base"
+                    $ouPath = "OU=$($u.Department),OU=LAB,$base"
                     if (-not (Get-ADOrganizationalUnit -Filter "Name -eq '$($u.Department)'" -ErrorAction SilentlyContinue)) {
-                        $ouPath = "OU=SSW,$base"
+                        $ouPath = "OU=LAB,$base"
                     }
                     if (-not (Get-ADUser -Filter "SamAccountName -eq '$($u.SamAccountName)'" -ErrorAction SilentlyContinue)) {
                         $pwd = ConvertTo-SecureString "SSWLab@2024" -AsPlainText -Force
@@ -242,7 +242,7 @@ $btnRun.Add_Click({
     $progress.Value = 88
     Write-Log "  Entra admin center > Users > Password reset"
     Write-Log "  Self service password reset: Selected"
-    Write-Log "  Selecteer groep: SSW-IT (de dynamische groep die je aanmaakte)"
+    Write-Log "  Selecteer groep: LAB-IT (de dynamische groep die je aanmaakte)"
     Write-Log "  Verificatie: 2 methoden verplicht (Authenticator + email)"
     Write-Log "  Test als testuser01: https://aka.ms/sspr"
 

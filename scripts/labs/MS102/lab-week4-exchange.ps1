@@ -163,17 +163,17 @@ $btnRun.Add_Click({
     }
 
     # ── Stap 4: Distribution group ──────────────────────────
-    Write-Log "${pre}Stap 4: Distribution group aanmaken (SSW-IT-DL)"
+    Write-Log "${pre}Stap 4: Distribution group aanmaken (LAB-IT-DL)"
     $progress.Value = 55
     if ($isDry) {
-        Write-Log "${pre}  New-DistributionGroup -Name 'SSW IT Distribution' -Alias 'ssw-it-dl' -Type Distribution"
-        Write-Log "${pre}  Add-DistributionGroupMember -Identity ssw-it-dl -Member testuser01"
+        Write-Log "${pre}  New-DistributionGroup -Name 'LAB IT Distribution' -Alias 'lab-it-dl' -Type Distribution"
+        Write-Log "${pre}  Add-DistributionGroupMember -Identity lab-it-dl -Member testuser01"
     } else {
         try {
-            $dlExisting = Get-DistributionGroup -Identity "ssw-it-dl" -ErrorAction SilentlyContinue
+            $dlExisting = Get-DistributionGroup -Identity "lab-it-dl" -ErrorAction SilentlyContinue
             if (-not $dlExisting) {
-                New-DistributionGroup -Name "SSW IT Distribution" -Alias "ssw-it-dl" -Type Distribution | Out-Null
-                Write-Log "  Distribution group aangemaakt: ssw-it-dl"
+                New-DistributionGroup -Name "LAB IT Distribution" -Alias "lab-it-dl" -Type Distribution | Out-Null
+                Write-Log "  Distribution group aangemaakt: lab-it-dl"
             } else { Write-Log "  Distribution group al aanwezig" }
         } catch { Write-Log "  Fout: $_" }
     }
@@ -182,18 +182,18 @@ $btnRun.Add_Click({
     Write-Log "${pre}Stap 5: Mail flow rule — disclaimer toevoegen"
     $progress.Value = 68
     if ($isDry) {
-        Write-Log "${pre}  New-TransportRule -Name 'SSW-Lab Disclaimer' -FromScope InOrganization"
+        Write-Log "${pre}  New-TransportRule -Name 'LAB Disclaimer' -FromScope InOrganization"
         Write-Log "${pre}    -ApplyHtmlDisclaimerLocation Append"
         Write-Log "${pre}    -ApplyHtmlDisclaimerText '<p>Dit bericht is afkomstig van SSW-Lab.</p>'"
     } else {
         try {
-            $ruleExists = Get-TransportRule -Identity "SSW-Lab Disclaimer" -ErrorAction SilentlyContinue
+            $ruleExists = Get-TransportRule -Identity "LAB Disclaimer" -ErrorAction SilentlyContinue
             if (-not $ruleExists) {
-                New-TransportRule -Name "SSW-Lab Disclaimer" -FromScope InOrganization `
+                New-TransportRule -Name "LAB Disclaimer" -FromScope InOrganization `
                     -ApplyHtmlDisclaimerLocation Append `
-                    -ApplyHtmlDisclaimerText "<p><i>Dit bericht is afkomstig van SSW-Lab testomgeving.</i></p>" `
+                    -ApplyHtmlDisclaimerText "<p><i>Dit bericht is afkomstig van LAB-testomgeving.</i></p>" `
                     -ApplyHtmlDisclaimerFallbackAction Wrap | Out-Null
-                Write-Log "  Transport rule aangemaakt: SSW-Lab Disclaimer"
+                Write-Log "  Transport rule aangemaakt: LAB Disclaimer"
             } else { Write-Log "  Transport rule al aanwezig" }
         } catch { Write-Log "  Fout: $_" }
     }

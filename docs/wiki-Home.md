@@ -2,7 +2,7 @@
 
 > 🌐 **Taal:** Nederlands | [English](wiki-Home-EN.md)
 
-Geautomatiseerde lab-omgeving voor Microsoft-certificeringen op een Sogeti-laptop met MSDN-licenties.
+Geautomatiseerde Hyper-V lab-omgeving voor Microsoft-certificeringen met MSDN-licenties.
 
 **Ondersteunde certificeringen:** MD-102 · MS-102 · SC-300 · AZ-104
 
@@ -10,7 +10,7 @@ Geautomatiseerde lab-omgeving voor Microsoft-certificeringen op een Sogeti-lapto
 
 ## Studieprogramma's
 
-Per certificering is een volledig studieprogramma beschikbaar met MS Learn modules, lab-oefeningen en kennischecks:
+Per certificering is een studiegids beschikbaar met MS Learn modules, lab-oefeningen en kennischecks:
 
 | Certificering | Omschrijving | Preset | Duur | Lab-scripts |
 |---|---|---|---|---|
@@ -19,7 +19,7 @@ Per certificering is een volledig studieprogramma beschikbaar met MS Learn modul
 | [SC-300](studieprogramma-SC300.md) | Identity and Access Administrator | Standard | 7 weken | 6 (week 1–6) |
 | [AZ-104](studieprogramma-AZ104.md) | Azure Administrator | Minimal + Azure cloud | 8 weken | 7 (week 1–7) |
 
-Elk lab-script (`scripts/labs/<CERT>/lab-week<N>-*.ps1`) heeft een WPF-GUI met Dry Run-modus, stapsgewijze begeleiding en een kennischeck. De scripts linken automatisch door naar het volgende lab.
+Elk lab-script (`scripts/labs/<CERT>/lab-week<N>-*.ps1`) heeft een WPF-GUI met Dry Run-modus, stapsgewijze begeleiding en een kennischeck. Scripts linken automatisch door naar het volgende lab.
 
 > **Sogeti High Flex:** Start lab-scripts via *Uitvoeren als andere gebruiker* met je High Flex-account. Zscaler SSL-inspectie werkt transparant op beheerde Sogeti-laptops.
 
@@ -59,11 +59,11 @@ https://go.microsoft.com/fwlink/?linkid=2289980
 ```
 Laptop (Hyper-V host)
   └── SSW-Internal (Hyper-V vSwitch, intern + NAT)
-        ├── SSW-DC01        10.50.10.10   Windows Server 2025 — Domain Controller
-        ├── SSW-MGMT01          10.50.10.20   Windows 11 Enterprise — Management
-        ├── SSW-W11-01          DHCP          Windows 11 Enterprise — Client 1
-        ├── SSW-W11-02          DHCP          Windows 11 Enterprise — Client 2
-        └── SSW-W11-AUTOPILOT   DHCP          Windows 11 Enterprise — Autopilot
+        ├── LAB-DC01        10.50.10.10   Windows Server 2025 — Domain Controller
+        ├── LAB-MGMT01          10.50.10.20   Windows 11 Enterprise — Management
+        ├── LAB-W11-01          DHCP          Windows 11 Enterprise — Client 1
+        ├── LAB-W11-02          DHCP          Windows 11 Enterprise — Client 2
+        └── LAB-W11-AUTOPILOT   DHCP          Windows 11 Enterprise — Autopilot
 ```
 
 **Domein:** `ssw.lab`  
@@ -78,12 +78,12 @@ Laptop (Hyper-V host)
 
 1. Download de nieuwste release van de [Releases-pagina](../../releases)
 2. Pak de zip uit naar een map naar keuze
-3. Start de EXEs als administrator in volgorde (zie hieronder)
+3. Start de EXEs als administrator in volgorde
 
 ### Optie B — PowerShell scripts
 
 ```powershell
-git clone https://github.com/Naamalingebruik/SSW-Lab.git
+git clone <jouw-repo-url>/SSW-Lab.git
 cd SSW-Lab\scripts
 # Start als administrator:
 .\00-PREFLIGHT.ps1
@@ -104,7 +104,7 @@ Controleert of het systeem klaar is:
 - Windows ADK geinstalleerd
 - Bestaande SSW vSwitch
 
-Toont een preset-advies op basis van beschikbare resources. Knop **Doorgaan** wordt pas actief als er geen blokkerende fouten zijn.
+Geeft een preset-advies op basis van beschikbare resources. Knop **Doorgaan** wordt pas actief als er geen blokkerende fouten zijn.
 
 ---
 
@@ -116,14 +116,14 @@ Maakt aan:
 - NAT-adapter met IP `10.50.10.1`
 - NetNAT (`SSW-NAT`) voor internettoegang vanuit VMs
 
-Bestaande switch en NAT worden overgeslagen. Kies daarna of je ISO's wilt bouwen of direct door wilt naar VMs aanmaken.
+Bestaande switch en NAT worden overgeslagen.
 
 ---
 
 ### Stap 3 — ISO voorbereiding (unattended)
 **Script:** `02-MAKE-ISOS.ps1` | **EXE:** `Stap3 - ISO voorbereiding (unattended).exe`
 
-Injecteert een `autounattend.xml` in MSDN ISO's zodat Windows volledig automatisch installeert:
+Injecteert een `autounattend.xml` in MSDN ISO's zodat Windows automatisch installeert:
 - Schijfpartitionering (EFI + MSR + Windows)
 - Tijdzone: `W. Europe Standard Time`
 - Taal: `nl-NL`
@@ -145,14 +145,14 @@ Maakt Hyper-V Gen2 VMs aan op basis van profielen in `profiles/vm-profiles.json`
 - DVD-drive koppelen aan unattended ISO
 - DVD als eerste opstartapparaat instellen
 
-Kies een **preset** of selecteer handmatig welke VMs je wilt.
+Kies een **preset** of selecteer handmatig de gewenste VMs.
 
 ---
 
 ### Stap 5 — Domain Controller inrichten
 **Script:** `04-SETUP-DC.ps1` | **EXE:** `Stap5 - Domain Controller inrichten.exe`
 
-Via **PowerShell Direct** (geen netwerk nodig) op SSW-DC01:
+Via **PowerShell Direct** (geen netwerk nodig) op LAB-DC01:
 1. Statisch IP instellen (`10.50.10.10`)
 2. Computernaam instellen (`DC01`)
 3. AD DS installeren
@@ -170,7 +170,7 @@ Voegt client-VMs toe aan `ssw.lab` via PowerShell Direct:
 - Voert `Add-Computer` uit met domain admin credentials
 - VM herstart automatisch na join
 
-Selecteer welke VMs je wilt joinen (DC01 wordt automatisch overgeslagen).
+Selecteer welke VMs je wilt joinen; DC01 wordt automatisch overgeslagen.
 
 ---
 
@@ -219,7 +219,7 @@ Alle instellingen zijn centraal aanpasbaar in `config.ps1`.
 
 ## Dry Run modus
 
-Elk script heeft een **Dry Run** toggle (standaard AAN). In Dry Run worden alle acties gelogd maar niet uitgevoerd — ideaal om te controleren wat er gaat gebeuren voordat je echt uitvoert.
+Elk script heeft een **Dry Run** toggle (standaard AAN). In Dry Run worden acties gelogd maar niet uitgevoerd.
 
 - Groene balk = Dry Run actief
 - Rode balk = Live uitvoering
