@@ -19,6 +19,8 @@ if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -ne 'STA') {
 }
 
 . "$PSScriptRoot\..\config.ps1"
+$modulePath = Join-Path $PSScriptRoot '..\modules\SSWLab\SSWLab.psd1'
+Import-Module $modulePath -Force
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
@@ -216,6 +218,20 @@ function Add-Log {
     })
 }
 
+function Save-SelectedTrack {
+    param([string]$TrackName)
+
+    if ([string]::IsNullOrWhiteSpace($TrackName) -or $TrackName -eq 'Full') {
+        return
+    }
+
+    try {
+        Set-SSWCurrentTrack -TrackId $TrackName | Out-Null
+    } catch {
+        Add-Log "Track-state niet bijgewerkt: $($_.Exception.Message)" "#F9E2AF"
+    }
+}
+
 # ── Traject-selectie → checkboxen bijwerken ───────────────────────────────────
 $updateChecks = {
     param([string]$traject)
@@ -225,10 +241,10 @@ $updateChecks = {
     $modList.Items.Refresh()
 }
 
-$window.FindName("RadioAZ104").Add_Checked({ & $updateChecks "AZ-104" })
-$window.FindName("RadioMD102").Add_Checked({ & $updateChecks "MD-102" })
-$window.FindName("RadioMS102").Add_Checked({ & $updateChecks "MS-102" })
-$window.FindName("RadioSC300").Add_Checked({ & $updateChecks "SC-300" })
+$window.FindName("RadioAZ104").Add_Checked({ & $updateChecks "AZ-104"; Save-SelectedTrack -TrackName 'AZ-104' })
+$window.FindName("RadioMD102").Add_Checked({ & $updateChecks "MD-102"; Save-SelectedTrack -TrackName 'MD-102' })
+$window.FindName("RadioMS102").Add_Checked({ & $updateChecks "MS-102"; Save-SelectedTrack -TrackName 'MS-102' })
+$window.FindName("RadioSC300").Add_Checked({ & $updateChecks "SC-300"; Save-SelectedTrack -TrackName 'SC-300' })
 $window.FindName("RadioFull").Add_Checked({  & $updateChecks "Full"   })
 
 $btnAll.Add_Click({

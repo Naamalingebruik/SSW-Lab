@@ -1,228 +1,126 @@
-# SSW-Lab — Hyper-V Lab Deployer
+# SSW-Lab — Geldende Wiki Home
 
 > 🌐 **Taal:** Nederlands | [English](wiki-Home-EN.md)
+>
+> **Geldende versie vanaf:** `2026-03-28 23:14 +01:00`
+>
+> **Belangrijk:** dit is vanaf heden de leidende wiki-versie voor `SSW-Lab`. Oudere teksten, screenshots, wrappernamen en verwijzingen naar de oude vaste MD-102 progress-flow zijn niet meer leidend.
 
-Geautomatiseerde Hyper-V lab-omgeving voor Microsoft-certificeringen met MSDN-licenties.
+`SSW-Lab` is een Hyper-V lab voor Microsoft-certificeringstrajecten op een laptop of werkstation, met focus op:
+- `MD-102`
+- `MS-102`
+- `SC-300`
+- `AZ-104`
 
-**Ondersteunde certificeringen:** MD-102 · MS-102 · SC-300 · AZ-104
-
----
-
-## Studieprogramma's
-
-Per certificering is een studiegids beschikbaar met MS Learn modules, lab-oefeningen en kennischecks:
-
-| Certificering | Omschrijving | Preset | Duur | Lab-scripts |
-|---|---|---|---|---|
-| [MD-102](studieprogramma-md102.md) | Endpoint Administrator | Standard + Autopilot | 7 weken | 6 (week 1–6) |
-| [MS-102](studieprogramma-ms102.md) | Microsoft 365 Administrator | Standard | 8 weken | 7 (week 1–7) |
-| [SC-300](studieprogramma-sc300.md) | Identity and Access Administrator | Standard | 7 weken | 6 (week 1–6) |
-| [AZ-104](studieprogramma-az104.md) | Azure Administrator | Minimal + Azure cloud | 8 weken | 7 (week 1–7) |
-
-Elk lab-script (`scripts/labs/<CERT>/lab-week<N>-*.ps1`) heeft een WPF-GUI met Dry Run-modus, stapsgewijze begeleiding en een kennischeck. Scripts linken automatisch door naar het volgende lab.
-
-> **Sogeti High Flex:** Start lab-scripts via *Uitvoeren als andere gebruiker* met je High Flex-account. Zscaler SSL-inspectie werkt transparant op beheerde Sogeti-laptops.
+De repo gebruikt nu:
+- primaire scriptnamen zonder wrapperlaag
+- gedeelde logica via `modules/SSWLab`
+- trajectgestuurde voortgang in plaats van een vaste MD-102-statusflow
 
 ---
 
-## Inhoudsopgave
+## Wat is nu de geldende werkwijze?
 
-- [Vereisten](#vereisten)
-- [Architectuur](#architectuur)
-- [Installatie](#installatie)
-- [Workflow stap voor stap](#workflow-stap-voor-stap)
-- [Accounts en wachtwoorden](#accounts-en-wachtwoorden)
-- [VM Presets](#vm-presets)
-- [Netwerkconfiguratie](#netwerkconfiguratie)
-- [Dry Run modus](#dry-run-modus)
+De geldende operationele flow in `SSW-Lab` is:
+1. start met [Initialize-Preflight.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-Preflight.ps1)
+2. richt netwerk in met [Configure-HostNetwork.ps1](D:\GitHub\SSW-Lab\scripts\Configure-HostNetwork.ps1)
+3. bouw unattended ISO’s met [Build-UnattendedIsos.ps1](D:\GitHub\SSW-Lab\scripts\Build-UnattendedIsos.ps1)
+4. maak VM’s aan met [New-LabVMs.ps1](D:\GitHub\SSW-Lab\scripts\New-LabVMs.ps1)
+5. richt de domain controller in met [Initialize-DomainController.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-DomainController.ps1)
+6. join clients met [Join-LabComputersToDomain.ps1](D:\GitHub\SSW-Lab\scripts\Join-LabComputersToDomain.ps1)
+7. werk daarna verder in de labs onder `scripts/labs/<TRACK>/`
 
----
-
-## Vereisten
-
-| Vereiste | Minimum | Aanbevolen |
-|---|---|---|
-| OS | Windows 10 (build 19041+) | Windows 11 |
-| RAM | 16 GB | 32 GB |
-| Schijfruimte | 80 GB vrij | 150 GB vrij |
-| Hyper-V | Ingeschakeld | Ingeschakeld |
-| Windows ADK | Deployment Tools | Deployment Tools |
-| MSDN ISO's | W11 Enterprise + WS2025 | W11 Enterprise + WS2025 |
-
-Windows ADK (alleen Deployment Tools, ~80 MB):  
-https://go.microsoft.com/fwlink/?linkid=2289980
+Gebruik vanaf nu alleen deze primaire scriptnamen. De oude genummerde wrappers zijn verwijderd.
 
 ---
 
-## Architectuur
+## Trajectkeuze en voortgang
 
-```
-Laptop (Hyper-V host)
-  └── SSW-Internal (Hyper-V vSwitch, intern + NAT)
-        ├── LAB-DC01        10.50.10.10   Windows Server 2025 — Domain Controller
-        ├── LAB-MGMT01          10.50.10.20   Windows 11 Enterprise — Management
-        ├── LAB-W11-01          DHCP          Windows 11 Enterprise — Client 1
-        ├── LAB-W11-02          DHCP          Windows 11 Enterprise — Client 2
-        └── LAB-W11-AUTOPILOT   DHCP          Windows 11 Enterprise — Autopilot
-```
+De wiki gaat er vanaf nu vanuit dat werken in `SSW-Lab` trajectgestuurd gebeurt.
 
-**Domein:** `ssw.lab`  
-**NAT-subnet:** `10.50.10.0/24`  
-**Gateway:** `10.50.10.1`
+Ondersteunde trajecten:
+- `MD102`
+- `MS102`
+- `SC300`
+- `AZ104`
+
+De voortgangsflow is nu:
+- [Set-CurrentTrack.ps1](D:\GitHub\SSW-Lab\scripts\utility\Set-CurrentTrack.ps1)
+- [Set-TrackCheckpoint.ps1](D:\GitHub\SSW-Lab\scripts\utility\Set-TrackCheckpoint.ps1)
+- [Get-TrackProgress.ps1](D:\GitHub\SSW-Lab\scripts\utility\Get-TrackProgress.ps1)
+- [Register-TrackProgressTask.ps1](D:\GitHub\SSW-Lab\scripts\utility\Register-TrackProgressTask.ps1)
+
+De trajectkeuze uit [Initialize-Preflight.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-Preflight.ps1) en [Initialize-ManagementHost.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-ManagementHost.ps1) voedt deze state nu automatisch. Handmatig zetten via `Set-CurrentTrack.ps1` blijft alleen nodig als je het traject later bewust wilt overschrijven.
+
+Deze flow schrijft lokaal naar:
+- `profiles/current-track.local.json`
+- `profiles/track-checkpoints.local.json`
+- `status.md`
+- `next-steps.md`
+
+Deze bestanden staan bewust in `.gitignore`. Voortgang is dus persoonlijk en blijft buiten git.
+
+**Niet meer geldig:**
+- de oude vaste MD-102 voortgangsflow
+- `Get-LabProgress.ps1`
+- `Register-LabProgressTask.ps1`
+- verwijzingen naar `sog-status.md` als primaire statusuitvoer
 
 ---
 
-## Installatie
-
-### Optie A — EXEs (aanbevolen)
-
-1. Download de nieuwste release van de [Releases-pagina](../../releases)
-2. Pak de zip uit naar een map naar keuze
-3. Start de EXEs als administrator in volgorde
-
-### Optie B — PowerShell scripts
+## Huidige snelle start
 
 ```powershell
-git clone <jouw-repo-url>/SSW-Lab.git
-cd SSW-Lab\scripts
-# Start als administrator:
-.\Initialize-Preflight.ps1
+.\scripts\Initialize-Preflight.ps1
+.\scripts\Configure-HostNetwork.ps1
+.\scripts\Build-UnattendedIsos.ps1
+.\scripts\New-LabVMs.ps1
+.\scripts\Initialize-DomainController.ps1
+.\scripts\Join-LabComputersToDomain.ps1
+```
+
+Daarna volg je je traject:
+
+```powershell
+.\scripts\utility\Set-CurrentTrack.ps1 -TrackId MS102
+.\scripts\utility\Get-TrackProgress.ps1
+```
+
+Checkpoint afronden:
+
+```powershell
+.\scripts\utility\Set-TrackCheckpoint.ps1 -CheckpointId week1 -Note "Tenantbasis staat"
 ```
 
 ---
 
-## Workflow stap voor stap
+## Trajecten en aanbevolen presets
 
-### Stap 1 — Preflight (systeemcheck)
-**Script:** `Initialize-Preflight.ps1` | **EXE:** `Stap1 - Preflight (systeemcheck).exe`
-
-Controleert of het systeem klaar is:
-- Hyper-V ingeschakeld
-- Virtualisatie in BIOS actief
-- Voldoende RAM en schijfruimte
-- Windows versie (aanbevolen: Windows 11; Windows 10 werkt met waarschuwing)
-- Windows ADK geinstalleerd
-- Bestaande SSW vSwitch
-
-Geeft een preset-advies op basis van beschikbare resources. Knop **Doorgaan** wordt pas actief als er geen blokkerende fouten zijn.
-
----
-
-### Stap 2 — Netwerk inrichten
-**Script:** `Configure-HostNetwork.ps1` | **EXE:** `Stap2 - Netwerk (vSwitch en NAT).exe`
-
-Maakt aan:
-- Interne Hyper-V vSwitch (`SSW-Internal`)
-- NAT-adapter met IP `10.50.10.1`
-- NetNAT (`SSW-NAT`) voor internettoegang vanuit VMs
-
-Bestaande switch en NAT worden overgeslagen.
-
----
-
-### Stap 3 — ISO voorbereiding (unattended)
-**Script:** `Build-UnattendedIsos.ps1` | **EXE:** `Stap3 - ISO voorbereiding (unattended).exe`
-
-Injecteert een `autounattend.xml` in MSDN ISO's zodat Windows automatisch installeert:
-- Schijfpartitionering (EFI + MSR + Windows)
-- Tijdzone: `W. Europe Standard Time`
-- Taal: `nl-NL`
-- Administrator-wachtwoord instellen
-- Extra lokaal account `labadmin` aanmaken (Administrators)
-
-Vereist **Windows ADK** (oscdimg.exe).  
-Produceert: `SSW-W11-Unattend.iso` en `SSW-WS2025-Unattend.iso`
-
----
-
-### Stap 4 — VMs aanmaken
-**Script:** `New-LabVMs.ps1` | **EXE:** `Stap4 - VMs aanmaken.exe`
-
-Maakt Hyper-V Gen2 VMs aan op basis van profielen in `profiles/vm-profiles.json`:
-- VHDX aanmaken (dynamisch)
-- VM registreren met juiste RAM en vCPU
-- Secure Boot uitschakelen
-- DVD-drive koppelen aan unattended ISO
-- DVD als eerste opstartapparaat instellen
-
-Kies een **preset** of selecteer handmatig de gewenste VMs.
-
----
-
-### Stap 5 — Domain Controller inrichten
-**Script:** `Initialize-DomainController.ps1` | **EXE:** `Stap5 - Domain Controller inrichten.exe`
-
-Via **PowerShell Direct** (geen netwerk nodig) op LAB-DC01:
-1. Statisch IP instellen (`10.50.10.10`)
-2. Computernaam instellen (`DC01`)
-3. AD DS installeren
-4. Nieuw forest aanmaken (`ssw.lab`)
-5. Wachten tot DC herstart en online is
-6. Extra domain admin `labadmin` aanmaken in AD en toevoegen aan Domain Admins
-
----
-
-### Stap 6 — Domain Join (clients)
-**Script:** `Join-LabComputersToDomain.ps1` | **EXE:** `Stap6 - Domain Join (clients).exe`
-
-Voegt client-VMs toe aan `ssw.lab` via PowerShell Direct:
-- Verbindt als lokale Administrator
-- Voert `Add-Computer` uit met domain admin credentials
-- VM herstart automatisch na join
-
-Selecteer welke VMs je wilt joinen; DC01 wordt automatisch overgeslagen.
-
----
-
-## Accounts en wachtwoorden
-
-| Account | Type | Aangemaakt door | Rol |
-|---|---|---|---|
-| `Administrator` | Lokaal (alle VMs) | Unattend XML (stap 3) | Lokale admin |
-| `labadmin` | Lokaal (alle VMs) | Unattend XML (stap 3) | Lokale admin |
-| `labadmin` | Domein (ssw.lab) | DC-setup (stap 5) | Domain Admin |
-
-> **Wachtwoord:** het wachtwoord dat je invult in stap 3 wordt gebruikt voor zowel `Administrator` als `labadmin` op alle VMs, en ook voor het `labadmin` AD-account.  
-> `DSRM`-wachtwoord stel je apart in tijdens stap 5.
-
----
-
-## VM Presets
-
-| Preset | VMs | Geschat RAM |
+| Traject | Aanbevolen preset | Doel |
 |---|---|---|
-| **Minimal** | DC01, W11-01 | ~6 GB |
-| **Standard** | DC01, MGMT01, W11-01, W11-02 | ~14 GB |
-| **Full** | DC01, MGMT01, W11-01, W11-02, W11-AUTOPILOT | ~18 GB |
+| `MD102` | `Full` | Endpoint deployment, Intune, Autopilot, compliance, security |
+| `MS102` | `Standard` | Microsoft 365 beheer, hybrid identity, Exchange, Teams, SharePoint, Defender |
+| `SC300` | `Minimal` of `Standard` | Identity, Conditional Access, app registrations, governance |
+| `AZ104` | `Minimal` | Hybride identiteit, netwerk- en beheerscenario’s naast Azure-oefeningen |
 
-VM-profielen (RAM, vCPU, schijfgrootte) zijn aanpasbaar in `profiles/vm-profiles.json`.
-
----
-
-## Netwerkconfiguratie
-
-| Instelling | Waarde |
-|---|---|
-| vSwitch | `SSW-Internal` (intern + NAT) |
-| NAT naam | `SSW-NAT` |
-| Subnet | `10.50.10.0/24` |
-| Gateway | `10.50.10.1` |
-| DC01 | `10.50.10.10` |
-| MGMT01 | `10.50.10.20` |
-| W11-01 | DHCP |
-| W11-02 | DHCP |
-| W11-AUTOPILOT | DHCP |
-
-Alle instellingen zijn centraal aanpasbaar in `config.ps1`.
+De feitelijke trajectdefinities en checkpoints staan in [learning-tracks.json](D:\GitHub\SSW-Lab\profiles\learning-tracks.json).
 
 ---
 
-## Dry Run modus
+## Belangrijke technische uitgangspunten
 
-Elk script heeft een **Dry Run** toggle (standaard AAN). In Dry Run worden acties gelogd maar niet uitgevoerd.
+- `SSW-Lab` gebruikt `ssw.lab` als intern domein.
+- De hoofdlogica zit steeds meer in [SSWLab.psm1](D:\GitHub\SSW-Lab\modules\SSWLab\SSWLab.psm1).
+- Secrets horen niet in repo-bestanden thuis; environment variables of SecretManagement hebben de voorkeur.
+- `Pester` en `PSScriptAnalyzer` zijn onderdeel van de kwaliteitsflow via [Invoke-QualityChecks.ps1](D:\GitHub\SSW-Lab\build\Invoke-QualityChecks.ps1).
 
-- Groene balk = Dry Run actief
-- Rode balk = Live uitvoering
+---
 
+## Wat is expliciet vervallen?
 
+Vanaf deze wiki-versie zijn de volgende aannames niet meer geldig:
+- “Genummerde scriptnamen blijven bestaan als wrappers”
+- “Voortgang wordt centraal door één MD-102 script bepaald”
+- “Status hoort thuis in een historische dump onder `scripts/`”
 
+De actuele keuzes en onderbouwing staan in [decisions.md](D:\GitHub\SSW-Lab\decisions.md).

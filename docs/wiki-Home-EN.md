@@ -1,269 +1,126 @@
-# SSW-Lab — Hyper-V Lab Deployer
+# SSW-Lab — Current Wiki Home
 
 > 🌐 **Language:** English | [Nederlands](wiki-Home.md)
+>
+> **Effective version since:** `2026-03-28 23:14 +01:00`
+>
+> **Important:** this is now the authoritative wiki version for `SSW-Lab`. Older text, screenshots, wrapper names, and references to the retired fixed MD-102 progress flow are no longer authoritative.
 
-Automated Hyper-V lab environment for Microsoft certifications with MSDN licences.
+`SSW-Lab` is a Hyper-V lab for Microsoft certification tracks on a laptop or workstation, with focus on:
+- `MD-102`
+- `MS-102`
+- `SC-300`
+- `AZ-104`
 
-**Supported certifications:** MD-102 · MS-102 · SC-300 · AZ-104
-
----
-
-## Study guides
-
-A study guide is available for each certification, including MS Learn modules, lab exercises and knowledge checks:
-
-| Certification | Description | Preset | Duration | Lab scripts |
-|---|---|---|---|---|
-| [MD-102](study-guide-md102.md) | Endpoint Administrator | Standard + Autopilot | 7 weeks | 6 (week 1–6) |
-| [MS-102](study-guide-ms102.md) | Microsoft 365 Administrator | Standard | 8 weeks | 7 (week 1–7) |
-| [SC-300](study-guide-sc300.md) | Identity and Access Administrator | Standard | 7 weeks | 6 (week 1–6) |
-| [AZ-104](study-guide-az104.md) | Azure Administrator | Minimal + Azure cloud | 8 weeks | 7 (week 1–7) |
-
-Each lab script (`scripts/labs/<CERT>/lab-week<N>-*.ps1`) provides a WPF GUI with Dry Run mode, step-by-step guidance and a knowledge check. Scripts automatically chain to the next lab.
-
-> **Sogeti High Flex:** Launch lab scripts via *Run as different user* with your High Flex admin account. Zscaler SSL inspection works transparently on managed Sogeti laptops.
+The repository now uses:
+- primary script names only, without the wrapper layer
+- shared logic through `modules/SSWLab`
+- track-driven progress instead of a fixed MD-102 status flow
 
 ---
 
-## Table of contents
+## What is the current operating model?
 
-- [Requirements](#requirements)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Step-by-step workflow](#step-by-step-workflow)
-- [Accounts and passwords](#accounts-and-passwords)
-- [VM Presets](#vm-presets)
-- [Network configuration](#network-configuration)
-- [Dry Run mode](#dry-run-mode)
+The current operational flow in `SSW-Lab` is:
+1. start with [Initialize-Preflight.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-Preflight.ps1)
+2. configure networking with [Configure-HostNetwork.ps1](D:\GitHub\SSW-Lab\scripts\Configure-HostNetwork.ps1)
+3. build unattended ISOs with [Build-UnattendedIsos.ps1](D:\GitHub\SSW-Lab\scripts\Build-UnattendedIsos.ps1)
+4. create VMs with [New-LabVMs.ps1](D:\GitHub\SSW-Lab\scripts\New-LabVMs.ps1)
+5. configure the domain controller with [Initialize-DomainController.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-DomainController.ps1)
+6. join clients with [Join-LabComputersToDomain.ps1](D:\GitHub\SSW-Lab\scripts\Join-LabComputersToDomain.ps1)
+7. continue with the labs under `scripts/labs/<TRACK>/`
 
----
-
-## Requirements
-
-| Requirement | Minimum | Recommended |
-|---|---|---|
-| OS | Windows 10 (build 19041+) | Windows 11 |
-| RAM | 16 GB | 32 GB |
-| Disk space | 80 GB free | 150 GB free |
-| Hyper-V | Enabled | Enabled |
-| Windows ADK | Deployment Tools | Deployment Tools |
-| MSDN ISOs | W11 Enterprise + WS2025 | W11 Enterprise + WS2025 |
-
-Windows ADK (Deployment Tools only, ~80 MB):  
-https://go.microsoft.com/fwlink/?linkid=2289980
+Use these primary script names from now on. The old numbered wrappers have been removed.
 
 ---
 
-## Architecture
+## Track selection and progress
 
-```
-Laptop (Hyper-V host)
-  └── SSW-Internal (Hyper-V vSwitch, internal + NAT)
-        ├── LAB-DC01            10.50.10.10   Windows Server 2025 — Domain Controller
-        ├── LAB-MGMT01          10.50.10.20   Windows 11 Enterprise — Management
-        ├── LAB-W11-01          DHCP          Windows 11 Enterprise — Client 1
-        ├── LAB-W11-02          DHCP          Windows 11 Enterprise — Client 2
-        └── LAB-W11-AUTOPILOT   DHCP          Windows 11 Enterprise — Autopilot
-```
+This wiki now assumes `SSW-Lab` is operated in a track-driven way.
 
-**Domain:** `ssw.lab`  
-**NAT subnet:** `10.50.10.0/24`  
-**Gateway:** `10.50.10.1`
+Supported tracks:
+- `MD102`
+- `MS102`
+- `SC300`
+- `AZ104`
+
+The active progress flow is now:
+- [Set-CurrentTrack.ps1](D:\GitHub\SSW-Lab\scripts\utility\Set-CurrentTrack.ps1)
+- [Set-TrackCheckpoint.ps1](D:\GitHub\SSW-Lab\scripts\utility\Set-TrackCheckpoint.ps1)
+- [Get-TrackProgress.ps1](D:\GitHub\SSW-Lab\scripts\utility\Get-TrackProgress.ps1)
+- [Register-TrackProgressTask.ps1](D:\GitHub\SSW-Lab\scripts\utility\Register-TrackProgressTask.ps1)
+
+The track choice made in [Initialize-Preflight.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-Preflight.ps1) and [Initialize-ManagementHost.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-ManagementHost.ps1) now feeds this state automatically. Manual use of `Set-CurrentTrack.ps1` is only needed when you intentionally want to override the current track later.
+
+This flow writes local state to:
+- `profiles/current-track.local.json`
+- `profiles/track-checkpoints.local.json`
+- `status.md`
+- `next-steps.md`
+
+These files are intentionally ignored by git. Progress is personal and local by design.
+
+**No longer valid:**
+- the old fixed MD-102 progress flow
+- `Get-LabProgress.ps1`
+- `Register-LabProgressTask.ps1`
+- references to `sog-status.md` as the primary status output
 
 ---
 
-## Installation
-
-### Option A — EXEs (recommended)
-
-1. Download the latest release from the [Releases page](../../releases)
-2. Extract the zip to a folder of your choice
-3. Run the EXEs as administrator in order
-
-### Option B — PowerShell scripts
+## Current quick start
 
 ```powershell
-git clone <your-repo-url>/SSW-Lab.git
-cd SSW-Lab\scripts
-# Run as administrator:
-.\Initialize-Preflight.ps1
+.\scripts\Initialize-Preflight.ps1
+.\scripts\Configure-HostNetwork.ps1
+.\scripts\Build-UnattendedIsos.ps1
+.\scripts\New-LabVMs.ps1
+.\scripts\Initialize-DomainController.ps1
+.\scripts\Join-LabComputersToDomain.ps1
 ```
 
----
-
-## Step-by-step workflow
-
-### Step 1 — Preflight (system check)
-**Script:** `Initialize-Preflight.ps1` | **EXE:** `Stap1 - Preflight (systeemcheck).exe`
-
-Checks whether the system is ready:
-- Hyper-V enabled
-- Virtualisation active in BIOS
-- Sufficient RAM and disk space
-- Windows version (recommended: Windows 11; Windows 10 works with a warning)
-- Windows ADK installed
-- Existing SSW vSwitch
-
-Select your **certification track** to receive a personalised hardware assessment:
-
-| Certification | Required preset | Min RAM | Min disk |
-|---|---|---|---|
-| MD-102 | Standard | 14 GB | 300 GB |
-| MS-102 | Standard | 14 GB | 300 GB |
-| SC-300 | Standard | 14 GB | 300 GB |
-| AZ-104 | Minimal | 6 GB | 140 GB |
-
-The **Continue** button only becomes active when there are no blocking errors.
-
----
-
-### Step 2 — Network setup
-**Script:** `Configure-HostNetwork.ps1` | **EXE:** `Stap2 - Netwerk (vSwitch en NAT).exe`
-
-Creates:
-- Internal Hyper-V vSwitch (`SSW-Internal`)
-- NAT adapter with IP `10.50.10.1`
-- NetNAT (`SSW-NAT`) for internet access from VMs
-
-Existing switch and NAT are skipped.
-
----
-
-### Step 3 — ISO preparation (unattended)
-**Script:** `Build-UnattendedIsos.ps1` | **EXE:** `Stap3 - ISO voorbereiding (unattended).exe`
-
-Builds unattended ISOs from your MSDN source ISOs:
-- Browse to each MSDN ISO (W11 Enterprise, WS2025)
-- An `autounattend.xml` is injected → fully automated OS installation in VMs
-- Requires Windows ADK (Deployment Tools)
-
----
-
-### Step 4 — Create VMs
-**Script:** `New-LabVMs.ps1` | **EXE:** `Stap4 - VMs aanmaken.exe`
-
-Creates VMs based on the selected preset. A preset is suggested automatically based on available RAM:
-
-| Preset | VMs | RAM usage |
-|---|---|---|
-| **Minimal** | DC01 + W11-01 | ~6 GB |
-| **Standard** | DC01 + MGMT01 + W11-01 + W11-02 | ~14 GB |
-| **Full** | Standard + W11-AUTOPILOT | ~18 GB |
-
----
-
-### Step 5 — Set up Domain Controller
-**Script:** `Initialize-DomainController.ps1` | **EXE:** `Stap5 - Domain Controller inrichten.exe`
-
-Configures LAB-DC01:
-- Promotes to Domain Controller for `ssw.lab`
-- Configures DNS
-- Creates base OU structure and lab user accounts
-
----
-
-### Step 6 — Domain Join (clients)
-**Script:** `Join-LabComputersToDomain.ps1` | **EXE:** `Stap6 - Domain Join (clients).exe`
-
-Joins client VMs (MGMT01, W11-01, W11-02) to the `ssw.lab` domain.
-
----
-
-## Accounts and passwords
-
-> **Security notice:** This lab uses local passwords stored in `autounattend.xml` inside ISOs.  
-> **Never** use production passwords or company accounts. Use only MSDN test accounts with passwords created specifically for this lab.
-
-| Account | VM | Role |
-|---|---|---|
-| `Administrator` | All VMs | Local admin, set interactively |
-| `LAB\labadmin` | Domain | Domain admin, set interactively |
-
-Passwords are entered interactively and are **never stored in scripts or config files**.
-
----
-
-## VM Presets
-
-| Preset | VMs | RAM | Disk | Suitable for |
-|---|---|---|---|---|
-| **Minimal** | DC01 + W11-01 | ~6 GB | ~140 GB | AZ-104, quick tests |
-| **Standard** | DC01 + MGMT01 + W11-01 + W11-02 | ~14 GB | ~300 GB | MD-102, MS-102, SC-300 |
-| **Full** | Standard + W11-AUTOPILOT | ~18 GB | ~380 GB | MD-102 (Autopilot labs) |
-
----
-
-## Network configuration
-
-```
-Laptop (Hyper-V host)
-└── SSW-Internal (vSwitch, internal)
-    ├── 10.50.10.1   → Gateway / NAT
-    ├── 10.50.10.10  → LAB-DC01
-    ├── 10.50.10.20  → LAB-MGMT01
-    └── 10.50.10.30+ → W11 clients (DHCP)
-```
-
-Internet access via NAT on the host. No Tailscale required.
-
----
-
-## Dry Run mode
-
-All scripts support a `-DryRun` flag:
+Then follow your track:
 
 ```powershell
-.\New-LabVMs.ps1 -DryRun
+.\scripts\utility\Set-CurrentTrack.ps1 -TrackId MS102
+.\scripts\utility\Get-TrackProgress.ps1
 ```
 
-This shows all planned actions without making any changes.
-
----
-
-## Customise configuration
-
-Edit `config.ps1` for your environment:
+Mark a checkpoint as completed:
 
 ```powershell
-$SSWConfig = @{
-    DomainName  = "ssw.lab"          # Customisable
-    VMPath      = "D:\SSW-Lab\VMs"   # Customisable
-    NATSubnet   = "10.50.10.0/24"    # Customisable
-    ...
-}
+.\scripts\utility\Set-TrackCheckpoint.ps1 -CheckpointId week1 -Note "Tenant baseline ready"
 ```
 
 ---
 
-## Licences and activation
+## Tracks and recommended presets
 
-- VMs are created without a product key.
-- Activate manually via the MSDN portal or Visual Studio Subscriptions after installation.
-- No KMS, no MAK in scripts.
+| Track | Recommended preset | Main purpose |
+|---|---|---|
+| `MD102` | `Full` | Endpoint deployment, Intune, Autopilot, compliance, security |
+| `MS102` | `Standard` | Microsoft 365 administration, hybrid identity, Exchange, Teams, SharePoint, Defender |
+| `SC300` | `Minimal` or `Standard` | Identity, Conditional Access, app registrations, governance |
+| `AZ104` | `Minimal` | Hybrid identity plus network and management scenarios alongside Azure exercises |
 
----
-
-*SSW-Lab is built by and for Sogeti SSW colleagues. No dedicated hardware or personal domain required.*
-
----
-
-## Author
-
-**Etienne Dankfort** — Sogeti SSW  
-This project is a personal community initiative and is **not an official Sogeti or Capgemini product**.  
-For use in personal MSDN test environments only.
+The actual track definitions and checkpoints live in [learning-tracks.json](D:\GitHub\SSW-Lab\profiles\learning-tracks.json).
 
 ---
 
-## Licence
+## Important technical principles
 
-MIT — see [LICENSE](../LICENSE)
+- `SSW-Lab` uses `ssw.lab` as its internal domain.
+- More shared logic now lives in [SSWLab.psm1](D:\GitHub\SSW-Lab\modules\SSWLab\SSWLab.psm1).
+- Secrets should not live in repo files; environment variables or SecretManagement are preferred.
+- `Pester` and `PSScriptAnalyzer` are part of the quality flow through [Invoke-QualityChecks.ps1](D:\GitHub\SSW-Lab\build\Invoke-QualityChecks.ps1).
 
 ---
 
-## Disclaimer
+## What is explicitly retired?
 
-This is a community initiative by SSW colleagues and is **not an official Sogeti or Capgemini product**.  
-The author accepts no liability for any damage resulting from the use of these scripts.  
-Use exclusively in an isolated test environment with MSDN licences — never in production.
+From this wiki version onward, the following assumptions are no longer valid:
+- “Numbered script names remain as wrappers”
+- “Progress is determined by one central MD-102 status script”
+- “Status belongs in a historical dump under `scripts/`”
 
+The current decisions and rationale are recorded in [decisions.md](D:\GitHub\SSW-Lab\decisions.md).

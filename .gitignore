@@ -19,6 +19,9 @@ config.local.ps1
 
 # Persoonlijke studievoortgang — lokaal bijgehouden, niet gesynct via git
 sog-status.md
+status.md
+next-steps.md
+profiles/*.local.json
 
 # Autopilot hardware hash exports (apparaatvspecifiek, niet committen)
 autopilot-hash.csv

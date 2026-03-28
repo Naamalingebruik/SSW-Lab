@@ -1,0 +1,192 @@
+{
+  "tracks": [
+    {
+      "id": "MD102",
+      "name": "MD-102 Endpoint Administrator",
+      "recommendedPreset": "Full",
+      "focus": "Windows deployment, Intune, compliance, apps en endpoint security",
+      "milestones": [
+        {
+          "id": "week1",
+          "title": "Week 1 deployment",
+          "scriptPath": "scripts/labs/MD102/lab-week1-deployment.ps1",
+          "summary": "Basisdeployment, Hyper-V en domeinjoin voorbereiden"
+        },
+        {
+          "id": "week2",
+          "title": "Week 2 Intune enrollment",
+          "scriptPath": "scripts/labs/MD102/lab-week2-intune.ps1",
+          "summary": "Intune-enrollment en hybrid join valideren"
+        },
+        {
+          "id": "week3",
+          "title": "Week 3 compliance en Conditional Access",
+          "scriptPath": "scripts/labs/MD102/lab-week3-compliance-ca.ps1",
+          "summary": "Compliance policies en Conditional Access oefenen"
+        },
+        {
+          "id": "week4",
+          "title": "Week 4 appbeheer",
+          "scriptPath": "scripts/labs/MD102/lab-week4-apps.ps1",
+          "summary": "Win32-app packaging en deployment testen"
+        },
+        {
+          "id": "week5",
+          "title": "Week 5 Autopilot",
+          "scriptPath": "scripts/labs/MD102/lab-week5-autopilot.ps1",
+          "summary": "Autopilot hardware hash en provisioning oefenen"
+        },
+        {
+          "id": "week6",
+          "title": "Week 6 endpoint security",
+          "scriptPath": "scripts/labs/MD102/lab-week6-security.ps1",
+          "summary": "Defender, EICAR en update rings valideren"
+        }
+      ]
+    },
+    {
+      "id": "MS102",
+      "name": "MS-102 Microsoft 365 Administrator",
+      "recommendedPreset": "Standard",
+      "focus": "Tenantbeheer, hybrid identity, Exchange, SharePoint, Teams en Defender",
+      "milestones": [
+        {
+          "id": "week1",
+          "title": "Week 1 tenantbeheer",
+          "scriptPath": "scripts/labs/MS102/lab-week1-tenant.ps1",
+          "summary": "Tenantbasis en syncflow controleren"
+        },
+        {
+          "id": "week2",
+          "title": "Week 2 gebruikers en SSPR",
+          "scriptPath": "scripts/labs/MS102/lab-week2-gebruikers.ps1",
+          "summary": "OU-structuur, bulkgebruikers en SSPR"
+        },
+        {
+          "id": "week3",
+          "title": "Week 3 hybrid identity",
+          "scriptPath": "scripts/labs/MS102/lab-week3-hybrid-identity.ps1",
+          "summary": "ADSync scheduler, writeback en MFA"
+        },
+        {
+          "id": "week4",
+          "title": "Week 4 Exchange Online",
+          "scriptPath": "scripts/labs/MS102/lab-week4-exchange.ps1",
+          "summary": "Exchange Online, shared mailbox en DKIM"
+        },
+        {
+          "id": "week5",
+          "title": "Week 5 SharePoint en Teams",
+          "scriptPath": "scripts/labs/MS102/lab-week5-sharepoint-teams.ps1",
+          "summary": "Samenwerking en extern delen configureren"
+        },
+        {
+          "id": "week6",
+          "title": "Week 6 Defender",
+          "scriptPath": "scripts/labs/MS102/lab-week6-defender.ps1",
+          "summary": "Defender XDR en Secure Score"
+        },
+        {
+          "id": "week7",
+          "title": "Week 7 Purview",
+          "scriptPath": "scripts/labs/MS102/lab-week7-purview.ps1",
+          "summary": "Purview, DLP en eDiscovery"
+        }
+      ]
+    },
+    {
+      "id": "SC300",
+      "name": "SC-300 Identity and Access Administrator",
+      "recommendedPreset": "Minimal",
+      "focus": "Entra ID, authentication methods, appregistraties en governance",
+      "milestones": [
+        {
+          "id": "week1",
+          "title": "Week 1 hybrid identity",
+          "scriptPath": "scripts/labs/SC300/lab-week1-hybrid-identity.ps1",
+          "summary": "AD-structuur en Entra Connect"
+        },
+        {
+          "id": "week2",
+          "title": "Week 2 external identities",
+          "scriptPath": "scripts/labs/SC300/lab-week2-external-identities.ps1",
+          "summary": "B2B en cross-tenant toegang"
+        },
+        {
+          "id": "week3",
+          "title": "Week 3 authenticatie",
+          "scriptPath": "scripts/labs/SC300/lab-week3-authentication.ps1",
+          "summary": "SSPR, FIDO2, WHfB en auth strengths"
+        },
+        {
+          "id": "week4",
+          "title": "Week 4 Conditional Access",
+          "scriptPath": "scripts/labs/SC300/lab-week4-conditional-access.ps1",
+          "summary": "CA-beleid, Named Locations en sign-in logs"
+        },
+        {
+          "id": "week5",
+          "title": "Week 5 appregistraties",
+          "scriptPath": "scripts/labs/SC300/lab-week5-appregistrations.ps1",
+          "summary": "Appregistraties, API-permissies en App Proxy"
+        },
+        {
+          "id": "week6",
+          "title": "Week 6 governance en PIM",
+          "scriptPath": "scripts/labs/SC300/lab-week6-governance-pim.ps1",
+          "summary": "Access packages, reviews en PIM"
+        }
+      ]
+    },
+    {
+      "id": "AZ104",
+      "name": "AZ-104 Azure Administrator",
+      "recommendedPreset": "Minimal",
+      "focus": "Governance, storage, compute, networking en monitoring",
+      "milestones": [
+        {
+          "id": "week1",
+          "title": "Week 1 governance",
+          "scriptPath": "scripts/labs/AZ104/lab-week1-governance.ps1",
+          "summary": "Resource groups, RBAC en Policy"
+        },
+        {
+          "id": "week2",
+          "title": "Week 2 storage",
+          "scriptPath": "scripts/labs/AZ104/lab-week2-storage.ps1",
+          "summary": "Storage account, blob en file share"
+        },
+        {
+          "id": "week3",
+          "title": "Week 3 compute",
+          "scriptPath": "scripts/labs/AZ104/lab-week3-compute.ps1",
+          "summary": "Azure VM, disks, snapshot en backup"
+        },
+        {
+          "id": "week4",
+          "title": "Week 4 appservices",
+          "scriptPath": "scripts/labs/AZ104/lab-week4-appservices.ps1",
+          "summary": "App Service, slots, ACI en autoscale"
+        },
+        {
+          "id": "week5",
+          "title": "Week 5 networking",
+          "scriptPath": "scripts/labs/AZ104/lab-week5-networking.ps1",
+          "summary": "VNet, NSG, peering en private DNS"
+        },
+        {
+          "id": "week6",
+          "title": "Week 6 load balancing",
+          "scriptPath": "scripts/labs/AZ104/lab-week6-loadbalancing.ps1",
+          "summary": "Load Balancer, App Gateway en Traffic Manager"
+        },
+        {
+          "id": "week7",
+          "title": "Week 7 monitoring",
+          "scriptPath": "scripts/labs/AZ104/lab-week7-monitoring.ps1",
+          "summary": "Log Analytics, VM Insights en alerts"
+        }
+      ]
+    }
+  ]
+}

@@ -35,7 +35,7 @@ Write-Host "  Domein  : $domain"
 Write-Host "  EntraUPN: $entraUPN"
 Write-Host ""
 
-# ── Credentials (interactief — nooit hardcoden) ───────────────────────────────
+# ── Credentials (interactief - nooit hardcoden) ───────────────────────────────
 
 $cred = Get-Credential -Message "Voer credentials in voor $vmName ($($SSWConfig.DomainNetBIOS)\Administrator)"
 
@@ -105,14 +105,14 @@ Write-Host "TLS 1.2 klaar." -ForegroundColor Green
 # ── Stap 1: UPN-suffix toevoegen aan AD ──────────────────────────────────────
 
 Write-Host ""
-Write-Host "Stap 1/3 — UPN-suffix '$entraUPN' toevoegen aan AD..." -ForegroundColor Cyan
+Write-Host "Stap 1/3 - UPN-suffix '$entraUPN' toevoegen aan AD..." -ForegroundColor Cyan
 
 Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
     param($upn)
     $forest   = Get-ADForest -ErrorAction Stop
     $suffixes = $forest.UPNSuffixes
     if ($suffixes -contains $upn) {
-        Write-Host "  UPN-suffix '$upn' bestaat al — overgeslagen."
+        Write-Host "  UPN-suffix '$upn' bestaat al - overgeslagen."
     } else {
         Set-ADForest -Identity $forest.Name -UPNSuffixes @{Add = $upn} -ErrorAction Stop
         Write-Host "  UPN-suffix '$upn' toegevoegd."
@@ -124,9 +124,9 @@ Write-Host "Stap 1 klaar." -ForegroundColor Green
 # ── Stap 2: MSI kopiëren naar VM ─────────────────────────────────────────────
 
 Write-Host ""
-Write-Host "Stap 2/3 — MSI kopiëren naar $vmName (via PS Direct, chunked base64)..." -ForegroundColor Cyan
+Write-Host "Stap 2/3 - MSI kopieren naar $vmName (via PS Direct, chunked base64)..." -ForegroundColor Cyan
 
-# Guest Service Interface is niet vereist — we sturen de MSI via PS Direct in chunks
+# Guest Service Interface is niet vereist - we sturen de MSI via PS Direct in chunks
 Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
     New-Item -ItemType Directory -Path "C:\Temp" -Force | Out-Null
 } -ErrorAction Stop
@@ -136,7 +136,7 @@ $chunkSize   = 3 * 1024 * 1024   # 3 MB per chunk
 $msiBytes    = [System.IO.File]::ReadAllBytes($msiHost)
 $totalChunks = [math]::Ceiling($msiBytes.Length / $chunkSize)
 
-Write-Host "  Bestandsgrootte: $([math]::Round($msiBytes.Length/1MB,1)) MB — $totalChunks chunk(s)" -ForegroundColor Gray
+Write-Host "  Bestandsgrootte: $([math]::Round($msiBytes.Length/1MB,1)) MB - $totalChunks chunk(s)" -ForegroundColor Gray
 
 # Zorg dat doelbestand leeg begint
 Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
@@ -166,7 +166,7 @@ Write-Host "MSI gekopieerd naar $msiDest." -ForegroundColor Green
 # ── Stap 3: Installeren ───────────────────────────────────────────────────────
 
 Write-Host ""
-Write-Host "Stap 3/3 — Entra Connect installeren (dit duurt ~2 minuten)..." -ForegroundColor Cyan
+Write-Host "Stap 3/3 - Entra Connect installeren (dit duurt ~2 minuten)..." -ForegroundColor Cyan
 
 $exitCode = Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
     param($dest)
@@ -187,9 +187,9 @@ $exitCode = Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
 Write-Host ""
 switch ($exitCode) {
     0    { Write-Host "Installatie geslaagd." -ForegroundColor Green }
-    3010 { Write-Host "Installatie geslaagd — herstart vereist." -ForegroundColor Yellow
+    3010 { Write-Host "Installatie geslaagd - herstart vereist." -ForegroundColor Yellow
            Write-Host "  Restart-VM -Name '$vmName' -Force" }
-    default { Write-Host "Installatie mislukt — ExitCode: $exitCode" -ForegroundColor Red
+     default { Write-Host "Installatie mislukt - ExitCode: $exitCode" -ForegroundColor Red
               Write-Host "  Controleer C:\Windows\Temp\MSI*.log op $vmName voor details."
               exit 1 }
 }
@@ -197,13 +197,13 @@ switch ($exitCode) {
 # ── Stap 4: AD Recycle Bin inschakelen ───────────────────────────────────────
 
 Write-Host ""
-Write-Host "Stap 4/4 — AD Recycle Bin inschakelen voor '$domain'..." -ForegroundColor Cyan
+Write-Host "Stap 4/4 - AD Recycle Bin inschakelen voor '$domain'..." -ForegroundColor Cyan
 
 Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
     param($domain)
     $feature = Get-ADOptionalFeature -Filter { Name -eq "Recycle Bin Feature" } -ErrorAction Stop
     if ($feature.EnabledScopes.Count -gt 0) {
-        Write-Host "  AD Recycle Bin is al ingeschakeld — overgeslagen."
+        Write-Host "  AD Recycle Bin is al ingeschakeld - overgeslagen."
     } else {
         Enable-ADOptionalFeature -Identity "Recycle Bin Feature" `
             -Scope ForestOrConfigurationSet -Target $domain -Confirm:$false -ErrorAction Stop

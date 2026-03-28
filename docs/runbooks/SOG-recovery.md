@@ -230,7 +230,8 @@ Set-Location D:\Github\SSW-Lab
 ```powershell
 # Draai het voortgangsscript — geeft volledige status van alle VMs en AD
 Set-Location D:\Github\SSW-Lab
-.\scripts\utility\Get-LabProgress.ps1
+.\scripts\utility\Set-CurrentTrack.ps1 -TrackId MD102
+.\scripts\utility\Get-TrackProgress.ps1
 ```
 
 Output geeft: VM-status, join-type per client, Entra Connect sync, module-aanwezigheid, en MD-102 milestone-voortgang.

@@ -16,6 +16,8 @@ if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -ne 'STA') {
 }
 
 . "$PSScriptRoot\..\config.ps1"
+$modulePath = Join-Path $PSScriptRoot '..\modules\SSWLab\SSWLab.psd1'
+Import-Module $modulePath -Force
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
@@ -50,9 +52,9 @@ function Get-PreflightChecks {
     $ramGB = [math]::Round((Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1GB)
     $ramStatus = if ($ramGB -ge 32) { "OK" } elseif ($ramGB -ge 16) { "WAARSCHUWING" } else { "FOUT" }
     $ramDetail = switch ($ramStatus) {
-        "OK"          { "$ramGB GB — alle presets beschikbaar" }
-        "WAARSCHUWING" { "$ramGB GB — gebruik Minimal preset (DC01 + 1 client)" }
-        "FOUT"        { "$ramGB GB — onvoldoende voor SSW-Lab (min. 16 GB)" }
+        "OK"           { "$ramGB GB - alle presets beschikbaar" }
+        "WAARSCHUWING" { "$ramGB GB - gebruik Minimal preset (DC01 + 1 client)" }
+        "FOUT"         { "$ramGB GB - onvoldoende voor SSW-Lab (min. 16 GB)" }
     }
     $results.Add([PSCustomObject]@{
         Check   = "RAM beschikbaar"
@@ -67,12 +69,12 @@ function Get-PreflightChecks {
     $freeGB = [math]::Round($disk.Free / 1GB)
     $diskStatus = if ($freeGB -ge 150) { "OK" } elseif ($freeGB -ge 80) { "WAARSCHUWING" } else { "FOUT" }
     $results.Add([PSCustomObject]@{
-        Check   = "Vrije schijfruimte (${drive}:\)"
+        Check   = ("Vrije schijfruimte ({0}:)" -f $drive)
         Status  = $diskStatus
         Detail  = switch ($diskStatus) {
-            "OK"           { "$freeGB GB vrij — voldoende voor Full preset" }
-            "WAARSCHUWING" { "$freeGB GB vrij — Minimal of Standard preset aanbevolen" }
-            "FOUT"         { "$freeGB GB vrij — minimaal 80 GB nodig" }
+            "OK"           { "$freeGB GB vrij - voldoende voor Full preset" }
+            "WAARSCHUWING" { "$freeGB GB vrij - Minimal of Standard preset aanbevolen" }
+            "FOUT"         { "$freeGB GB vrij - minimaal 80 GB nodig" }
         }
         Block   = ($freeGB -lt 80)
     })
@@ -83,7 +85,7 @@ function Get-PreflightChecks {
     $results.Add([PSCustomObject]@{
         Check   = "Windows versie"
         Status  = if ($isW11) { "OK" } else { "WAARSCHUWING" }
-        Detail  = if ($isW11) { "Windows 11 ($winVer)" } else { "Windows 10 — Hyper-V werkt, maar clientconfiguraties kunnen afwijken" }
+        Detail  = if ($isW11) { "Windows 11 ($winVer)" } else { "Windows 10 - Hyper-V werkt, maar clientconfiguraties kunnen afwijken" }
         Block   = $false
     })
 
@@ -93,7 +95,7 @@ function Get-PreflightChecks {
     $results.Add([PSCustomObject]@{
         Check    = "Windows ADK (Deployment Tools)"
         Status   = if ($adkOk) { "OK" } else { "WAARSCHUWING" }
-        Detail   = if ($adkOk) { "oscdimg.exe gevonden — ISO-builder klaar" } else { "Vereist voor Build-UnattendedIsos.ps1 — gebruik de downloadknop hieronder" }
+        Detail   = if ($adkOk) { "oscdimg.exe gevonden - ISO-builder klaar" } else { "Vereist voor Build-UnattendedIsos.ps1 - gebruik de downloadknop hieronder" }
         Block    = $false
         NeedsADK = -not $adkOk
     })
@@ -114,18 +116,18 @@ function Get-PreflightChecks {
 function Get-PresetAdvice($checks) {
     $blocked = $checks | Where-Object { $_.Block }
 
-    if ($blocked) { return "⛔  Lab kan niet starten — los de rode punten op." }
+    if ($blocked) { return "[GEBLOKKEERD] Lab kan niet starten - los de rode punten op." }
 
     $ramCheck = $checks | Where-Object { $_.Check -like "RAM*" }
     if ($ramCheck.Status -eq "WAARSCHUWING") {
-        return "⚠️  Gebruik de Minimal preset (DC01 + 1 W11-client) — ca. 6 GB RAM."
+        return "[LET OP] Gebruik de Minimal preset (DC01 + 1 W11-client) - ca. 6 GB RAM."
     }
     $diskCheck = $checks | Where-Object { $_.Check -like "Vrije*" }
     if ($diskCheck.Status -eq "WAARSCHUWING") {
-        return "⚠️  Gebruik Standard of Minimal — schijfruimte is beperkt."
+        return "[LET OP] Gebruik Standard of Minimal - schijfruimte is beperkt."
     }
 
-    return "✅  Systeem is gereed. Alle presets zijn beschikbaar."
+    return "[OK] Systeem is gereed. Alle presets zijn beschikbaar."
 }
 
 # ── Certificeringstraject advies ─────────────────────────────
@@ -137,10 +139,10 @@ function Get-CertAdvice {
     $freeGB = [math]::Round((Get-PSDrive $drive).Free / 1GB)
 
     $requirements = @{
-        "MD-102" = @{ MinRAM = 14; MinDisk = 300; Preset = "Standard"; VMs = "DC01 · MGMT01 · W11-01 · W11-02" }
-        "MS-102" = @{ MinRAM = 14; MinDisk = 300; Preset = "Standard"; VMs = "DC01 · MGMT01 · W11-01 · W11-02" }
-        "SC-300" = @{ MinRAM = 14; MinDisk = 300; Preset = "Standard"; VMs = "DC01 · MGMT01 · W11-01 · W11-02" }
-        "AZ-104" = @{ MinRAM = 6;  MinDisk = 140; Preset = "Minimal";  VMs = "DC01 · W11-01" }
+        "MD-102" = @{ MinRAM = 14; MinDisk = 300; Preset = "Standard"; VMs = "DC01 | MGMT01 | W11-01 | W11-02" }
+        "MS-102" = @{ MinRAM = 14; MinDisk = 300; Preset = "Standard"; VMs = "DC01 | MGMT01 | W11-01 | W11-02" }
+        "SC-300" = @{ MinRAM = 14; MinDisk = 300; Preset = "Standard"; VMs = "DC01 | MGMT01 | W11-01 | W11-02" }
+        "AZ-104" = @{ MinRAM = 6;  MinDisk = 140; Preset = "Minimal";  VMs = "DC01 | W11-01" }
     }
 
     $req    = $requirements[$cert]
@@ -148,13 +150,13 @@ function Get-CertAdvice {
     $diskOk = $freeGB -ge $req.MinDisk
 
     if ($ramOk -and $diskOk) {
-        return "✅  Jouw laptop is geschikt voor $cert — preset: $($req.Preset) ($($req.VMs))"
+        return "[OK] Jouw laptop is geschikt voor $cert - preset: $($req.Preset) ($($req.VMs))"
     }
 
     $issues = @()
     if (-not $ramOk)  { $issues += "RAM: $ramGB GB beschikbaar, $($req.MinRAM) GB vereist" }
     if (-not $diskOk) { $issues += "Schijf: $freeGB GB vrij, $($req.MinDisk) GB vereist" }
-    return "⚠️  Hardware onvoldoende voor $cert — $($issues -join '  |  ')"
+    return "[LET OP] Hardware onvoldoende voor $cert - $($issues -join '  |  ')"
 }
 
 # ── WPF GUI ──────────────────────────────────────────────────
@@ -215,7 +217,7 @@ function Get-CertAdvice {
         <TextBlock x:Name="AdviceText" Style="{StaticResource Advice}" Text="Bezig met controleren…"/>
       </Border>
 
-      <!-- Hyper-V installatie banner — zichtbaar als Hyper-V ontbreekt -->
+      <!-- Hyper-V installatie banner - zichtbaar als Hyper-V ontbreekt -->
       <Border x:Name="HyperVBanner" Background="#1E2D2E" CornerRadius="6" Padding="14,10"
               Margin="0,6,0,0" BorderBrush="#89DCEB" BorderThickness="1" Visibility="Collapsed">
         <Grid>
@@ -230,7 +232,7 @@ function Get-CertAdvice {
                        Foreground="#A6ADC8" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0"/>
           </StackPanel>
           <Button x:Name="BtnInstallHyperV" Grid.Column="1"
-                  Content="⚙  Installeer Hyper-V"
+                  Content="Installeer Hyper-V"
                   Background="#89DCEB" Foreground="#1E1E2E"
                   FontWeight="SemiBold" FontSize="12"
                   BorderThickness="0" Cursor="Hand"
@@ -238,7 +240,7 @@ function Get-CertAdvice {
         </Grid>
       </Border>
 
-      <!-- ADK download banner — zichtbaar als ADK ontbreekt -->
+      <!-- ADK download banner - zichtbaar als ADK ontbreekt -->
       <Border x:Name="ADKBanner" Background="#2D1E2E" CornerRadius="6" Padding="14,10"
               Margin="0,6,0,0" BorderBrush="#CBA6F7" BorderThickness="1" Visibility="Collapsed">
         <Grid>
@@ -249,11 +251,11 @@ function Get-CertAdvice {
           <StackPanel Grid.Column="0" VerticalAlignment="Center">
             <TextBlock Text="Windows ADK vereist voor ISO-builder"
                        Foreground="#CBA6F7" FontSize="12" FontWeight="SemiBold"/>
-            <TextBlock Text="Installeer alleen 'Deployment Tools' — ca. 80 MB. Herstart daarna Initialize-Preflight.ps1."
+            <TextBlock Text="Installeer alleen 'Deployment Tools' - ca. 80 MB. Herstart daarna Initialize-Preflight.ps1."
                        Foreground="#A6ADC8" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0"/>
           </StackPanel>
           <Button x:Name="BtnDownloadADK" Grid.Column="1"
-                  Content="⬇  Download ADK"
+                  Content="Download ADK"
                   Background="#CBA6F7" Foreground="#1E1E2E"
                   FontWeight="SemiBold" FontSize="12"
                   BorderThickness="0" Cursor="Hand"
@@ -322,6 +324,20 @@ $radioAZ104      = $reader.FindName("RadioAZ104")
 
 $script:currentCert = $null
 
+function Save-CurrentCertSelection {
+    param([string]$Certification)
+
+    if ([string]::IsNullOrWhiteSpace($Certification)) {
+        return
+    }
+
+    try {
+        Set-SSWCurrentTrack -TrackId $Certification | Out-Null
+    } catch {
+        Write-Verbose "Traject kon niet worden opgeslagen: $($_.Exception.Message)"
+    }
+}
+
 $studyGuideUrls = @{
     "MD-102" = "d:\GitHub\SSW-Lab\docs\study-guide-md102.md"
     "MS-102" = "d:\GitHub\SSW-Lab\docs\study-guide-ms102.md"
@@ -332,9 +348,10 @@ $studyGuideUrls = @{
 $certClickHandler = {
     param($s, $e)
     $script:currentCert = $s.Content
+    Save-CurrentCertSelection -Certification $script:currentCert
     $advice = Get-CertAdvice $script:currentCert
     $certAdviceText.Text = $advice
-    $certColor = if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
+    $certColor = if ($advice.StartsWith("[OK]")) { "#A6E3A1" } else { "#F9E2AF" }
     $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom($certColor)
     $btnStudyGuide.Visibility = "Visible"
 }
@@ -352,7 +369,7 @@ $radioAZ104.Add_Checked($certClickHandler)
 
 $btnInstallHyperV.Add_Click({
     $btnInstallHyperV.IsEnabled = $false
-    $btnInstallHyperV.Content = "Bezig met installeren…"
+    $btnInstallHyperV.Content = "Bezig met installeren..."
     try {
         Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -NoRestart -ErrorAction Stop | Out-Null
         [System.Windows.MessageBox]::Show(
@@ -369,7 +386,7 @@ $btnInstallHyperV.Add_Click({
             [System.Windows.MessageBoxImage]::Error
         ) | Out-Null
         $btnInstallHyperV.IsEnabled = $true
-        $btnInstallHyperV.Content = "⚙  Installeer Hyper-V"
+        $btnInstallHyperV.Content = "Installeer Hyper-V"
     }
 })
 
@@ -392,10 +409,10 @@ function Render-Checks {
             default        { "#89B4FA" }
         }
         $icon = switch ($c.Status) {
-            "OK"           { "✔" }
-            "WAARSCHUWING" { "⚠" }
-            "FOUT"         { "✘" }
-            default        { "ℹ" }
+            "OK"           { "OK" }
+            "WAARSCHUWING" { "!" }
+            "FOUT"         { "X" }
+            default        { "i" }
         }
 
         if ($c.PSObject.Properties["NeedsADK"] -and $c.NeedsADK) { $adkMissing = $true }
@@ -460,7 +477,7 @@ function Render-Checks {
     if ($script:currentCert -and $certAdviceText) {
         $advice = Get-CertAdvice $script:currentCert
         $certAdviceText.Text = $advice
-        $certColor2 = if ($advice.StartsWith("✅")) { "#A6E3A1" } else { "#F9E2AF" }
+        $certColor2 = if ($advice.StartsWith("[OK]")) { "#A6E3A1" } else { "#F9E2AF" }
         $certAdviceText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFrom($certColor2)
     }
 }
@@ -493,16 +510,16 @@ $btnNext.Add_Click({
       <RadioButton x:Name="RadioUnattended" IsChecked="True"
                    Foreground="#CDD6F4" FontSize="13" Margin="0,0,0,10">
         <StackPanel>
-          <TextBlock Text="✅  Unattended ISOs bouwen (Build-UnattendedIsos.ps1)" FontWeight="SemiBold" Foreground="#A6E3A1"/>
-          <TextBlock Text="Aanbevolen — Windows installeert zichzelf volledig automatisch in de VMs."
+          <TextBlock Text="[OK] Unattended ISOs bouwen (Build-UnattendedIsos.ps1)" FontWeight="SemiBold" Foreground="#A6E3A1"/>
+          <TextBlock Text="Aanbevolen - Windows installeert zichzelf volledig automatisch in de VMs."
                      FontSize="11" Foreground="#A6ADC8" Margin="0,2,0,0"/>
         </StackPanel>
       </RadioButton>
       <RadioButton x:Name="RadioAttended"
                    Foreground="#CDD6F4" FontSize="13">
         <StackPanel>
-          <TextBlock Text="⏭  Direct doorgaan naar Configure-HostNetwork" FontWeight="SemiBold" Foreground="#F9E2AF"/>
-          <TextBlock Text="Handmatige installatie — je doorloopt de Windows Setup wizard zelf in elke VM."
+          <TextBlock Text="Direct doorgaan naar Configure-HostNetwork" FontWeight="SemiBold" Foreground="#F9E2AF"/>
+          <TextBlock Text="Handmatige installatie - je doorloopt de Windows Setup wizard zelf in elke VM."
                      FontSize="11" Foreground="#A6ADC8" Margin="0,2,0,0"/>
         </StackPanel>
       </RadioButton>
@@ -513,7 +530,7 @@ $btnNext.Add_Click({
               Background="#45475A" Foreground="#CDD6F4"
               FontSize="12" Padding="16,7" BorderThickness="0"
               Cursor="Hand" Margin="0,0,10,0" Height="34"/>
-      <Button x:Name="BtnConfirm" Content="Doorgaan →"
+      <Button x:Name="BtnConfirm" Content="Doorgaan ->"
               Background="#89B4FA" Foreground="#1E1E2E"
               FontWeight="SemiBold" FontSize="12"
               Padding="18,7" BorderThickness="0"

@@ -4,8 +4,8 @@
 # Headless startup: netwerk herstellen + VMs in de juiste volgorde starten.
 #
 # Volgorde:
-#   1. Netwerk (vSwitch + NAT + gateway-IP op host) — niet persistent na reboot
-#   2. DC01  — moet als eerste draaien (AD, DNS, DHCP)
+#   1. Netwerk (vSwitch + NAT + gateway-IP op host) - niet persistent na reboot
+#   2. DC01  - moet als eerste draaien (AD, DNS, DHCP)
 #   3. MGMT01, W11-01, W11-02, W11-AUTOPILOT
 #
 # Autopilot-IP:
@@ -13,7 +13,7 @@
 #   raakt een handmatig ingesteld statisch IP kwijt. Dit script
 #   configureert eenmalig een DHCP-scope op DC01 + een vaste
 #   reservering voor de Autopilot-VM op basis van het Hyper-V
-#   MAC-adres. Zo krijgt de VM altijd hetzelfde IP — ook na reset.
+#   MAC-adres. Zo krijgt de VM altijd hetzelfde IP - ook na reset.
 #   Gereserveerd IP: zie $AutopilotReservedIP hieronder.
 #
 # Draait via Windows Scheduled Task bij systeemstart (als SYSTEM).
@@ -33,7 +33,9 @@ $VmStartDelay        = 5               # seconden pauze tussen VM-starts
 $repoRoot   = Join-Path $PSScriptRoot '..\..'
 $configPath = Join-Path $repoRoot 'config.ps1'
 if (-not (Test-Path $configPath)) { Write-Error "config.ps1 niet gevonden: $configPath"; exit 1 }
-. $configPath
+$modulePath = Join-Path $repoRoot 'modules\SSWLab\SSWLab.psd1'
+Import-Module $modulePath -Force
+$SSWConfig = Import-SSWLabConfig -ConfigPath $configPath
 $localConfig = Join-Path $repoRoot 'config.local.ps1'
 if (Test-Path $localConfig) { . $localConfig }
 
@@ -48,17 +50,17 @@ function Write-Log([string]$msg) {
 # ── Hulpfunctie: lab-credential ──────────────────────────────
 function Get-LabCred([string]$user) {
     if (-not $SSWConfig.LabPassword) {
-        Write-Log "  LET OP: LabPassword niet ingesteld in config.local.ps1 — PS Direct-stappen overgeslagen."
+        Write-Log "  LET OP: LabPassword niet ingesteld in config.local.ps1 - PS Direct-stappen overgeslagen."
         return $null
     }
-    [PSCredential]::new($user, (ConvertTo-SecureString $SSWConfig.LabPassword -AsPlainText -Force))
+    New-SSWCredential -UserName $user -SecretName 'SSWLab-LabPassword' -Config $SSWConfig -ConfigValueName 'LabPassword' -EnvironmentVariableName 'SSW_LAB_PASSWORD'
 }
 
 # Autopilot VM heeft een eigen lokaal account met apart wachtwoord
 function Get-AutopilotCred {
     $apPw = if ($SSWConfig.AutopilotPassword) { $SSWConfig.AutopilotPassword } else { $SSWConfig.LabPassword }
     if (-not $apPw) { return $null }
-    [PSCredential]::new('autopilot', (ConvertTo-SecureString $apPw -AsPlainText -Force))
+    New-SSWCredential -UserName 'autopilot' -Password (ConvertTo-SecureString $apPw -AsPlainText -Force)
 }
 
 Write-Log "======================================================"
@@ -69,7 +71,7 @@ Write-Log "======================================================"
 # STAP 1 — Netwerk herstellen
 # (vSwitch, gateway-IP en NAT verdwijnen na host-reboot)
 # ══════════════════════════════════════════════════════════════
-Write-Log "[1/3] Netwerk controleren/herstellen…"
+Write-Log "[1/3] Netwerk controleren/herstellen..."
 
 $switchName   = $SSWConfig.vSwitchName    # SSW-Internal
 $natName      = $SSWConfig.NATName        # SSW-NAT
@@ -114,14 +116,14 @@ Write-Log "[1/3] Netwerk gereed."
 # ══════════════════════════════════════════════════════════════
 # STAP 2 — DC01 starten + wachten op AD
 # ══════════════════════════════════════════════════════════════
-Write-Log "[2/3] DC01 starten en wachten op AD…"
+Write-Log "[2/3] DC01 starten en wachten op AD..."
 
-$profiles = Get-Content $SSWConfig.ProfilePath -Raw | ConvertFrom-Json
-$dcVMName = $profiles.DC01.Name
+$profiles = Get-SSWVmProfiles -Config $SSWConfig
+$dcVMName = (Get-SSWVmProfile -Profiles $profiles -Name 'DC01').Name
 
 $dcVM = Get-VM -Name $dcVMName -ErrorAction SilentlyContinue
 if (-not $dcVM) {
-    Write-Log "  VM '$dcVMName' niet gevonden in Hyper-V — VMs nog niet aangemaakt? Startup gestopt."
+    Write-Log "  VM '$dcVMName' niet gevonden in Hyper-V - VMs nog niet aangemaakt? Startup gestopt."
     exit 0
 }
 
@@ -136,7 +138,7 @@ if ($dcVM.State -ne 'Running') {
 $domCred = Get-LabCred "$($SSWConfig.DomainName)\$($SSWConfig.DomainAdmin)"
 $dcOnline = $false
 if ($domCred) {
-    Write-Log "  Wachten op AD (max $DcWaitMinutes min)…"
+    Write-Log "  Wachten op AD (max $DcWaitMinutes min)..."
     $deadline = (Get-Date).AddMinutes($DcWaitMinutes)
     while (-not $dcOnline -and (Get-Date) -lt $deadline) {
         Start-Sleep -Seconds 15
@@ -147,22 +149,22 @@ if ($domCred) {
             if ($svc -eq 'Running') { $dcOnline = $true }
         } catch {}
     }
-    if ($dcOnline) { Write-Log "  DC online — AD actief." }
-    else           { Write-Log "  WAARSCHUWING: DC niet bereikbaar binnen $DcWaitMinutes min — doorgaan zonder AD-check." }
+    if ($dcOnline) { Write-Log "  DC online - AD actief." }
+    else           { Write-Log "  WAARSCHUWING: DC niet bereikbaar binnen $DcWaitMinutes min - doorgaan zonder AD-check." }
 }
 
 # ── 2b. DHCP op DC01: scope + vaste reservering voor Autopilot-VM ────────
 if ($dcOnline -and $domCred) {
-    Write-Log "  DHCP op DC01 controleren…"
+    Write-Log "  DHCP op DC01 controleren..."
 
     # MAC-adres van de Autopilot-VM ophalen via Hyper-V (host-kant, VM hoeft niet te draaien)
     $apVMName  = $profiles.'W11-AUTOPILOT'.Name
     $apAdapter = Get-VMNetworkAdapter -VMName $apVMName -ErrorAction SilentlyContinue | Select-Object -First 1
     $apMAC = if ($apAdapter -and $apAdapter.MacAddress) {
-        # Hyper-V levert '001234ABCDEF' → DHCP verwacht '00-12-34-AB-CD-EF'
+        # Hyper-V levert '001234ABCDEF' -> DHCP verwacht '00-12-34-AB-CD-EF'
         ($apAdapter.MacAddress -replace '[:\-]', '') -replace '(..)(..)(..)(..)(..)(..)', '$1-$2-$3-$4-$5-$6'
     } else {
-        Write-Log "  WAARSCHUWING: MAC-adres van '$apVMName' niet gevonden — DHCP-reservering overgeslagen."
+        Write-Log "  WAARSCHUWING: MAC-adres van '$apVMName' niet gevonden - DHCP-reservering overgeslagen."
         $null
     }
 
@@ -179,14 +181,14 @@ if ($dcOnline -and $domCred) {
             $fqdn = "$env:COMPUTERNAME.$env:USERDNSDOMAIN"
             $feat = Get-WindowsFeature DHCP -ErrorAction SilentlyContinue
             if ($feat -and -not $feat.Installed) {
-                $out.Add("DHCP-server installeren…")
+                $out.Add("DHCP-server installeren...")
                 Install-WindowsFeature DHCP -IncludeManagementTools | Out-Null
                 # Post-install configuratie-melding onderdrukken
                 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\ServerManager\Roles\12' `
                     -Name 'ConfigurationState' -Value 2 -ErrorAction SilentlyContinue
                 $out.Add("DHCP-server geïnstalleerd.")
             }
-            # Autorisatie altijd controleren (los van installatie) — vereist FQDN, niet NetBIOS naam
+            # Autorisatie altijd controleren (los van installatie) - vereist FQDN, niet NetBIOS naam
             $authorized = Get-DhcpServerInDC -ErrorAction SilentlyContinue | Where-Object { $_.DnsName -ieq $fqdn }
             if (-not $authorized) {
                 try {
@@ -207,20 +209,20 @@ if ($dcOnline -and $domCred) {
                     -SubnetMask '255.255.255.0' -State Active | Out-Null
                 Set-DhcpServerv4OptionValue -ScopeId $scopeID `
                     -Router $gateway -DnsServer $dns -ErrorAction SilentlyContinue | Out-Null
-                $out.Add("DHCP-scope $scopeID aangemaakt ($scopeStart – $scopeEnd).")
+                $out.Add("DHCP-scope $scopeID aangemaakt ($scopeStart - $scopeEnd).")
             } else {
                 $out.Add("DHCP-scope $scopeID bestaat al.")
             }
 
-            # Exclusion range: .1–.99 zijn infrastructuur-IPs (gateway, DC, MGMT, Autopilot).
+            # Exclusion range: .1-.99 zijn infrastructuur-IPs (gateway, DC, MGMT, Autopilot).
             # DHCP mag nooit een IP in dit bereik uitdelen aan een willekeurige client.
             $excl = Get-DhcpServerv4ExclusionRange -ScopeId $scopeID -ErrorAction SilentlyContinue |
                     Where-Object { $_.StartRange -eq '10.50.10.1' }
             if (-not $excl) {
                 Add-DhcpServerv4ExclusionRange -ScopeId $scopeID -StartRange '10.50.10.1' -EndRange '10.50.10.99' -ErrorAction SilentlyContinue
-                $out.Add("DHCP-exclusie 10.50.10.1–99 aangemaakt (infrastructuur-IPs beschermd).")
+                $out.Add("DHCP-exclusie 10.50.10.1-99 aangemaakt (infrastructuur-IPs beschermd).")
             } else {
-                $out.Add("DHCP-exclusie 10.50.10.1–99 bestond al.")
+                $out.Add("DHCP-exclusie 10.50.10.1-99 bestond al.")
             }
 
             # DHCP-reservering voor Autopilot-VM
@@ -229,7 +231,7 @@ if ($dcOnline -and $domCred) {
                             Where-Object { $_.ClientId -ieq $apMAC }
                 if (-not $existing) {
                     Add-DhcpServerv4Reservation -ScopeId $scopeID -IPAddress $apIP `
-                        -ClientId $apMAC -Description 'LAB-W11-AUTOPILOT — vaste DHCP-reservering' | Out-Null
+                        -ClientId $apMAC -Description 'LAB-W11-AUTOPILOT - vaste DHCP-reservering' | Out-Null
                     $out.Add("DHCP-reservering $apIP aangemaakt voor MAC $apMAC.")
                 } else {
                     $out.Add("DHCP-reservering voor Autopilot-VM al aanwezig ($apIP).")
@@ -275,9 +277,9 @@ foreach ($key in $clientW11) {
                 "OK (geen statisch IP in infrastructuurbereik)"
             }
         }
-        Write-Log "  $vmName — $resetResult"
+        Write-Log "  $vmName - $resetResult"
     } catch {
-        Write-Log "  $vmName — kan DHCP-check niet uitvoeren: $_"
+        Write-Log "  $vmName - kan DHCP-check niet uitvoeren: $_"
     }
 }
 
@@ -286,16 +288,16 @@ foreach ($key in $clientW11) {
 # (MGMT01 → W11-01 → W11-02 → W11-AUTOPILOT)
 # VMs die niet bestaan worden overgeslagen (geen fout).
 # ══════════════════════════════════════════════════════════════
-Write-Log "[3/3] Overige VMs starten…"
+Write-Log "[3/3] Overige VMs starten..."
 
 $startOrder = @('MGMT01', 'W11-01', 'W11-02', 'W11-AUTOPILOT')
 foreach ($key in $startOrder) {
     $vmProfile = $profiles.$key
-    if (-not $vmProfile) { Write-Log "  Profiel '$key' niet gevonden — overgeslagen."; continue }
+    if (-not $vmProfile) { Write-Log "  Profiel '$key' niet gevonden - overgeslagen."; continue }
 
     $vmName = $vmProfile.Name
     $vm     = Get-VM -Name $vmName -ErrorAction SilentlyContinue
-    if (-not $vm)                  { Write-Log "  '$vmName' niet gevonden in Hyper-V — overgeslagen."; continue }
+    if (-not $vm)                  { Write-Log "  '$vmName' niet gevonden in Hyper-V - overgeslagen."; continue }
     if ($vm.State -eq 'Running')   { Write-Log "  '$vmName' draait al."; continue }
 
     try {

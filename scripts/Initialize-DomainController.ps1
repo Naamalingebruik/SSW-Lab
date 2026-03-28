@@ -5,7 +5,9 @@
 # Dry Run is standaard AAN — zet vinkje uit om echt uit te voeren.
 # ============================================================
 
-. "$PSScriptRoot\..\config.ps1"
+$modulePath = Join-Path $PSScriptRoot '..\modules\SSWLab\SSWLab.psd1'
+Import-Module $modulePath -Force
+$SSWConfig = Import-SSWLabConfig -ConfigPath (Join-Path $PSScriptRoot '..\config.ps1')
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
@@ -130,13 +132,13 @@ $dryRunBar     = $reader.FindName("DryRunBar")
 $dryRunTitle   = $reader.FindName("DryRunTitle")
 $dryRunSub     = $reader.FindName("DryRunSub")
 $conv          = [System.Windows.Media.BrushConverter]::new()
-$profiles      = Get-Content $SSWConfig.ProfilePath -Raw | ConvertFrom-Json
+$profiles      = Get-SSWVmProfiles -Config $SSWConfig
 
 function Update-DryRunBar {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
-        $dryRunTitle.Text       = "🔒  Dry Run — geen wijzigingen in de VM"
+        $dryRunTitle.Text       = "[DRY RUN] Geen wijzigingen in de VM"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
@@ -144,7 +146,7 @@ function Update-DryRunBar {
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text       = "⚠  LIVE UITVOERING — DC01 wordt geconfigureerd en herstart"
+        $dryRunTitle.Text       = "[LIVE] DC01 wordt geconfigureerd en herstart"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
@@ -153,11 +155,15 @@ function Update-DryRunBar {
 }
 
 $reader.Add_Loaded({
-    $txtVM.Text             = $profiles.DC01.Name
+    $txtVM.Text             = (Get-SSWVmProfile -Profiles $profiles -Name 'DC01').Name
     $txtDomain.Text         = $SSWConfig.DomainName
     $txtNB.Text             = $SSWConfig.DomainNetBIOS
     $txtDCIP.Text           = $SSWConfig.DCIP
     $txtDomainAdmin.Text    = $SSWConfig.DomainAdmin
+    $savedSecret            = Get-SSWSecret -Name 'SSWLab-LabPassword' -Config $SSWConfig -ConfigValueName 'LabPassword' -EnvironmentVariableName 'SSW_LAB_PASSWORD' -AsPlainText
+    if ($savedSecret) {
+        $pwdAdmin.Password = $savedSecret
+    }
     Update-DryRunBar
 })
 
@@ -183,20 +189,37 @@ $btnSetup.Add_Click({
     $localUser      = $SSWConfig.AdminUser
     $pre            = if ($isDry) { "[DRY RUN] " } else { "" }
 
+    if (-not $adminPwd) {
+        $adminPwd = Get-SSWSecret -Name 'SSWLab-LabPassword' -Config $SSWConfig -ConfigValueName 'LabPassword' -EnvironmentVariableName 'SSW_LAB_PASSWORD' -AsPlainText
+    }
+    if (-not $dsrmPwd) {
+        $dsrmPwd = Get-SSWSecret -Name 'SSWLab-DSRMPassword' -EnvironmentVariableName 'SSW_DSRM_PASSWORD' -AsPlainText
+    }
+    if (-not $dsrmPwd) {
+        $dsrmPwd = $adminPwd
+    }
+
     if (-not $adminPwd -or -not $dsrmPwd) { [System.Windows.MessageBox]::Show("Vul lokaal admin wachtwoord en DSRM wachtwoord in.", "SSW-Lab"); $btnSetup.IsEnabled = $true; return }
     if (-not $domainAdmin) { [System.Windows.MessageBox]::Show("Vul een extra domain admin gebruikersnaam in.", "SSW-Lab"); $btnSetup.IsEnabled = $true; return }
 
+    $policyResult = Test-SSWSecretPolicy -Secret $adminPwd
+    if (-not $policyResult.IsValid) {
+        [System.Windows.MessageBox]::Show(("Wachtwoord voldoet niet aan het minimale labbeleid:`n- " + ($policyResult.Findings -join "`n- ")), "SSW-Lab")
+        $btnSetup.IsEnabled = $true
+        return
+    }
+
     if ($isDry) {
-        Write-Log "${pre}Verbinding: PowerShell Direct → $vmName als $localUser"
+        Write-Log "${pre}Verbinding: PowerShell Direct -> $vmName als $localUser"
         Write-Log "${pre}Set-NetIPAddress $dcIP/24 op netwerk adapter"
         Write-Log "${pre}Rename-Computer -NewName DC01"
         Write-Log "${pre}Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools"
         Write-Log "${pre}Install-ADDSForest -DomainName $domain -DomainNetbiosName $netbios -InstallDns"
         Write-Log "${pre}VM wordt herstart na promotie"
-        Write-Log "${pre}New-ADUser '$domainAdmin' — lid van Domain Admins"
-        Write-Log "${pre}Install-WindowsFeature DHCP — scope 10.50.10.100-200 aanmaken"
+        Write-Log "${pre}New-ADUser '$domainAdmin' - lid van Domain Admins"
+        Write-Log "${pre}Install-WindowsFeature DHCP - scope 10.50.10.100-200 aanmaken"
         Write-Log "${pre}DHCP-reservering 10.50.10.30 voor LAB-W11-AUTOPILOT (op basis van MAC)"
-        Write-Log "✔ Dry Run klaar — niets uitgevoerd."
+        Write-Log "Dry Run klaar - niets uitgevoerd."
         $progress.Value = 100
         $btnNext.IsEnabled = $true
         $btnSetup.IsEnabled = $true
@@ -206,22 +229,19 @@ $btnSetup.Add_Click({
     $vm = Get-VM -Name $vmName -ErrorAction SilentlyContinue
     if (-not $vm) { Write-Log "VM '$vmName' niet gevonden."; $btnSetup.IsEnabled = $true; return }
     if ($vm.State -ne "Running") {
-        Write-Log "VM starten…"
+        Write-Log "VM starten..."
         Start-VM -Name $vmName
-        Write-Log "Wachten 60 sec…"
+        Write-Log "Wachten 60 sec..."
         Start-Sleep -Seconds 60
     }
 
-    $cred = [PSCredential]::new(
-        "$vmName\$localUser",
-        (ConvertTo-SecureString $adminPwd -AsPlainText -Force)
-    )
+    $cred = New-SSWCredential -UserName "$vmName\$localUser" -Password (ConvertTo-SecureString $adminPwd -AsPlainText -Force)
 
     try {
-        Write-Log "Verbinding via PowerShell Direct…"
+        Write-Log "Verbinding via PowerShell Direct..."
         $progress.Value = 10
 
-        Write-Log "IP $dcIP instellen…"
+        Write-Log "IP $dcIP instellen..."
         Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
             param($ip, $gw)
             $adapter = Get-NetAdapter | Where-Object { $_.Status -eq "Up" } | Select-Object -First 1
@@ -232,21 +252,21 @@ $btnSetup.Add_Click({
 
         $desiredName = ($vmName -replace "^LAB-","" ) # bijv. LAB-DC01 → DC01, of gebruik de volledige naam
         $desiredName = $vmName                        # Windows-naam = Hyper-V VM-naam (bijv. LAB-DC01)
-        Write-Log "Computernaam instellen ($desiredName)…"
+        Write-Log "Computernaam instellen ($desiredName)..."
         Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
             param($n)
             if ($env:COMPUTERNAME -ne $n) { Rename-Computer -NewName $n -Force -ErrorAction SilentlyContinue }
         } -ArgumentList $desiredName
         $progress.Value = 35
 
-        Write-Log "AD DS installeren…"
+        Write-Log "AD DS installeren..."
         Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
             Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools -ErrorAction Stop | Out-Null
         }
         $progress.Value = 60
         Write-Log "AD DS geïnstalleerd."
 
-        Write-Log "Forest '$domain' aanmaken…"
+        Write-Log "Forest '$domain' aanmaken..."
         Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
             param($dom, $nb, $dsrm)
             $secDSRM = ConvertTo-SecureString $dsrm -AsPlainText -Force
@@ -255,11 +275,8 @@ $btnSetup.Add_Click({
                 -NoRebootOnCompletion:$false -Force -ErrorAction Stop | Out-Null
         } -ArgumentList $domain, $netbios, $dsrmPwd
         $progress.Value = 90
-        Write-Log "Forest aangemaakt. DC herstart — wachten tot DC weer online is…"
-        $domCred = [PSCredential]::new(
-            "$domain\Administrator",
-            (ConvertTo-SecureString $adminPwd -AsPlainText -Force)
-        )
+        Write-Log "Forest aangemaakt. DC herstart - wachten tot DC weer online is..."
+        $domCred = New-SSWCredential -UserName "$domain\Administrator" -Password (ConvertTo-SecureString $adminPwd -AsPlainText -Force)
         $online = $false
         $deadline = (Get-Date).AddMinutes(5)
         while (-not $online -and (Get-Date) -lt $deadline) {
@@ -272,7 +289,7 @@ $btnSetup.Add_Click({
         }
         if (-not $online) { throw "DC is na 5 minuten nog niet bereikbaar." }
 
-        Write-Log "Extra domain admin '$domainAdmin' aanmaken in AD…"
+        Write-Log "Extra domain admin '$domainAdmin' aanmaken in AD..."
         Invoke-Command -VMName $vmName -Credential $domCred -ScriptBlock {
             param($user, $pwd, $nb)
             $sec = ConvertTo-SecureString $pwd -AsPlainText -Force
@@ -280,27 +297,27 @@ $btnSetup.Add_Click({
                 -Enabled $true -PasswordNeverExpires $true -ErrorAction Stop
             Add-ADGroupMember -Identity "Domain Admins" -Members $user -ErrorAction Stop
         } -ArgumentList $domainAdmin, $adminPwd, $netbios
-        Write-Log "✔ '$domainAdmin' aangemaakt en toegevoegd aan Domain Admins."
+        Write-Log "'$domainAdmin' aangemaakt en toegevoegd aan Domain Admins."
 
         # ── DHCP-server + Autopilot IP-reservering ──────────────────────────────
         # Na een Autopilot-reset wordt Windows opnieuw geïnstalleerd en raakt een
         # handmatig ingesteld statisch IP kwijt. De oplossing: DHCP op de DC met
         # een vaste reservering op basis van het Hyper-V MAC-adres. Dit MAC-adres
         # verandert nooit, ook niet na een Autopilot-reset of OS-herinstallatie.
-        Write-Log "DHCP-server installeren en Autopilot IP-reservering aanmaken…"
+        Write-Log "DHCP-server installeren en Autopilot IP-reservering aanmaken..."
 
         # MAC-adres van Autopilot-VM ophalen via Hyper-V (host-kant)
-        $apVMName  = $profiles.'W11-AUTOPILOT'.Name
+        $apVMName  = (Get-SSWVmProfile -Profiles $profiles -Name 'W11-AUTOPILOT').Name
         $apAdapter = Get-VMNetworkAdapter -VMName $apVMName -ErrorAction SilentlyContinue |
                      Select-Object -First 1
         $apReservedIP = '10.50.10.30'
         $apMAC = $null
         if ($apAdapter -and $apAdapter.MacAddress) {
-            # Hyper-V levert '001234ABCDEF' → DHCP verwacht '00-12-34-AB-CD-EF'
+            # Hyper-V levert '001234ABCDEF' -> DHCP verwacht '00-12-34-AB-CD-EF'
             $apMAC = ($apAdapter.MacAddress -replace '[:\-]', '') `
                      -replace '(..)(..)(..)(..)(..)(..)', '$1-$2-$3-$4-$5-$6'
         } else {
-            Write-Log "  WAARSCHUWING: MAC van '$apVMName' niet gevonden (VM nog niet aangemaakt?) — reservering later instelbaar via utility\Start-LabVMs.ps1."
+            Write-Log "  WAARSCHUWING: MAC van '$apVMName' niet gevonden (VM nog niet aangemaakt?) - reservering later instelbaar via utility\Start-LabVMs.ps1."
         }
 
         $dhcpResult = Invoke-Command -VMName $vmName -Credential $domCred -ScriptBlock {
@@ -338,20 +355,20 @@ $btnSetup.Add_Click({
                     -SubnetMask '255.255.255.0' -State Active | Out-Null
                 Set-DhcpServerv4OptionValue -ScopeId $scopeID `
                     -Router $gateway -DnsServer $dns -ErrorAction SilentlyContinue | Out-Null
-                $out.Add("DHCP-scope $scopeID aangemaakt ($scopeStart – $scopeEnd).")
+                $out.Add("DHCP-scope $scopeID aangemaakt ($scopeStart - $scopeEnd).")
             } else {
                 $out.Add("DHCP-scope $scopeID bestond al.")
             }
 
-            # Exclusion range: .1–.99 zijn infrastructuur-IPs (gateway=.1, DC=.10, MGMT=.20, Autopilot=.30).
-            # DHCP mag nooit een willekeurige client een IP in dit bereik geven — dat veroorzaakt IP-conflicten.
+            # Exclusion range: .1-.99 zijn infrastructuur-IPs (gateway=.1, DC=.10, MGMT=.20, Autopilot=.30).
+            # DHCP mag nooit een willekeurige client een IP in dit bereik geven - dat veroorzaakt IP-conflicten.
             $excl = Get-DhcpServerv4ExclusionRange -ScopeId $scopeID -ErrorAction SilentlyContinue |
                     Where-Object { $_.StartRange -eq '10.50.10.1' }
             if (-not $excl) {
                 Add-DhcpServerv4ExclusionRange -ScopeId $scopeID -StartRange '10.50.10.1' -EndRange '10.50.10.99' -ErrorAction SilentlyContinue
-                $out.Add("DHCP-exclusie 10.50.10.1–99 aangemaakt (infrastructuur-IPs beschermd).")
+                $out.Add("DHCP-exclusie 10.50.10.1-99 aangemaakt (infrastructuur-IPs beschermd).")
             } else {
-                $out.Add("DHCP-exclusie 10.50.10.1–99 bestond al.")
+                $out.Add("DHCP-exclusie 10.50.10.1-99 bestond al.")
             }
 
             # Vaste reservering voor Autopilot-VM
@@ -360,7 +377,7 @@ $btnSetup.Add_Click({
                             Where-Object { $_.ClientId -ieq $apMAC }
                 if (-not $existing) {
                     Add-DhcpServerv4Reservation -ScopeId $scopeID -IPAddress $apIP `
-                        -ClientId $apMAC -Description 'LAB-W11-AUTOPILOT — vaste DHCP-reservering' | Out-Null
+                        -ClientId $apMAC -Description 'LAB-W11-AUTOPILOT - vaste DHCP-reservering' | Out-Null
                     $out.Add("DHCP-reservering $apIP aangemaakt voor Autopilot-VM (MAC $apMAC).")
                 } else {
                     $out.Add("DHCP-reservering voor Autopilot-VM ($apIP) bestond al.")
@@ -371,11 +388,11 @@ $btnSetup.Add_Click({
                          $SSWConfig.GatewayIP, $SSWConfig.DCIP, $apReservedIP, $apMAC
 
         foreach ($line in $dhcpResult) { Write-Log "  $line" }
-        Write-Log "✔ DHCP gereed — Autopilot-VM krijgt altijd $apReservedIP (ook na Autopilot-reset)."
+        Write-Log "DHCP gereed - Autopilot-VM krijgt altijd $apReservedIP (ook na Autopilot-reset)."
         # ── Einde DHCP-setup ────────────────────────────────────────────────────
 
         $progress.Value = 100
-        Write-Log "✔ DC01 klaar als domain controller voor $domain"
+        Write-Log "DC01 klaar als domain controller voor $domain"
         $btnNext.IsEnabled = $true
     } catch {
         Write-Log "FOUT: $_"

@@ -5,245 +5,36 @@
 # Dry Run is standaard AAN — zet vinkje uit om echt uit te voeren.
 # ============================================================
 
-. "$PSScriptRoot\..\config.ps1"
+$modulePath = Join-Path $PSScriptRoot '..\modules\SSWLab\SSWLab.psd1'
+Import-Module $modulePath -Force
+$SSWConfig = Import-SSWLabConfig -ConfigPath (Join-Path $PSScriptRoot '..\config.ps1')
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
-
-function Escape-XmlValue([string]$Value) {
-  return [System.Security.SecurityElement]::Escape($Value)
-}
-
-function Get-W11Unattend($adminPass) {
-  $adminPassXml   = Escape-XmlValue $adminPass
-  $domainAdminXml = Escape-XmlValue $SSWConfig.DomainAdmin
-    return @"
-<?xml version="1.0" encoding="utf-8"?>
-<unattend xmlns="urn:schemas-microsoft-com:unattend"
-          xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <settings pass="windowsPE">
-    <component name="Microsoft-Windows-International-Core-WinPE"
-               processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35"
-               language="neutral" versionScope="nonSxS">
-      <SetupUILanguage><UILanguage>nl-NL</UILanguage></SetupUILanguage>
-      <InputLocale>nl-NL</InputLocale>
-      <UILanguage>nl-NL</UILanguage>
-      <SystemLocale>nl-NL</SystemLocale>
-      <UserLocale>nl-NL</UserLocale>
-    </component>
-    <component name="Microsoft-Windows-Setup"
-               processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35"
-               language="neutral" versionScope="nonSxS">
-      <DiskConfiguration>
-        <Disk wcm:action="add">
-          <DiskID>0</DiskID>
-          <WillWipeDisk>true</WillWipeDisk>
-          <CreatePartitions>
-            <CreatePartition wcm:action="add"><Order>1</Order><Type>EFI</Type><Size>300</Size></CreatePartition>
-            <CreatePartition wcm:action="add"><Order>2</Order><Type>MSR</Type><Size>16</Size></CreatePartition>
-            <CreatePartition wcm:action="add"><Order>3</Order><Type>Primary</Type><Extend>true</Extend></CreatePartition>
-          </CreatePartitions>
-          <ModifyPartitions>
-            <ModifyPartition wcm:action="add"><Order>1</Order><PartitionID>1</PartitionID><Format>FAT32</Format><Label>System</Label></ModifyPartition>
-            <ModifyPartition wcm:action="add"><Order>2</Order><PartitionID>2</PartitionID></ModifyPartition>
-            <ModifyPartition wcm:action="add"><Order>3</Order><PartitionID>3</PartitionID><Format>NTFS</Format><Label>Windows</Label></ModifyPartition>
-          </ModifyPartitions>
-        </Disk>
-      </DiskConfiguration>
-      <ImageInstall>
-        <OSImage>
-          <InstallFrom>
-            <MetaData wcm:action="add">
-              <Key>/IMAGE/NAME</Key>
-              <Value>Windows 11 Enterprise</Value>
-            </MetaData>
-            <MetaData wcm:action="add">
-              <Key>/IMAGE/EDITIONID</Key>
-              <Value>Enterprise</Value>
-            </MetaData>
-          </InstallFrom>
-          <InstallTo><DiskID>0</DiskID><PartitionID>3</PartitionID></InstallTo>
-          <WillShowUI>Never</WillShowUI>
-        </OSImage>
-      </ImageInstall>
-      <UserData>
-        <AcceptEula>true</AcceptEula>
-        <FullName>SSW Lab</FullName>
-        <Organization>Sogeti SSW</Organization>
-        <ProductKey>
-          <Key>NPPR9-FWDCX-D2C8J-H872K-2YT43</Key>
-          <WillShowUI>Never</WillShowUI>
-        </ProductKey>
-      </UserData>
-    </component>
-  </settings>
-  <settings pass="specialize">
-    <component name="Microsoft-Windows-Shell-Setup"
-               processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35"
-               language="neutral" versionScope="nonSxS">
-      <ComputerName>*</ComputerName>
-      <RegisteredOrganization>Sogeti SSW</RegisteredOrganization>
-      <TimeZone>W. Europe Standard Time</TimeZone>
-    </component>
-  </settings>
-  <settings pass="oobeSystem">
-    <component name="Microsoft-Windows-International-Core"
-               processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35"
-               language="neutral" versionScope="nonSxS">
-      <InputLocale>nl-NL</InputLocale>
-      <UILanguage>nl-NL</UILanguage>
-      <UILanguageFallback>en-US</UILanguageFallback>
-      <SystemLocale>nl-NL</SystemLocale>
-      <UserLocale>nl-NL</UserLocale>
-    </component>
-    <component name="Microsoft-Windows-Shell-Setup"
-               processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35"
-               language="neutral" versionScope="nonSxS">
-      <OOBE>
-        <HideEULAPage>true</HideEULAPage>
-        <HideLocalAccountScreen>true</HideLocalAccountScreen>
-        <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
-        <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
-        <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
-        <NetworkLocation>Work</NetworkLocation>
-        <ProtectYourPC>3</ProtectYourPC>
-        <SkipMachineOOBE>true</SkipMachineOOBE>
-        <SkipUserOOBE>true</SkipUserOOBE>
-      </OOBE>
-      <UserAccounts>
-        <AdministratorPassword>
-          <Value>$adminPassXml</Value>
-          <PlainText>true</PlainText>
-        </AdministratorPassword>
-        <LocalAccounts>
-          <LocalAccount wcm:action="add">
-            <Password><Value>$adminPassXml</Value><PlainText>true</PlainText></Password>
-            <DisplayName>$domainAdminXml</DisplayName>
-            <Group>Administrators</Group>
-            <Name>$domainAdminXml</Name>
-          </LocalAccount>
-        </LocalAccounts>
-      </UserAccounts>
-    </component>
-  </settings>
-</unattend>
-"@
-}
-
-function Get-WS2025Unattend($adminPass) {
-  $adminPassXml   = Escape-XmlValue $adminPass
-  $domainAdminXml = Escape-XmlValue $SSWConfig.DomainAdmin
-    return @"
-<?xml version="1.0" encoding="utf-8"?>
-<unattend xmlns="urn:schemas-microsoft-com:unattend"
-          xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <settings pass="windowsPE">
-    <component name="Microsoft-Windows-International-Core-WinPE"
-               processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35"
-               language="neutral" versionScope="nonSxS">
-      <SetupUILanguage><UILanguage>en-US</UILanguage></SetupUILanguage>
-      <InputLocale>nl-NL</InputLocale><UILanguage>en-US</UILanguage>
-      <SystemLocale>nl-NL</SystemLocale><UserLocale>nl-NL</UserLocale>
-    </component>
-    <component name="Microsoft-Windows-Setup"
-               processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35"
-               language="neutral" versionScope="nonSxS">
-      <DiskConfiguration>
-        <Disk wcm:action="add">
-          <DiskID>0</DiskID>
-          <WillWipeDisk>true</WillWipeDisk>
-          <CreatePartitions>
-            <CreatePartition wcm:action="add"><Order>1</Order><Type>EFI</Type><Size>300</Size></CreatePartition>
-            <CreatePartition wcm:action="add"><Order>2</Order><Type>MSR</Type><Size>16</Size></CreatePartition>
-            <CreatePartition wcm:action="add"><Order>3</Order><Type>Primary</Type><Extend>true</Extend></CreatePartition>
-          </CreatePartitions>
-          <ModifyPartitions>
-            <ModifyPartition wcm:action="add"><Order>1</Order><PartitionID>1</PartitionID><Format>FAT32</Format><Label>System</Label></ModifyPartition>
-            <ModifyPartition wcm:action="add"><Order>2</Order><PartitionID>2</PartitionID></ModifyPartition>
-            <ModifyPartition wcm:action="add"><Order>3</Order><PartitionID>3</PartitionID><Format>NTFS</Format><Label>Windows</Label></ModifyPartition>
-          </ModifyPartitions>
-        </Disk>
-      </DiskConfiguration>
-      <ImageInstall>
-        <OSImage>
-          <InstallTo><DiskID>0</DiskID><PartitionID>3</PartitionID></InstallTo>
-          <WillShowUI>OnError</WillShowUI>
-          <InstallToAvailablePartition>false</InstallToAvailablePartition>
-        </OSImage>
-      </ImageInstall>
-      <UserData>
-        <AcceptEula>true</AcceptEula>
-        <FullName>SSW Lab</FullName>
-        <Organization>Sogeti SSW</Organization>
-      </UserData>
-    </component>
-  </settings>
-  <settings pass="specialize">
-    <component name="Microsoft-Windows-Shell-Setup"
-               processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35"
-               language="neutral" versionScope="nonSxS">
-      <ComputerName>*</ComputerName>
-      <TimeZone>W. Europe Standard Time</TimeZone>
-    </component>
-  </settings>
-  <settings pass="oobeSystem">
-    <component name="Microsoft-Windows-Shell-Setup"
-               processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35"
-               language="neutral" versionScope="nonSxS">
-      <OOBE>
-        <HideEULAPage>true</HideEULAPage>
-        <HideLocalAccountScreen>true</HideLocalAccountScreen>
-        <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
-        <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
-        <NetworkLocation>Work</NetworkLocation>
-        <SkipMachineOOBE>true</SkipMachineOOBE>
-        <SkipUserOOBE>true</SkipUserOOBE>
-      </OOBE>
-      <UserAccounts>
-        <AdministratorPassword>
-          <Value>$adminPassXml</Value>
-          <PlainText>true</PlainText>
-        </AdministratorPassword>
-        <LocalAccounts>
-          <LocalAccount wcm:action="add">
-            <Password><Value>$adminPassXml</Value><PlainText>true</PlainText></Password>
-            <DisplayName>$domainAdminXml</DisplayName>
-            <Group>Administrators</Group>
-            <Name>$domainAdminXml</Name>
-          </LocalAccount>
-        </LocalAccounts>
-      </UserAccounts>
-    </component>
-  </settings>
-</unattend>
-"@
-}
 
 function Build-UnattendISO {
     param([string]$SourceISO, [string]$OutputISO, [string]$UnattendXml, [scriptblock]$Log)
 
     $tmpWork = Join-Path $env:TEMP "SSW-ISO-Work-$(Get-Random)"
     try {
-        & $Log "Unblock-File op $SourceISO…"
+        & $Log "Unblock-File op $SourceISO..."
         Unblock-File -Path $SourceISO -ErrorAction SilentlyContinue
-        & $Log "ISO koppelen…"
+        & $Log "ISO koppelen..."
         $mount = Mount-DiskImage -ImagePath $SourceISO -PassThru -ErrorAction Stop
         $driveLetter = ($mount | Get-Volume).DriveLetter
         if (-not $driveLetter) { throw "Geen driveletter toegewezen." }
         $srcDrive = "${driveLetter}:\"
-        & $Log "Inhoud kopiëren…"
+        & $Log "Inhoud kopieren..."
         New-Item -ItemType Directory -Path $tmpWork -Force | Out-Null
         robocopy $srcDrive $tmpWork /E /NP /NFL /NDL /NJH /NJS | Out-Null
-        & $Log "unattend.xml injecteren…"
+        & $Log "unattend.xml injecteren..."
         $UnattendXml | Set-Content -Path (Join-Path $tmpWork "autounattend.xml") -Encoding UTF8 -Force
-        & $Log "ISO bouwen met oscdimg…"
+        & $Log "ISO bouwen met oscdimg..."
         $oscdimg = "${env:ProgramFiles(x86)}\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe"
         if (-not (Test-Path $oscdimg)) { throw "oscdimg.exe niet gevonden. Installeer Windows ADK (Deployment Tools)." }
-        $bootData = "2#p0,e,b`"$tmpWork\boot\etfsboot.com`"#pEF,e,b`"$tmpWork\efi\microsoft\boot\efisys.bin`""
+        $bootData = '2#p0,e,b"{0}\boot\etfsboot.com"#pEF,e,b"{0}\efi\microsoft\boot\efisys.bin"' -f $tmpWork
         & $oscdimg -m -o -u2 -udfver102 "-bootdata:$bootData" $tmpWork $OutputISO 2>&1 | Out-Null
         if (-not (Test-Path $OutputISO)) { throw "oscdimg heeft geen ISO aangemaakt." }
-        & $Log "✔ ISO aangemaakt: $OutputISO"
+        & $Log "ISO aangemaakt: $OutputISO"
     } finally {
         Dismount-DiskImage -ImagePath $SourceISO -ErrorAction SilentlyContinue
         if (Test-Path $tmpWork) { Remove-Item $tmpWork -Recurse -Force -ErrorAction SilentlyContinue }
@@ -298,15 +89,15 @@ function Build-UnattendISO {
       <Grid>
       <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" VerticalAlignment="Center">
-          <TextBlock Text="Vereiste: Windows ADK — Deployment Tools"
+          <TextBlock Text="Vereiste: Windows ADK - Deployment Tools"
                      Foreground="#CBA6F7" FontSize="12" FontWeight="SemiBold"/>
-          <TextBlock Text="Installeer alleen 'Deployment Tools' (ca. 80 MB) — alleen oscdimg.exe is nodig."
+          <TextBlock Text="Installeer alleen 'Deployment Tools' (ca. 80 MB) - alleen oscdimg.exe is nodig."
                      Foreground="#A6ADC8" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0"/>
         </StackPanel>
-        <Button x:Name="BtnDownloadADK" Grid.Column="1" Content="⬇  Download ADK"
+        <Button x:Name="BtnDownloadADK" Grid.Column="1" Content="Download ADK"
                 Background="#CBA6F7" Foreground="#1E1E2E" FontWeight="SemiBold" FontSize="12"
                 BorderThickness="0" Cursor="Hand" Padding="14,8" Margin="12,0,0,0" Height="34"/>
-      <Button x:Name="BtnOpenMSDN" Grid.Column="2" Content="🧭  Open MSDN"
+      <Button x:Name="BtnOpenMSDN" Grid.Column="2" Content="Open MSDN"
         Background="#89B4FA" Foreground="#1E1E2E" FontWeight="SemiBold" FontSize="12"
         BorderThickness="0" Cursor="Hand" Padding="14,8" Margin="8,0,0,0" Height="34"/>
       </Grid>
@@ -373,8 +164,8 @@ function Build-UnattendISO {
     </Border>
 
     <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-      <Button x:Name="BtnBuild" Content="ISO('s) bouwen" Style="{StaticResource Btn}" Margin="0,0,10,0" Width="140"/>
-      <Button x:Name="BtnNext"  Content="Doorgaan naar New-LabVMs →" Style="{StaticResource Btn}"
+      <Button x:Name="BtnBuild" Content="ISO(s) bouwen" Style="{StaticResource Btn}" Margin="0,0,10,0" Width="140"/>
+      <Button x:Name="BtnNext"  Content="Doorgaan naar New-LabVMs ->" Style="{StaticResource Btn}"
               Background="#A6E3A1" IsEnabled="False" Width="200"/>
     </StackPanel>
   </Grid>
@@ -406,7 +197,7 @@ function Update-DryRunBar {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
-        $dryRunTitle.Text       = "🔒  Dry Run — geen ISO's worden aangemaakt"
+        $dryRunTitle.Text       = "[DRY RUN] Geen ISO's worden aangemaakt"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
@@ -417,7 +208,7 @@ function Update-DryRunBar {
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text       = "⚠  LIVE UITVOERING — ISO's worden daadwerkelijk gebouwd"
+        $dryRunTitle.Text       = "[LIVE] ISO's worden daadwerkelijk gebouwd"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
@@ -433,6 +224,10 @@ $btnMSDN.Add_Click({ Start-Process "https://my.visualstudio.com/Downloads" })
 
 $reader.Add_Loaded({
     $txtOut.Text      = $SSWConfig.ISOPath
+    $savedSecret = Get-SSWSecret -Name 'SSWLab-LabPassword' -Config $SSWConfig -ConfigValueName 'LabPassword' -EnvironmentVariableName 'SSW_LAB_PASSWORD' -AsPlainText
+    if ($savedSecret) {
+        $pwdAdmin.Password = $savedSecret
+    }
     $adkBanner.Visibility = if (Test-Path $oscdimg) { "Collapsed" } else { "Visible" }
     Update-DryRunBar
 })
@@ -467,7 +262,18 @@ $btnBuild.Add_Click({
     $adminPass = $pwdAdmin.Password
     $pre       = if ($isDry) { "[DRY RUN] " } else { "" }
 
+    if (-not $adminPass) {
+        $adminPass = Get-SSWSecret -Name 'SSWLab-LabPassword' -Config $SSWConfig -ConfigValueName 'LabPassword' -EnvironmentVariableName 'SSW_LAB_PASSWORD' -AsPlainText
+    }
+
     if (-not $adminPass) { [System.Windows.MessageBox]::Show("Vul een admin wachtwoord in.", "SSW-Lab"); $btnBuild.IsEnabled = $true; return }
+
+    $policyResult = Test-SSWSecretPolicy -Secret $adminPass
+    if (-not $policyResult.IsValid) {
+        [System.Windows.MessageBox]::Show(("Wachtwoord voldoet niet aan het minimale labbeleid:`n- " + ($policyResult.Findings -join "`n- ")), "SSW-Lab")
+        $btnBuild.IsEnabled = $true
+        return
+    }
 
     if (-not $isDry) {
         if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir -Force | Out-Null }
@@ -485,13 +291,13 @@ $btnBuild.Add_Click({
         if ($job -eq "W11") {
             $src = $txtW11.Text.Trim()
             $dst = Join-Path $outDir "SSW-W11-Unattend.iso"
-            $xml = Get-W11Unattend $adminPass
-            Write-Log "${pre}W11 ISO bouwen: $src → $dst"
+            $xml = New-SSWW11UnattendXml -Config $SSWConfig -AdminPassword $adminPass
+            Write-Log "${pre}W11 ISO bouwen: $src -> $dst"
         } else {
             $src = $txtSrv.Text.Trim()
             $dst = Join-Path $outDir "SSW-WS2025-Unattend.iso"
-            $xml = Get-WS2025Unattend $adminPass
-            Write-Log "${pre}WS2025 ISO bouwen: $src → $dst"
+            $xml = New-SSWServer2025UnattendXml -Config $SSWConfig -AdminPassword $adminPass
+            Write-Log "${pre}WS2025 ISO bouwen: $src -> $dst"
         }
         if (-not $isDry) {
             try { Build-UnattendISO -SourceISO $src -OutputISO $dst -UnattendXml $xml -Log { param($m) Write-Log $m } }
@@ -502,7 +308,7 @@ $btnBuild.Add_Click({
     }
 
     $progress.Value = 100
-    Write-Log $(if ($isDry) { "✔ Dry Run klaar — niets aangemaakt." } else { "✔ Klaar." })
+    Write-Log $(if ($isDry) { "Dry Run klaar - niets aangemaakt." } else { "Klaar." })
     $btnNext.IsEnabled = $true
     $btnBuild.IsEnabled = $true
 })

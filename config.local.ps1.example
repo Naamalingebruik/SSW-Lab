@@ -10,7 +10,11 @@ $configBase = "$PSScriptRoot\config.ps1"
 if (Test-Path $configBase) { . $configBase }
 
 # Overschrijf of vul aan met jouw lokale waarden:
-$SSWConfig.LabPassword = 'VervangDitMetJouwLabWachtwoord'  # Verplicht
+# Gebruik voor wachtwoorden bij voorkeur SecretManagement of environment variables:
+#   setx SSW_LAB_PASSWORD "VervangDitMetJouwLabWachtwoord"
+#   setx SSW_DSRM_PASSWORD "VervangDitMetJouwDsrmWachtwoord"
+# Alleen als tijdelijke fallback kun je lokaal een wachtwoord in config.local.ps1 zetten.
+# $SSWConfig.LabPassword = 'VervangDitMetJouwLabWachtwoord'
 $SSWConfig.EntraUPN    = 'jouwdomein.nl'                   # Bijv. lab.stts.nl
 
 # Optioneel: andere paden als je VHDs ergens anders opslaat

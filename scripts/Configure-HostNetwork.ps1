@@ -132,7 +132,7 @@ function Update-DryRunBar {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
-        $dryRunTitle.Text       = "🔒  Dry Run — geen wijzigingen worden aangebracht"
+        $dryRunTitle.Text       = "[DRY RUN] Geen wijzigingen worden aangebracht"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
@@ -140,7 +140,7 @@ function Update-DryRunBar {
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text       = "⚠  LIVE UITVOERING — wijzigingen worden aangebracht op dit systeem"
+        $dryRunTitle.Text       = "[LIVE] Wijzigingen worden aangebracht op dit systeem"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
@@ -180,15 +180,15 @@ $btnApply.Add_Click({
         $progress.Value = 10
         $existSwitch = Get-VMSwitch -Name $switchName -ErrorAction SilentlyContinue
         if ($existSwitch) {
-            Write-Log "${pre}vSwitch '$switchName' bestaat al — overgeslagen."
+            Write-Log ("{0}vSwitch {1} bestaat al - overgeslagen." -f $pre, $switchName)
         } else {
-            Write-Log "${pre}New-VMSwitch -Name '$switchName' -SwitchType Internal"
+            Write-Log ("{0}New-VMSwitch -Name {1} -SwitchType Internal" -f $pre, $switchName)
             if (-not $isDry) { New-VMSwitch -Name $switchName -SwitchType Internal -ErrorAction Stop | Out-Null }
         }
         $progress.Value = 35
 
         $adapterName = "vEthernet ($switchName)"
-        Write-Log "${pre}New-NetIPAddress -IPAddress $gateway -PrefixLength 24 -InterfaceAlias '$adapterName'"
+        Write-Log ("{0}New-NetIPAddress -IPAddress {1} -PrefixLength 24 -InterfaceAlias {2}" -f $pre, $gateway, $adapterName)
         if (-not $isDry) {
             $netAdapter = Get-NetAdapter -Name $adapterName -ErrorAction SilentlyContinue
             if ($netAdapter) {
@@ -202,14 +202,14 @@ $btnApply.Add_Click({
 
         $existNAT = Get-NetNat -Name $natName -ErrorAction SilentlyContinue
         if ($existNAT) {
-            Write-Log "${pre}NAT '$natName' bestaat al — overgeslagen."
+            Write-Log ("{0}NAT {1} bestaat al - overgeslagen." -f $pre, $natName)
         } else {
-            Write-Log "${pre}New-NetNat -Name '$natName' -InternalIPInterfaceAddressPrefix $subnet"
+            Write-Log ("{0}New-NetNat -Name {1} -InternalIPInterfaceAddressPrefix {2}" -f $pre, $natName, $subnet)
             if (-not $isDry) { New-NetNat -Name $natName -InternalIPInterfaceAddressPrefix $subnet -ErrorAction Stop | Out-Null }
         }
 
         $progress.Value = 100
-        Write-Log $(if ($isDry) { "✔ Dry Run klaar — niets gewijzigd." } else { "✔ Netwerk gereed." })
+        Write-Log $(if ($isDry) { "Dry Run klaar - niets gewijzigd." } else { "Netwerk gereed." })
         $btnNext.IsEnabled = $true
     } catch {
         Write-Log "FOUT: $_"
@@ -222,7 +222,7 @@ $btnNext.Add_Click({
 
     # Vraag of de gebruiker de ISO-stap wil doen of overslaan
     $choice = [System.Windows.MessageBox]::Show(
-        "Wil je nu unattended ISO's bouwen (aanbevolen)?`n`nJa  → Build-UnattendedIsos.ps1`nNee → New-LabVMs.ps1 (handmatige installatie)",
+        "Wil je nu unattended ISOs bouwen (aanbevolen)?`n`nJa  -> Build-UnattendedIsos.ps1`nNee -> New-LabVMs.ps1 (handmatige installatie)",
         "SSW-Lab | Volgende stap",
         [System.Windows.MessageBoxButton]::YesNo,
         [System.Windows.MessageBoxImage]::Question

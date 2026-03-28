@@ -5,17 +5,13 @@
 # Dry Run is standaard AAN — zet vinkje uit om echt uit te voeren.
 # ============================================================
 
-. "$PSScriptRoot\..\config.ps1"
+$modulePath = Join-Path $PSScriptRoot '..\modules\SSWLab\SSWLab.psd1'
+Import-Module $modulePath -Force
+$SSWConfig = Import-SSWLabConfig -ConfigPath (Join-Path $PSScriptRoot '..\config.ps1')
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
 
-$profiles = Get-Content $SSWConfig.ProfilePath -Raw | ConvertFrom-Json
-
-function Get-TotalRAM($vmKeys) {
-    $total = 0
-    foreach ($k in $vmKeys) { if ($profiles.$k) { $total += $profiles.$k.RAM_GB } }
-    return $total
-}
+$profiles = Get-SSWVmProfiles -Config $SSWConfig
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -171,7 +167,7 @@ function Update-DryRunBar {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
-        $dryRunTitle.Text       = "🔒  Dry Run — geen VM's worden aangemaakt"
+        $dryRunTitle.Text       = "[DRY RUN] Geen VM's worden aangemaakt"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
@@ -182,7 +178,7 @@ function Update-DryRunBar {
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text       = "⚠  LIVE UITVOERING — VM's worden aangemaakt op dit systeem"
+        $dryRunTitle.Text       = "[LIVE] VM's worden aangemaakt op dit systeem"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
@@ -221,7 +217,7 @@ $chkDryRun.Add_Unchecked({ Update-DryRunBar })
 
 function Update-RAMPreview {
     $sel = $checkBoxes.GetEnumerator() | Where-Object { $_.Value.IsChecked } | ForEach-Object { $_.Key }
-    $total = Get-TotalRAM $sel
+    $total = Get-SSWVmSelectionRamTotal -Profiles $profiles -VmKeys $sel
     $ramPreview.Text = "Totaal geselecteerd: $total GB RAM"
 }
 
@@ -320,7 +316,7 @@ $btnCreate.Add_Click({
         $existing = Get-VM -Name $vmName -ErrorAction SilentlyContinue
 
         if ($existing) {
-            Write-Log "${pre}$vmName bestaat al — overgeslagen."
+            Write-Log "${pre}$vmName bestaat al - overgeslagen."
           $skippedCount++
         } else {
             $isoPath = if ($p.OS -eq "Server2025") { $txtSrvISO.Text } else { $txtW11ISO.Text }
@@ -360,14 +356,14 @@ $btnCreate.Add_Click({
 
     $progress.Value = 100
     if ($isDry) {
-      Write-Log "✔ Dry Run klaar — niets aangemaakt. Geselecteerd: $($sel.Count), bestaand/overgeslagen: $skippedCount."
+      Write-Log "Dry Run klaar - niets aangemaakt. Geselecteerd: $($sel.Count), bestaand/overgeslagen: $skippedCount."
       $btnNext.IsEnabled = $true
     } elseif ($failedCount -gt 0) {
-      Write-Log "⚠ Voltooid met fouten. Aangemaakt: $createdCount, overgeslagen: $skippedCount, fouten: $failedCount."
+      Write-Log "Voltooid met fouten. Aangemaakt: $createdCount, overgeslagen: $skippedCount, fouten: $failedCount."
       Write-Log "Los de fouten op en run deze stap opnieuw voordat je doorgaat."
       $btnNext.IsEnabled = $false
     } else {
-      Write-Log "✔ Klaar. Aangemaakt: $createdCount, overgeslagen: $skippedCount, fouten: 0. Start de VMs om de installatie te voltooien."
+      Write-Log "Klaar. Aangemaakt: $createdCount, overgeslagen: $skippedCount, fouten: 0. Start de VMs om de installatie te voltooien."
       $btnNext.IsEnabled = $true
     }
     $btnCreate.IsEnabled = $true

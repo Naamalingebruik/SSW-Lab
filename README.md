@@ -9,6 +9,7 @@ Gebouwd door en voor Sogeti SSW collega's — geen eigen domein of dedicated har
 
 > **Beveiligingsnotitie:** Dit lab gebruikt lokale wachtwoorden die via unattend.xml in ISO's worden opgeslagen.  
 > Gebruik **nooit** productiewachtwoorden of bedrijfsaccounts. Gebruik uitsluitend MSDN-testaccounts en wachtwoorden die je specifiek voor dit lab aanmaakt.
+> Voor invoer in scripts heeft `SSW-Lab` nu voorkeur voor environment variables of SecretManagement boven plaintext in repo-bestanden.
 
 ---
 
@@ -58,8 +59,6 @@ Elk script heeft een GUI en een knop om door te gaan naar het volgende.
 ## Naamgeving
 
 Gebruik in documentatie en dagelijks gebruik altijd de primaire scriptnamen zoals `Initialize-Preflight.ps1`, `Configure-HostNetwork.ps1`, `Build-UnattendedIsos.ps1`, `New-LabVMs.ps1` en `Initialize-DomainController.ps1`.
-
-Genummerde scriptnamen blijven alleen bestaan als compatibiliteitswrappers voor oudere verwijzingen of bestaande snelkoppelingen.
 
 ---
 
@@ -112,6 +111,68 @@ Voor persoonlijke overrides (bijv. Entra UPN) maak je `config.local.ps1` aan —
 # config.local.ps1 (niet committen)
 $SSWConfig.EntraUPN = "lab.jouwdomein.nl"
 ```
+
+Voor secrets heeft dit de voorkeur:
+
+```powershell
+setx SSW_LAB_PASSWORD "GebruikEenSterkLabWachtwoord!123"
+setx SSW_DSRM_PASSWORD "GebruikEenApartDsrmWachtwoord!123"
+```
+
+`Build-UnattendedIsos.ps1` en `Initialize-DomainController.ps1` gebruiken nu eerst ingevulde GUI-velden, daarna `config.local.ps1`, daarna environment variables en tenslotte `Get-Secret` als dat beschikbaar is.
+
+---
+
+## Herbruikbare logica en tests
+
+Een eerste deel van de pure logica is verplaatst naar `modules/SSWLab/`:
+
+- VM-profielen laden en opzoeken
+- RAM-berekening voor preset/selectie
+- secret-resolutie en credential-opbouw
+- eenvoudige secret policy-validatie
+
+Basis-tests staan in `tests/SSWLab.Tests.ps1`. Kwaliteitschecks draaien via:
+
+```powershell
+.\build\Invoke-QualityChecks.ps1
+```
+
+De huidige verificatie gebruikt zowel `Pester` als `PSScriptAnalyzer`. Tests staan groen op `13 passed, 0 failed`; linting draait ook en maakt aanvullende parser- en kwaliteitsbevindingen zichtbaar, waarvan de kern setup-flow al deels is opgeschoond.
+
+---
+
+## Trajectgestuurde voortgang
+
+`SSW-Lab` houdt voortgang nu bij op basis van het actieve certificeringstraject in plaats van via de oude vaste MD-102-statusflow.
+
+De trajectkeuze die je in de GUI maakt, wordt voortaan automatisch hergebruikt voor deze voortgangsflow. Namen zoals `MD-102`, `MS-102`, `SC-300` en `AZ-104` worden intern genormaliseerd naar `MD102`, `MS102`, `SC300` en `AZ104`.
+
+Handmatig instellen kan nog steeds:
+
+```powershell
+.\scripts\utility\Set-CurrentTrack.ps1 -TrackId MS102
+```
+
+Markeer daarna checkpoints als afgerond:
+
+```powershell
+.\scripts\utility\Set-TrackCheckpoint.ps1 -CheckpointId week1 -Note "Tenantbasis staat"
+```
+
+Genereer de actuele statusbestanden:
+
+```powershell
+.\scripts\utility\Get-TrackProgress.ps1
+```
+
+Dit schrijft lokaal naar:
+- `status.md`
+- `next-steps.md`
+- `profiles/current-track.local.json`
+- `profiles/track-checkpoints.local.json`
+
+Deze bestanden staan bewust in `.gitignore`, zodat voortgang persoonlijk blijft per gebruiker en per traject.
 
 ---
 

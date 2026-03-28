@@ -40,6 +40,126 @@ Voor oude scriptpaden die bewust als compatlaag blijven bestaan: zie `docs/compa
 
 ---
 
+### Eerste stap gezet naar module-architectuur, veiliger secret-gebruik en tests
+
+**Beslissing:** Een eerste deel van de pure logica is uit GUI-scripts gehaald en ondergebracht in `modules/SSWLab/`. Secrets blijven backward compatible met handmatige invoer en `config.local.ps1`, maar hebben nu een veiliger voorkeursroute via environment variables of `SecretManagement` wanneer beschikbaar.
+
+**Wat nu centraal staat in de module:**
+- VM-profielen laden en opzoeken
+- RAM-berekening voor VM-selecties
+- secret-resolutie via GUI → config → environment variable → `Get-Secret`
+- credential-opbouw
+- basis secret policy-validatie
+
+**Concreet toegepast in scripts:**
+- `scripts/New-LabVMs.ps1` gebruikt nu modulelogica voor profielinlees en RAM-berekening
+- `scripts/Build-UnattendedIsos.ps1` kan `LabPassword` automatisch ophalen uit `SSW_LAB_PASSWORD`, `config.local.ps1` of `Get-Secret`
+- `scripts/Initialize-DomainController.ps1` gebruikt dezelfde secret-flow voor lokaal adminwachtwoord en optioneel `SSW_DSRM_PASSWORD` voor DSRM
+
+**Test- en kwaliteitskeuze:**
+- Pester-basis toegevoegd in `tests/SSWLab.Tests.ps1`
+- Quality-check runner toegevoegd in `build/Invoke-QualityChecks.ps1`
+- `PSScriptAnalyzer` is inmiddels ook geïnstalleerd en wordt actief meegenomen in de kwaliteitsrun
+
+**Validatie:** Op 2026-03-28 succesvol geverifieerd met:
+- `.\build\Invoke-QualityChecks.ps1`
+- tests: `Passed: 6 Failed: 0`
+- linting: uitgevoerd; bevindingen uit de kern setup-flow zijn daarna gericht opgeschoond
+
+**Bestanden geraakt:**
+- `modules/SSWLab/SSWLab.psm1`
+- `modules/SSWLab/SSWLab.psd1`
+- `tests/SSWLab.Tests.ps1`
+- `build/Invoke-QualityChecks.ps1`
+- `scripts/New-LabVMs.ps1`
+- `scripts/Build-UnattendedIsos.ps1`
+- `scripts/Initialize-DomainController.ps1`
+- `config.local.ps1.example`
+- `README.md`
+
+---
+
+### Parser-cleanup voor kern setup-flow
+
+**Beslissing:** De primaire setup-scripts voor hostnetwerk, unattended ISO's en domain controller zijn opgeschoond naar parser-veilige PowerShell 5.1 syntax, zodat tooling niet meer strandt op encoding-/tekstissues in de hoofdflow.
+
+**Aanleiding:** Na installatie van `Pester` en `PSScriptAnalyzer` bleek dat meerdere scripts in de kernflow parse-fouten gaven door een combinatie van decoratieve Unicode-tekens en kwetsbare stringconstructies. Daardoor was betrouwbare linting op de kernsetup niet mogelijk.
+
+**Wat is aangepast:**
+- Tekststrings in de GUI-logica genormaliseerd naar ASCII-vriendelijke varianten
+- kwetsbare stringopbouw vervangen waar dat parserissues gaf
+- `Build-UnattendedIsos.ps1` bootdata-string vereenvoudigd
+- quality runner bijgewerkt voor moderne `Pester 5` configuratie
+
+**Validatie:** Op 2026-03-28 succesvol geverifieerd:
+- `build/Parse-File.ps1` geeft nu `PARSE_OK` voor:
+  - `scripts/Build-UnattendedIsos.ps1`
+  - `scripts/Configure-HostNetwork.ps1`
+  - `scripts/Initialize-DomainController.ps1`
+- `build/Invoke-QualityChecks.ps1` blijft groen op tests (`6 passed, 0 failed`)
+
+**Bestanden geraakt:**
+- `build/Parse-File.ps1`
+- `build/Invoke-QualityChecks.ps1`
+- `scripts/Build-UnattendedIsos.ps1`
+- `scripts/Configure-HostNetwork.ps1`
+- `scripts/Initialize-DomainController.ps1`
+
+---
+
+### Extra testdekking toegevoegd voor config-validatie en unattend XML
+
+**Beslissing:** Nog een deel van de pure logica is uit `Build-UnattendedIsos.ps1` gehaald en verplaatst naar `modules/SSWLab/`, zodat config-validatie en unattend XML-generatie direct testbaar zijn zonder GUI.
+
+**Wat is toegevoegd aan de module:**
+- `Test-SSWConfig`
+- `New-SSWW11UnattendXml`
+- `New-SSWServer2025UnattendXml`
+- `ConvertTo-SSWXmlSafeValue`
+
+**Gevolg in scripts:**
+- `scripts/Build-UnattendedIsos.ps1` gebruikt nu modulefuncties voor W11- en Server 2025-unattend XML
+- XML-escaping en inhoudschecks zijn niet langer alleen impliciet in het GUI-script aanwezig, maar expliciet testbaar
+
+**Validatie:** Op 2026-03-28 succesvol geverifieerd:
+- `build/Invoke-QualityChecks.ps1`
+- tests: `Passed: 10 Failed: 0`
+
+**Bestanden geraakt:**
+- `modules/SSWLab/SSWLab.psm1`
+- `modules/SSWLab/SSWLab.psd1`
+- `scripts/Build-UnattendedIsos.ps1`
+- `tests/SSWLab.Tests.ps1`
+
+---
+
+### Startup- en preflight-scripts parser-clean gemaakt
+
+**Beslissing:** Ook de operationele hostscripts buiten de GUI-setupflow zijn opgeschoond naar parser-veilige PowerShell 5.1 syntax, zodat kwaliteitschecks niet meer vastlopen op preflight- of startup-automatisering.
+
+**Wat is gevalideerd:**
+- `scripts/Initialize-Preflight.ps1` geeft nu `PARSE_OK`
+- `scripts/utility/Start-LabVMs.ps1` geeft nu `PARSE_OK`
+- `scripts/Install-EntraConnect.ps1` geeft nu `PARSE_OK`
+
+**Inhoudelijke lijn:**
+- tekststrings en UI-teksten genormaliseerd naar parser-veilige varianten
+- `Start-LabVMs.ps1` sluit nu ook beter aan op de gedeelde module voor config/profielen
+- kwaliteitsrun blijft groen op tests na deze opschoning
+
+**Validatie:** Op 2026-03-28 succesvol geverifieerd:
+- `build/Parse-File.ps1`
+- `build/Invoke-QualityChecks.ps1`
+- tests: `Passed: 10 Failed: 0`
+
+**Bestanden geraakt:**
+- `scripts/Initialize-Preflight.ps1`
+- `scripts/Install-EntraConnect.ps1`
+- `scripts/utility/Start-LabVMs.ps1`
+- `README.md`
+
+---
+
 ### Switch-Lab GUI verplaatst naar M365-Lab
 
 **Beslissing:** `scripts/Switch-Lab.ps1` is verwijderd uit de SSW-Lab repo. De centrale GUI-switcher staat nu in `M365-Lab/scripts/host/Switch-Lab.ps1`.
@@ -167,7 +287,7 @@ Ingesteld via `scripts/utility/Repair-W11-02Network.ps1` op 2026-03-22.
 
 ### Scriptnamen genormaliseerd
 
-**Beslissing:** De primaire setup-scripts volgen nu een consistente werkwoord-eerst naamgeving. Oude stapnummers blijven alleen nog bestaan als compatibiliteitswrappers.
+**Beslissing:** De primaire setup-scripts volgen nu een consistente werkwoord-eerst naamgeving.
 
 **Nieuwe primaire namen:**
 | Oud | Nieuw |
@@ -183,7 +303,79 @@ Ingesteld via `scripts/utility/Repair-W11-02Network.ps1` op 2026-03-22.
 | `utility\\_dhcp-setup.ps1` | `utility\\Initialize-DhcpScope.ps1` |
 | `utility\\Fix-W11-02-Network.ps1` | `utility\\Repair-W11-02Network.ps1` |
 
-**Gevolg:** README, wiki, runbooks en build-output gebruiken nu dezelfde functionele namen. Bestaande snelkoppelingen of oude documentatie blijven tijdelijk werken via wrappers.
+**Gevolg:** README, wiki, runbooks en build-output gebruiken nu dezelfde functionele namen.
+
+---
+
+### Wrapperlaag verwijderd na standaardisatie op primaire scriptnamen
+
+**Beslissing:** De tijdelijke wrapperlaag met oude genummerde scriptnamen en utility-aliasen is verwijderd uit `SSW-Lab`.
+
+**Aanleiding:** De repo-documentatie, runbooks, wiki en build-uitvoer verwezen al naar de primaire scriptnamen. Omdat de repo nog in actieve verbouwing zit en er geen noodzaak meer was om oude paden te sparen, leverden de wrappers vooral dubbel onderhoud en extra ruis op.
+
+**Verwijderd:**
+- `scripts/00-PREFLIGHT.ps1`
+- `scripts/01-NETWORK.ps1`
+- `scripts/02-MAKE-ISOS.ps1`
+- `scripts/03-VMS.ps1`
+- `scripts/03A-CLEANUP-VMS.ps1`
+- `scripts/04-SETUP-DC.ps1`
+- `scripts/05-JOIN-DOMAIN.ps1`
+- `scripts/06-SETUP-MGMT.ps1`
+- `scripts/utility/_dhcp-setup.ps1`
+- `scripts/utility/Fix-W11-02-Network.ps1`
+- `scripts-en/02-MAKE-ISOS.ps1`
+- `scripts-en/03-VMS.ps1`
+- `scripts-en/03A-CLEANUP-VMS.ps1`
+
+**Gevolg:** `SSW-Lab` heeft nu nog maar één operationeel pad per functie. Gebruik alleen de primaire scriptnamen.
+
+---
+
+### Losse historische statusdump onder scripts verwijderd
+
+**Beslissing:** `scripts/status.md` is verwijderd uit `SSW-Lab`.
+
+**Aanleiding:** Dit bestand was een oude gegenereerde voortgangsdump op een niet-logische locatie onder `scripts/`, met zichtbare encoding-schade en zonder actuele operationele verwijzingen. De echte voortgangsflow hoort via de utility-scripts en statusbestanden op repo-niveau te lopen, niet via een losse markdowndump tussen de scripts.
+
+**Gevolg:** Er blijft minder verwarrende ballast over in `scripts/`. Historische status hoort, als die nog relevant is, niet als oud gegenereerd artefact tussen de uitvoerbare scripts te blijven staan.
+
+---
+
+### Oude MD-102 progress-flow vervangen door trajectgestuurde voortgang
+
+**Beslissing:** De oude progress-scripts `scripts/utility/Get-LabProgress.ps1` en `scripts/utility/Register-LabProgressTask.ps1` zijn verwijderd en vervangen door een trajectgestuurde voortgangsflow.
+
+**Nieuwe flow:**
+- `scripts/utility/Set-CurrentTrack.ps1`
+- `scripts/utility/Set-TrackCheckpoint.ps1`
+- `scripts/utility/Get-TrackProgress.ps1`
+- `scripts/utility/Register-TrackProgressTask.ps1`
+- `profiles/learning-tracks.json`
+
+**Aanleiding:** De vorige statusflow was inhoudelijk hard op MD-102 gecodeerd, schreef historisch wisselende outputbestanden en sloot niet meer aan op hoe de repo inmiddels meerdere certificeringstrajecten ondersteunt. De nieuwe aanpak volgt het actieve traject van de gebruiker en geeft alleen de relevante checkpoints en volgende stap terug.
+
+**Gevolg:** Voortgang wordt nu lokaal bijgehouden per gebruiker en per traject via `profiles/*.local.json`, en gerenderd naar `status.md` en `next-steps.md` in de repo-root. De oude, vaste MD-102-flow is daarmee technisch en inhoudelijk uitgefaseerd.
+
+---
+
+### Wiki-home herschreven als geldende versie
+
+**Beslissing:** `docs/wiki-Home.md` en `docs/wiki-Home-EN.md` zijn herschreven en expliciet gemarkeerd als de geldende wiki-versie vanaf `2026-03-28 23:14 +01:00`.
+
+**Aanleiding:** De oudere wiki-inhoud liep achter op de repo-realiteit na het verwijderen van wrappers en het vervangen van de oude MD-102 progress-flow door trajectgestuurde voortgang. Daardoor bestond het risico dat collega’s nog verouderde operationele paden zouden volgen.
+
+**Gevolg:** De wiki-home pagina’s fungeren nu weer als actuele bron van waarheid voor scriptnamen, voortgangsflow en de status van vervallen onderdelen.
+
+---
+
+### Trajectkeuze uit GUI gekoppeld aan track-state
+
+**Beslissing:** De trajectkeuze in `Initialize-Preflight.ps1` en `Initialize-ManagementHost.ps1` schrijft nu automatisch de actieve track-state weg voor de trajectgestuurde voortgangsflow.
+
+**Aanleiding:** De gebruiker kiest zijn traject al vroeg in de setup. Een extra handmatige stap via `Set-CurrentTrack.ps1` was daardoor inhoudelijk dubbel en verhoogde het risico op afwijkende state tussen GUI-keuze en voortgangsrapportage.
+
+**Gevolg:** GUI-keuzes zoals `MD-102`, `MS-102`, `SC-300` en `AZ-104` worden nu intern genormaliseerd naar de track-ids `MD102`, `MS102`, `SC300` en `AZ104`. De voortgangsflow kan daardoor direct leunen op de trajectkeuze die eerder in het lab is gemaakt.
 
 ---
 
