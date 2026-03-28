@@ -5,7 +5,7 @@ Gebouwd door en voor Sogeti SSW collega's — geen eigen domein of dedicated har
 
 > **Status:** Dit is een persoonlijk/community project en **geen officieel Sogeti- of Capgemini-product**.
 
-> **Tenant-aanname:** `SSW-Lab` wordt gebruikt in combinatie met de gedeelde Microsoft 365 / Entra dev-tenant met Intune en testdata die via Sogeti / Capgemini beschikbaar is. De studiegidsen geven expliciet aan wanneer je lokaal in het lab werkt en wanneer je naar de dev-tenant of Azure-portal moet.
+> **Tenant-aanname:** `SSW-Lab` wordt gebruikt in combinatie met een Microsoft 365 / Entra dev-tenant met Intune en standaard testdata uit die dev-tenant. De studiegidsen geven expliciet aan wanneer je lokaal in het lab werkt en wanneer je naar de dev-tenant of Azure-portal moet.
 
 > **Beveiligingsnotitie:** Dit lab gebruikt lokale wachtwoorden die via unattend.xml in ISO's worden opgeslagen.  
 > Gebruik **nooit** productiewachtwoorden of bedrijfsaccounts. Gebruik uitsluitend MSDN-testaccounts en wachtwoorden die je specifiek voor dit lab aanmaakt.

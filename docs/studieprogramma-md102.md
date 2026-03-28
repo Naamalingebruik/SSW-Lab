@@ -16,7 +16,7 @@
 > **Bijgewerkt:** Skills gemeten per 23 januari 2026. De domeinstructuur is ingrijpend veranderd — "Deployen en upgraden" en "Identiteit en compliance" zijn samengevoegd tot **Infrastructuur voor devices voorbereiden**. "Beheren, onderhouden en beveiligen" is gesplitst in twee aparte domeinen.
 
 > **Voorwaarde:** MSDN/Visual Studio-subscriptie met Microsoft 365 E5/E3 developer tenant (voor Intune, Entra ID)
-> **Tenantnotitie:** als een oefening Intune, Entra of portalstappen noemt, voer je die uit in de gedeelde dev-tenant van Sogeti / Capgemini en gebruik je de lokale VM's als testdevices.
+> **Tenantnotitie:** als een oefening Intune, Entra of portalstappen noemt, voer je die uit in de Microsoft 365 / Entra dev-tenant en gebruik je de lokale VM's als testdevices. De testdata komt uit de standaardinhoud van die dev-tenant.
 > **Domeinnotitie:** een eigen geverifieerd domein in je dev-tenant is niet verplicht, maar wel nuttig als je realistischer wilt oefenen met UPN's, Entra Connect en hybrid identity.
 
 ## Zo gebruik je dit studieprogramma

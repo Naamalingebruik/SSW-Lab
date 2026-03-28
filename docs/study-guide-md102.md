@@ -16,7 +16,7 @@
 > **Updated:** Skills measured as of January 23, 2026. The domain structure changed significantly — "Deploy and upgrade" and "Manage identity and compliance" merged into **Prepare infrastructure for devices**. "Manage, maintain, and protect" was split into two separate domains.
 
 > **Prerequisite:** MSDN/Visual Studio subscription with Microsoft 365 E5/E3 developer tenant (for Intune, Entra ID)
-> **Tenant note:** when an exercise mentions Intune, Entra, or portal steps, perform those in the shared Sogeti / Capgemini dev tenant and use the local VMs as your test devices.
+> **Tenant note:** when an exercise mentions Intune, Entra, or portal steps, perform those in the Microsoft 365 / Entra dev tenant and use the local VMs as your test devices. The test data comes from the standard content in that dev tenant.
 > **Domain note:** your own verified custom domain in the dev tenant is not required, but it is useful when you want more realistic UPN, Entra Connect, and hybrid identity practice.
 
 ## How to use this study guide
