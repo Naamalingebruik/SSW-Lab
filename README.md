@@ -53,6 +53,14 @@ Elk script heeft een GUI en een knop om door te gaan naar het volgende.
 
 ---
 
+## Naamgeving
+
+Gebruik in documentatie en dagelijks gebruik altijd de primaire scriptnamen zoals `Initialize-Preflight.ps1`, `Configure-HostNetwork.ps1`, `Build-UnattendedIsos.ps1`, `New-LabVMs.ps1` en `Initialize-DomainController.ps1`.
+
+Genummerde scriptnamen blijven alleen bestaan als compatibiliteitswrappers voor oudere verwijzingen of bestaande snelkoppelingen.
+
+---
+
 ## Presets
 
 | Preset | VMs | RAM |
