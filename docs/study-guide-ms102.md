@@ -13,7 +13,8 @@
 | Manage security and threats by using Microsoft Defender XDR | 30–35% |
 | Manage compliance by using Microsoft Purview | 10–15% |
 
-> **Updated:** Skills measured as of November 10, 2025. Defender domain renamed to **Microsoft Defender XDR** (30–35%). Compliance domain renamed to **Microsoft Purview** (10–15%).
+> **Updated:** Skills measured as of April 28, 2026 (study guide). Domain weights and structure unchanged from November 10, 2025. Minor updates to users/groups management, role groups, secure access, Defender for Endpoint, and DLP scope (now explicitly includes Power BI and Microsoft 365 Copilot).
+> **⚠️ Note for candidates taking the exam before April 28, 2026:** The current live exam (exam page) uses different domain weights — Tenant 10–15%, Defender XDR 35–40%, Purview 15–20%. The study guide weights above apply as of April 28, 2026. Always check [the official exam page](https://learn.microsoft.com/credentials/certifications/exams/ms-102/) before scheduling.
 
 > **Prerequisite:** Microsoft 365 E5 developer tenant (via MSDN/M365 developer program)
 > Sign up at: [developer.microsoft.com/microsoft-365/dev-program](https://developer.microsoft.com/microsoft-365/dev-program)

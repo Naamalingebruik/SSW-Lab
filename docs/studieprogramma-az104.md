@@ -125,6 +125,49 @@ az consumption budget create --budget-name "sswlab-budget" --amount 50 --time-gr
 
 ---
 
+**Scenario-vragen:**
+
+5. Een bedrijf neemt een nieuwe bedrijfseenheid over en wil het IT-team de mogelijkheid geven om VMs aan te maken en te beheren in een specifieke subscription, maar zonder netwerkconfiguraties te wijzigen of rollen toe te wijzen aan anderen. Welke ingebouwde Azure RBAC-rol moet je toewijzen?
+   - A) Owner
+   - B) Contributor
+   - C) Virtual Machine Contributor
+   - D) User Access Administrator
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Virtual Machine Contributor.** Deze rol geeft rechten om VMs aan te maken en te beheren, maar niet om het virtuele netwerk te beheren of RBAC-rollen toe te wijzen. Contributor (B) zou ook netwerkwijzigingen toestaan. Owner (A) omvat het recht om rollen toe te wijzen. User Access Administrator (D) is specifiek bedoeld voor het beheer van roltoewijzingen.
+
+</details>
+
+6. Jouw organisatie moet ervoor zorgen dat er in geen enkele subscription binnen de management group Azure-resources worden aangemaakt buiten West Europe en North Europe. Wat is de juiste aanpak?
+   - A) Wijs de Contributor-rol toe aan alle subscription-owners en instrueer hen geen resources elders aan te maken
+   - B) Maak een Azure Policy met de definitie "Allowed locations" en wijs deze toe op management group-niveau
+   - C) Maak een Azure Policy per subscription afzonderlijk aan
+   - D) Configureer een Resource Lock op elke subscription
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Maak een Azure Policy met de definitie "Allowed locations" en wijs deze toe op management group-niveau.** Door de policy op management group-niveau toe te wijzen, geldt deze automatisch voor alle onderliggende subscriptions. Optie C werkt wel, maar is niet schaalbaar. Optie A is afhankelijk van handmatige naleving. Optie D — resource locks beperken de locatie van nieuwe resources niet.
+
+</details>
+
+7. Een beheerder configureert een ReadOnly resource lock op een resource group met daarin een storage account. Een gebruiker met de Contributor-rol probeert een blob te uploaden. Wat gebeurt er?
+   - A) Het uploaden slaagt omdat de gebruiker Contributor-rechten heeft
+   - B) Het uploaden mislukt omdat de lock alle schrijfbewerkingen blokkeert, inclusief schrijfacties op het datavlak
+   - C) Het uploaden slaagt omdat datavlakbewerkingen buiten ARM locks vallen
+   - D) Het uploaden mislukt, maar alleen voor nieuwe containers, niet voor bestaande
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Het uploaden slaagt omdat datavlakbewerkingen buiten ARM locks vallen.** Resource locks werken op het Azure Resource Manager-niveau (het beheervlak) en blokkeren geen datavlakbewerkingen zoals het uploaden van blobs, het lezen van bestanden of wachtrij-bewerkingen. De Contributor-rol staat de schrijfactie op het datavlak toe; de lock verhindert dit niet.
+
+</details>
+
+---
+
 ## Week 2 — Storage implementeren en beheren
 > **Examendomein:** Storage implementeren en beheren · **Gewicht:** 15–20%
 
@@ -206,6 +249,49 @@ net use Z: \\sswlabstorage.file.core.windows.net\myfileshare /u:AZURE\sswlabstor
 3. Azure File Sync koppelt een on-premises Windows File Server aan een Azure File Share. Bestanden worden bidirectioneel gesynchroniseerd. Cloud tiering: als de lokale schijf vol dreigt te raken, worden zelden gebruikte bestanden vervangen door een verwijzingsstub op de lokale server — het bestand zelf staat alleen in Azure Files. Bij toegang wordt het bestand transparant vanuit de cloud geladen. Voordeel: lokale schijfruimte wordt geoptimaliseerd terwijl alle bestanden bereikbaar blijven.
 
 4. LRS: 3 kopieën in één datacenter; bescherming tegen server- of schijfuitval, niet bij datacenteruitval. ZRS: 3 kopieën in 3 aparte availability zones binnen dezelfde regio; beschermt bij uitval van één datacenter. GRS: LRS in primaire regio plus asynchroon repliceren naar een secundaire regio (honderden km's weg); beschermt bij volledige regio-uitval, maar de secundaire regio is standaard alleen leesbaar via Microsoft-initiated failover (RA-GRS maakt de secundaire altijd leesbaar). GZRS: combineert ZRS in de primaire regio met GRS naar de secundaire regio; maximale bescherming zowel bij zone- als bij regio-uitval.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Een bedrijf deelt maandelijkse financiële rapporten met een externe auditor. De rapporten staan in Azure Blob Storage. De auditor heeft gedurende precies 48 uur leestoegang nodig tot een specifieke container. Welke aanpak biedt de minste rechten terwijl aan de vereiste wordt voldaan?
+   - A) Deel de storage account access key met de auditor
+   - B) Maak een SAS-token aan dat is beperkt tot de container met leesrechten en een vervaltijd van 48 uur
+   - C) Ken de auditor de rol Storage Blob Data Reader toe op subscription-niveau
+   - D) Maak de container publiek toegankelijk (anonieme toegang)
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Maak een SAS-token aan dat is beperkt tot de container met leesrechten en een vervaltijd van 48 uur.** Een SAS-token beperkt tot de container met alleen-lezentoegang en een vervaltijd van 48 uur biedt precies de vereiste toegang. Optie A deelt volledige accounttoegang zonder vervaldatum. Optie C verleent toegang buiten de vereiste scope. Optie D verwijdert alle toegangscontrole.
+
+</details>
+
+6. Een lifecycle management policy is geconfigureerd om blobs na 30 dagen naar de Cool-tier te verplaatsen en na 365 dagen te verwijderen. Een blob is 28 dagen geleden geüpload en is sindsdien niet meer geopend. Wat is de huidige staat van de blob?
+   - A) Al verplaatst naar Cool-tier omdat de blob meer dan 7 dagen inactief is
+   - B) Nog steeds in Hot-tier omdat de drempel van 30 dagen nog niet is bereikt
+   - C) Verplaatst naar Archive-tier omdat de blob niet frequent wordt geopend
+   - D) Verwijderd omdat inactieve blobs standaard na 14 dagen worden verwijderd
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Nog steeds in Hot-tier omdat de drempel van 30 dagen nog niet is bereikt.** Lifecycle management policies passen regels toe op basis van geconfigureerde leeftijdsdrempels. Met een regel van 30 dagen blijft de blob in de Hot-tier tot dag 30. Er vindt geen standaard automatische verwijdering of tiering plaats voordat een regeldrempel is bereikt.
+
+</details>
+
+7. Een ontwikkelteam wil container images opslaan in een privé Azure Container Registry en deze ophalen vanuit Azure Container Instances. Ze willen geen inloggegevens opslaan in hun pipeline-configuratie. Welke authenticatiemethode raad je aan?
+   - A) Sla de ACR-beheerdersnaam en het wachtwoord op als pipeline-secrets
+   - B) Gebruik een SAS-token dat is gegenereerd op basis van het ACR-storage account
+   - C) Schakel de Managed Identity in op de ACI en ken de AcrPull-rol toe aan de registry
+   - D) Maak de ACR-registry tijdelijk publiek toegankelijk tijdens het ophalen
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Schakel de Managed Identity in op de ACI en ken de AcrPull-rol toe aan de registry.** Managed Identity elimineert de noodzaak om inloggegevens op te slaan of te roteren. Door AcrPull toe te wijzen aan de managed identity wordt minimale toegang verleend. Optie A slaat inloggegevens op die periodiek geroteerd moeten worden. Optie B is niet van toepassing op ACR-authenticatie. Optie D introduceert een beveiligingsrisico.
 
 </details>
 
@@ -296,6 +382,49 @@ az backup protection backup-now --resource-group rg-sswlab-dev --vault-name sswl
 
 ---
 
+**Scenario-vragen:**
+
+5. Een bedrijf runt een webapplicatie met twee lagen: een stateless front-end (IIS-servers) en een databaselaag. Ze willen ervoor zorgen dat de front-end servers beschikbaar blijven tijdens Azure-platformonderhoud. De regio ondersteunt availability zones. Welke configuratie biedt de beste veerkracht voor de front-end laag?
+   - A) Alle front-end VMs deployen in een Availability Set met 3 fault domains
+   - B) Elke front-end VM deployen in een aparte Availability Zone
+   - C) Front-end VMs deployen als Azure Spot VMs in verschillende regio's
+   - D) Front-end VMs deployen in dezelfde Availability Zone om latentie te verlagen
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Elke front-end VM deployen in een aparte Availability Zone.** Availability Zones beschermen tegen uitval op datacenter-niveau. Omdat de regio zones ondersteunt, is dit de betere keuze ten opzichte van Availability Sets (A), die alleen binnen één datacenter beschermen. Spot VMs (C) kunnen zonder waarschuwing worden teruggenomen. VMs in dezelfde zone plaatsen (D) biedt geen redundantie.
+
+</details>
+
+6. Een ontwikkelteam wil 's nachts batchverwerkingstaken uitvoeren tegen minimale kosten. De taken duren 4–6 uur, slaan elke 30 minuten de voortgang op als checkpoint, en kunnen worden hervat vanaf het laatste checkpoint als ze worden onderbroken. Welk VM-type is het meest geschikt?
+   - A) Standard D-series VMs voor voorspelbare prestaties
+   - B) Azure Spot VMs omdat de workload onderbreking kan verdragen en kan worden hervat vanaf checkpoints
+   - C) Availability Set VMs om te garanderen dat taken altijd zonder onderbreking worden voltooid
+   - D) Azure Reserved VM Instances voor maximale kostenbesparingen bij continue workloads
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Azure Spot VMs omdat de workload onderbreking kan verdragen en kan worden hervat vanaf checkpoints.** Spot VMs zijn ideaal voor onderbreekbare batchtaken met checkpointing. De workload verdraagt expliciet eviction. Standard VMs (A) en Reserved Instances (D) zijn duurder dan nodig voor een onderbreekbare batchtaak. Availability Sets (C) beschermen tegen hardwarestoringen tijdens onderhoud, niet tegen kosten.
+
+</details>
+
+7. Je wordt gevraagd een specifieke server-VM te herstellen naar de exacte staat van 3 dagen geleden, inclusief alle geïnstalleerde applicaties, lokale gebruikersaccounts en machine-identiteit. Welk type image of herstelpunt moet je gebruiken?
+   - A) Een generalized image vastgelegd vóór de wijziging, gedeployed als nieuwe VM
+   - B) Een specialized image of VM-herstelpunt dat de machine-identiteit en -staat bewaart
+   - C) Een Sysprep-voorbereid image uit de Azure Compute Gallery
+   - D) Een ARM-template-export van de VM-configuratie
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Een specialized image of VM-herstelpunt dat de machine-identiteit en -staat bewaart.** Een specialized image of een Azure Backup-herstelpunt bewaart de exacte machinestatus, inclusief SID, hostnaam en accounts. Een generalized image (A, C) verwijdert machine-specifieke data en kan de identiteit van een specifieke machine niet herstellen. Een ARM-template (D) beschrijft alleen de VM-configuratie, niet de data of toestand.
+
+</details>
+
+---
+
 ## Week 4 — Containers en Azure App Service
 > **Examendomein:** Azure compute-resources deployen en beheren · **Gewicht:** 20–25%
 
@@ -374,6 +503,49 @@ docker push sswlabacr.azurecr.io/myapp:v1
 3. App Service Plan: de compute-laag is altijd actief en je betaalt per uur voor de ingerichte capaciteit (ongeacht of er requests zijn). Voordeel: voorspelbare kosten, geen cold starts, geschikt voor altijd-aan applicaties. Consumption plan (voor Azure Functions): serverless; de functie-instantie wordt alleen gestart bij een binnenkomende trigger. Betalen per uitvoering en per geheugengebruik. Schaalt automatisch naar nul als er geen verkeer is. Voordeel: zeer goedkoop bij laag of onregelmatig verkeer; nadeel: cold start-latentie.
 
 4. Via Azure portal → App Service Plan → Scale out (App Service plan) → kies "Custom autoscale". Voeg een schaalregel toe: conditie "CPU Percentage greater than 70 for 10 minutes" → verhoog het aantal instanties met 1. Voeg een schaalregel in omgekeerde richting toe: "CPU Percentage less than 30 for 10 minutes" → verlaag met 1. Stel een minimum (bijv. 1) en maximum (bijv. 5) aantal instanties in. Autoscaling is alleen beschikbaar in het Standard-abonnement of hoger, niet in Free of Shared.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Een team deployt een nieuwe versie van hun webapp naar een staging deployment slot en voert smoke tests uit. Vervolgens voeren ze een slot swap uit. Kort daarna wordt een kritieke bug ontdekt in de nieuwe versie. Wat is de snelste manier om de vorige versie te herstellen?
+   - A) De vorige versie opnieuw deployen vanuit bronbeheer naar het productieslot
+   - B) Het productieslot verwijderen en opnieuw aanmaken vanuit een back-up
+   - C) De staging- en productieslots opnieuw swappen — de vorige versie staat nog in het staging-slot
+   - D) Het App Service Plan omlaag schalen en opnieuw omhoog schalen om een herdeployment te forceren
+
+<details>
+<summary>Antwoord</summary>
+
+**C) De staging- en productieslots opnieuw swappen — de vorige versie staat nog in het staging-slot.** Na een slot swap staat de vorige productiecode in het staging-slot. Een tweede swap herstelt deze onmiddellijk naar productie zonder downtime en zonder herdeployment.
+
+</details>
+
+6. Een bedrijf heeft een stateless API die inkomende webhook-events verwerkt. Het verkeer is minimaal tijdens kantooruren maar piekt onvoorspelbaar 's nachts wanneer externe partners batches van events versturen. Ze willen de kosten minimaliseren terwijl pieken automatisch worden opgevangen. Welke hostingoptie is het meest geschikt?
+   - A) App Service Plan (Standard tier) met een vast aantal van 5 instanties
+   - B) Azure Container Apps met KEDA-gebaseerde HTTP-schaling geconfigureerd met minReplicas ingesteld op 0
+   - C) Azure Kubernetes Service met een node pool van 3 dedicated nodes
+   - D) Azure Container Instances met één continu draaiende container
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Azure Container Apps met KEDA-gebaseerde HTTP-schaling geconfigureerd met minReplicas ingesteld op 0.** ACA met scale-to-zero minimaliseert kosten tijdens inactieve periodes en schaalt automatisch uit tijdens pieken via KEDA. Een vast aantal instanties (A, C) verspilt resources bij laag verkeer. Een enkele ACI-container (D) kan niet schalen en heeft geen ingebouwde autoscaling.
+
+</details>
+
+7. Een bedrijf wil elke nacht een data-exporttaak uitvoeren die ongeveer 20 minuten duurt, een eigen Docker-image gebruikt opgeslagen in hun privé ACR, en na voltooiing geen permanente staat vereist. Welke Azure-service is het meest geschikt?
+   - A) Azure App Service met een WebJob
+   - B) Azure Container Instances dat het image ophaalt vanuit ACR
+   - C) Azure Kubernetes Service met een CronJob-resource
+   - D) Azure Container Apps met een geplande trigger
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Azure Container Instances dat het image ophaalt vanuit ACR.** ACI is ideaal voor korte, enkelvoudige, stateless taken met een eigen image. Het start snel, voert de taak uit en stopt — je betaalt alleen voor de uitvoeringstijd. AKS (C) introduceert onnodige clusterbeheeroverhead. App Service WebJobs (A) vereisen een altijd-aan App Service Plan. ACA geplande triggers (D) zijn mogelijk maar voegen meer infrastructuur toe dan nodig is voor een eenvoudige taak van 20 minuten.
 
 </details>
 
@@ -463,6 +635,49 @@ az network vnet peering create --resource-group rg-sswlab-dev --name vnet2-to-vn
 
 ---
 
+**Scenario-vragen:**
+
+5. Een bedrijf heeft drie VNets: Hub, Spoke-A en Spoke-B. Hub is gepeerd met Spoke-A en Hub is gepeerd met Spoke-B. Een VM in Spoke-A moet communiceren met een VM in Spoke-B. Wat moet er worden geconfigureerd?
+   - A) Niets — verkeer stroomt automatisch via de Hub omdat beide spokes daarmee zijn gepeerd
+   - B) "Allow gateway transit" inschakelen op de Hub-peering en "Use remote gateway" op beide Spoke-peerings
+   - C) Een directe VNet-peering aanmaken tussen Spoke-A en Spoke-B, of een Azure Firewall of VPN Gateway in de Hub deployen voor transitieve routing
+   - D) Een NSG configureren op het Hub VNet om verkeer tussen de twee spoke-adresruimten toe te staan
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Een directe VNet-peering aanmaken tussen Spoke-A en Spoke-B, of een Azure Firewall of VPN Gateway in de Hub deployen voor transitieve routing.** VNet peering is niet transitief. Spoke-A en Spoke-B kunnen niet via Hub communiceren zonder een directe peering tussen hen, of een netwerkapparaat (Azure Firewall, VPN Gateway) in de Hub dat verkeer tussen spokes routeert. Optie B alleen (gateway transit) maakt on-premises-naar-spoke-routing mogelijk, niet spoke-naar-spoke direct.
+
+</details>
+
+6. Een beveiligingsaudit constateert dat de Azure SQL-database van het bedrijf bereikbaar is via het publieke internet en alleen wordt beschermd door een firewallregel. De audit adviseert dat de database niet bereikbaar mag zijn via een publiek IP. Welke oplossing pakt dit op de juiste manier aan?
+   - A) Een NSG configureren op het subnet van de SQL-server met een Deny-regel voor al het inkomende internetverkeer
+   - B) Een Service Endpoint voor SQL inschakelen op het applicatiesubnet
+   - C) Een Private Endpoint aanmaken voor de Azure SQL-database in het applicatie-VNet en het publieke endpoint uitschakelen
+   - D) De SQL-firewall beperken tot het publieke IP-adres van de applicatieserver
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Een Private Endpoint aanmaken voor de Azure SQL-database in het applicatie-VNet en het publieke endpoint uitschakelen.** Een Private Endpoint kent een privé IP uit het VNet toe aan de SQL-database, waardoor deze niet bereikbaar is via internet. Het uitschakelen van het publieke endpoint elimineert volledig de internettoegang. Service endpoints (B) gebruiken nog steeds een publiek IP. NSGs (A) kunnen niet direct worden toegepast op PaaS-services. Beperken op publiek IP (D) laat het publieke endpoint open.
+
+</details>
+
+7. Je deployt Azure Bastion in een VNet voor beveiligde RDP-toegang tot VMs. Een VM in een gepeerd VNet is niet bereikbaar via Bastion. Wat is de meest waarschijnlijke oorzaak?
+   - A) Bastion vereist een publiek IP op de doel-VM om de RDP-sessie tot stand te brengen
+   - B) Azure Bastion in één VNet kan geen verbinding maken met VMs in een gepeerd VNet tenzij "Allow gateway transit" is geconfigureerd op de Bastion VNet-peering
+   - C) Het AzureBastionSubnet is te klein — het moet minimaal een /24 zijn
+   - D) Bastion ondersteunt alleen VMs in hetzelfde VNet; cross-VNet-toegang vereist een VPN Gateway
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Azure Bastion in één VNet kan geen verbinding maken met VMs in een gepeerd VNet tenzij "Allow gateway transit" is geconfigureerd op de Bastion VNet-peering.** Azure Bastion ondersteunt verbindingen met VMs in gepeerde VNets, maar de peering moet "Allow gateway transit" hebben ingeschakeld aan de Bastion-zijde en "Use remote gateways" aan de zijde van het gepeerde VNet. Zonder deze instelling kan Bastion VMs in gepeerde VNets niet bereiken. De minimale grootte van het AzureBastionSubnet is /26, niet /24.
+
+</details>
+
+---
+
 ## Week 6 — Load balancing en netwerkrouting
 > **Examendomein:** Virtuele netwerken implementeren en beheren · **Gewicht:** 15–20%
 
@@ -538,6 +753,49 @@ az network watcher test-ip-flow --resource-group rg-sswlab-dev --vm sswlab-vm01 
 3. SNAT (Source NAT): wanneer een VM zonder publiek IP via de Load Balancer uitgaand internetverkeer verstuurt, vertaalt de Load Balancer het privé bron-IP naar het frontend (publiek) IP van de Load Balancer. Dit stelt de VM in staat internetsites te bereiken. SNAT heeft een beperkt aantal poorten per publiek IP (64.000 per IP). Bij grootschalige outbound workloads kan SNAT-port exhaustion optreden; de oplossing is een NAT Gateway die meer SNAT-poorten biedt.
 
 4. Service tags zijn vooraf gedefinieerde groepen van IP-bereiken die bij een Azure-service horen. Voorbeelden: AzureMonitor (IP's van Azure Monitor), Storage.WestEurope (IP's van Storage in West Europe), VirtualNetwork (het VNet-adresruimte), Internet (alle publieke IP's buiten Azure). Je gebruikt ze in NSG-regels als bron of doel zodat je geen individuele IP-adressen hoeft bij te houden die door Microsoft kunnen wijzigen. Voorbeeld: sta inbound toe van de service tag AzureLoadBalancer om health probes te laten werken.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Een bedrijf deployt een webapplicatie met twee backend pools: één voor de web-frontend (`/`) en één voor de REST API (`/api/*`). Ze hebben ook SSL-terminatie en WAF-bescherming nodig. Welke Azure-service moet worden gebruikt?
+   - A) Azure Standard Load Balancer met twee backend pools
+   - B) Azure Application Gateway met WAF en path-based routing rules
+   - C) Azure Front Door met twee origin groups
+   - D) Een NSG met aparte regels voor poort 80 en poort 443
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Azure Application Gateway met WAF en path-based routing rules.** Application Gateway ondersteunt path-based routing, WAF en SSL-terminatie in één regionale service. Load Balancer (A) kan geen URL-paden inspecteren. Front Door (C) is globaal en geschikt voor meerdere regio's, maar voegt onnodige complexiteit toe voor een single-region applicatie. NSGs (D) hebben geen HTTP-laagbewustheid.
+
+</details>
+
+6. Backend VMs in een Load Balancer-pool beginnen te falen bij het maken van uitgaande HTTPS-verbindingen naar een externe betalings-API. De VMs hebben geen publieke IP's. Network Watcher toont dat de uitgaande verbindingen worden geprobeerd maar een time-out krijgen. Wat is de meest waarschijnlijke oorzaak?
+   - A) De NSG op het backend-subnet blokkeert inkomend verkeer op poort 443
+   - B) SNAT port exhaustion — het frontend-IP van de Load Balancer heeft geen ephemere poorten meer beschikbaar voor uitgaande verbindingen
+   - C) De health probe faalt, waardoor de Load Balancer al het verkeer blokkeert
+   - D) De VMs kunnen internet niet bereiken zonder een publiek IP direct toegewezen aan de NIC
+
+<details>
+<summary>Antwoord</summary>
+
+**B) SNAT port exhaustion — het frontend-IP van de Load Balancer heeft geen ephemere poorten meer beschikbaar voor uitgaande verbindingen.** SNAT exhaustion is een veelvoorkomend productieprobleem wanneer veel VMs een enkel frontend-IP delen en grote hoeveelheden uitgaande verbindingen maken. Elke TCP-verbinding verbruikt een ephemere SNAT-poort. De oplossing is een NAT Gateway toevoegen of extra frontend-IPs. NSG-regels (A) zouden specifieke poorten blokkeren voor al het verkeer, niet time-outs veroorzaken. Health probe-fout (C) beïnvloedt inkomende distributie, niet uitgaand verkeer. VMs zonder publieke IPs kunnen internet nog steeds bereiken via SNAT (D).
+
+</details>
+
+7. Een bedrijf plant hun applicatie uit te breiden naar gebruikers in Zuidoost-Azië terwijl de primaire infrastructuur in West Europe blijft. Ze willen dat gebruikers automatisch worden gerouteerd naar de dichtstbijzijnde gezonde regio. Welke service biedt deze mogelijkheid?
+   - A) Azure Application Gateway gedeployed in beide regio's
+   - B) Azure Load Balancer met een global SKU
+   - C) Azure Traffic Manager met op-prestaties-gebaseerde routing
+   - D) Azure Front Door met latentiegebaseerde routing naar regionale backends
+
+<details>
+<summary>Antwoord</summary>
+
+**D) Azure Front Door met latentiegebaseerde routing naar regionale backends.** Azure Front Door biedt globale anycast-routing met latentiegebaseerde routing, health probes over regio's en CDN-caching — precies ontworpen voor dit multi-regio scenario. Traffic Manager (C) ondersteunt ook geo/prestatierouting op DNS-niveau maar mist CDN en WAF-mogelijkheden. Application Gateway (A) is alleen regionaal. Load Balancer Global SKU (B) verwerkt cross-regio TCP/UDP-taakverdeling maar heeft geen HTTP-laagfuncties.
 
 </details>
 
@@ -634,6 +892,49 @@ az monitor metrics alert create --resource-group rg-sswlab-dev --name "HighCPU-A
    ResultType "0" betekent succes; alle andere waarden zijn fouten of blokkades. Alternatief via AuditLogs voor Entra-gerelateerde activiteiten.
 
 4. Azure Backup: beschermt tegen dataverlies door periodieke herstelpunten (snapshots/back-ups) te maken. Herstel is op bestandsniveau, schijfniveau of VM-niveau. Gebruik bij: onbedoelde verwijdering, corruptie, ransomware. De VM blijft in dezelfde regio. Herstel duurt minuten tot uren afhankelijk van de omvang. Azure Site Recovery (ASR): disaster recovery service die een volledige VM continu repliceert naar een secundaire Azure-regio. Bij een regio-uitval voer je een failover uit: de VM wordt actief in de doelregio. Herstel van de bedrijfsvoering duurt minuten. Gebruik ASR voor bedrijfscontinuïteit bij regio-uitval; gebruik Azure Backup voor reguliere gegevensherstelscenario's.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Een bedrijf wil een e-mailmelding ontvangen wanneer er een resource wordt verwijderd uit hun Azure-subscription. Welke Azure Monitor-functie en logbron moeten ze configureren?
+   - A) Een metric alert rule op het CPU-gebruik van de subscription
+   - B) Een log alert rule gebaseerd op het Azure Activity Log met een query op "Delete"-bewerkingen
+   - C) Een NSG flow log alert voor al het uitgaande verkeer
+   - D) Een VM Insights-alert voor schijf-I/O
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Een log alert rule gebaseerd op het Azure Activity Log met een query op "Delete"-bewerkingen.** Het Azure Activity Log registreert alle beheervlakbewerkingen, inclusief het verwijderen van resources. Een log alert rule die de `AzureActivity`-tabel bevraagt op `OperationName contains "delete"` en `ActivityStatus == "Succeeded"` activeert de action group. Metric alerts (A) en NSG flow logs (C) zijn niet relevant voor het verwijderen van resources. VM Insights (D) bewaakt prestatiedata.
+
+</details>
+
+6. Een operationeel team ontvangt te veel ruisige meldingen van een CPU metric alert die is geconfigureerd met een evaluatievenster van 1 minuut en een venstergrootte van 5 minuten. De alerts worden geactiveerd tijdens korte pieken die zichzelf oplossen. Welke configuratiewijziging vermindert valse positieven zonder echte aanhoudende hoge CPU te missen?
+   - A) De CPU-drempel verlagen van 85% naar 70%
+   - B) De evaluatiefrequentie verhogen van 1 minuut naar 15 minuten
+   - C) De venstergrootte verhogen naar 15 of 30 minuten zodat de alert alleen afgaat als de CPU gedurende een langere periode verhoogd blijft
+   - D) De alertregel uitschakelen tijdens kantooruren
+
+<details>
+<summary>Antwoord</summary>
+
+**C) De venstergrootte verhogen naar 15 of 30 minuten zodat de alert alleen afgaat als de CPU gedurende een langere periode verhoogd blijft.** Door de aggregatievenstergrootte te vergroten (bijv. naar 15 minuten), gaat de alert alleen af als de CPU gedurende het volledige venster boven de drempel blijft, waardoor kortstondige pieken worden uitgefilterd. De drempel verlagen (A) zou alerts vaker laten afgaan. De evaluatiefrequentie verhogen (B) zonder het venster te wijzigen vermindert de ruis niet. Uitschakelen tijdens kantooruren (D) verwijdert volledig het zicht.
+
+</details>
+
+7. Een bedrijf heeft een Recovery Services Vault met dagelijkse VM-back-ups die 30 dagen worden bewaard. Een ontwikkelaar verwijdert per ongeluk kritieke applicatiedata van de datadisk van een VM om 14:00 vandaag. De laatste back-up is om 03:00 vandaag voltooid. Welke data kan worden hersteld en wat gaat verloren?
+   - A) Alle data tot 14:00 vandaag kan worden hersteld omdat Azure Backup wijzigingen continu vastlegt
+   - B) Data van de back-up van 03:00 kan worden hersteld; ongeveer 11 uur aan wijzigingen aangebracht tussen 03:00 en 14:00 gaan verloren
+   - C) Er kan geen data worden hersteld omdat de schijf niet is verwijderd, alleen de data erop
+   - D) De volledige VM moet worden hersteld; individueel bestandsherstel is niet mogelijk met Azure Backup
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Data van de back-up van 03:00 kan worden hersteld; ongeveer 11 uur aan wijzigingen aangebracht tussen 03:00 en 14:00 gaan verloren.** Azure Backup maakt punt-in-tijd snapshots op een schema (in dit geval dagelijks om 03:00). Herstel is mogelijk tot het laatste herstelpunt. Data die is geschreven tussen de laatste back-up en het verwijderingsmoment kan niet worden hersteld vanuit back-up. Individueel bestandsherstel (Item Level Recovery) wordt ondersteund door Azure Backup, wat optie D weerlegt.
 
 </details>
 

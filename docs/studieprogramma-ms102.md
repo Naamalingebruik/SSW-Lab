@@ -123,6 +123,52 @@ Set-MgUserLicense -UserId "user@ssw.lab" -AddLicenses @{SkuId = "<E5-SKU-GUID>"}
 
 ---
 
+**Scenario-vragen:**
+
+6. Een medewerker heeft per ongeluk een volledige SharePoint-documentbibliotheek met kritieke projectbestanden verwijderd. De bibliotheek viel niet onder een retentiebeleid. Welke Microsoft 365-functie stelt de beheerder in staat om de bibliotheek te herstellen naar de toestand van drie dagen geleden?
+
+   - A) Stel een nieuw retentiebeleid in dat gericht is op de betreffende SharePoint-site
+   - B) Gebruik Microsoft 365 Backup om een point-in-time herstel van de SharePoint-site uit te voeren
+   - C) Schakel de Prullenbak opnieuw in en herstel verwijderde items van daaruit
+   - D) Maak een eDiscovery-hold aan om de resterende inhoud te bewaren
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Gebruik Microsoft 365 Backup om een point-in-time herstel van de SharePoint-site uit te voeren.** Microsoft 365 Backup biedt point-in-time herstel voor SharePoint-sites, onafhankelijk van retentiebeleid. De Prullenbak bewaart items slechts 93 dagen na verwijdering en vereist dat items daarin zijn geplaatst — het verwijderen van een volledige bibliotheek is mogelijk niet volledig herstelbaar via de Prullenbak alleen. Retentiebeleid voorkomt toekomstige verwijdering maar kan reeds verloren inhoud niet terugzetten.
+
+</details>
+
+7. Een organisatie is van plan te migreren van een on-premises Exchange-omgeving naar Exchange Online. Ze hebben een custom domein `contoso.com` dat momenteel naar hun on-premises mailserver verwijst. Wat is de juiste volgorde van stappen om mailstroom-onderbrekingen te minimaliseren?
+
+   - A) Werk eerst het MX-record bij, voeg dan het domein toe aan Microsoft 365, configureer daarna Exchange Online
+   - B) Voeg het domein toe en verifieer het in Microsoft 365, configureer Exchange Online, werk dan als laatste het MX-record bij
+   - C) Configureer Azure AD Connect eerst, voeg daarna het domein toe, werk dan het MX-record bij
+   - D) Verwijder het domein uit de on-premises omgeving en voeg het daarna toe aan Microsoft 365
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Voeg het domein toe en verifieer het in Microsoft 365, configureer Exchange Online, werk dan als laatste het MX-record bij.** Het domein moet zijn geverifieerd in Microsoft 365 voordat het mail kan ontvangen. Het MX-record moet als laatste worden bijgewerkt, nadat Exchange Online volledig is geconfigureerd, om een mail-onderbreking te voorkomen. Azure AD Connect kan parallel worden uitgevoerd maar dicteert de volgorde van de DNS-overstap niet.
+
+</details>
+
+8. Een nieuw aangemaakte Microsoft 365-tenant toont gebruikers met de UPN-suffix `@contoso.onmicrosoft.com`. Een consultant moet gebruikers configureren om in te loggen met `@contoso.com`. Wat moet er zijn voltooid voordat dit mogelijk is?
+
+   - A) Microsoft 365-licenties toewijzen aan alle gebruikers
+   - B) Password Hash Synchronization inschakelen in Entra Connect
+   - C) Het domein `contoso.com` toevoegen en verifiëren in het Microsoft 365 admin center
+   - D) Een mail flow-regel configureren in Exchange Online om het domein te herschrijven
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Het domein `contoso.com` toevoegen en verifiëren in het Microsoft 365 admin center.** Het custom domein moet worden toegevoegd en geverifieerd via een DNS TXT-record voordat het kan worden gebruikt als UPN-suffix. Licentieverlening en synchronisatiemethode zijn onafhankelijk van domeinverificatie.
+
+</details>
+
+---
+
 ## Week 2 — Gebruikers- en groepsbeheer
 > **Examendomein:** Microsoft 365 tenant deployen en beheren · **Gewicht:** 25–30%
 
@@ -203,6 +249,52 @@ Get-MgRoleManagementDirectoryRoleEligibilitySchedule -All | Select-Object Princi
 4. **Dynamische groepen** zijn ideaal wanneer het lidmaatschap logisch volgt uit gebruikersattributen (afdeling, locatie, functietitel) — automatisch onderhouden, geen handmatige interventie. Gebruik ze voor: afdelingsgerelateerde policies, automatische licentietoewijzing (group-based licensing). **Assigned groups** zijn geschikt voor vaste, kleine groepen waarbij lidmaatschap niet automatisch te bepalen is (bijv. een projectteam). Dynamische groepen vereisen Entra ID P1-licentie.
 
 5. **PIM (Privileged Identity Management)** maakt beheerdersrollen *eligible* in plaats van permanent actief. **Just-in-Time** activering: beheerder activeert de rol alleen wanneer nodig (tijdgebonden, bijv. 4 uur), met MFA-verificatie en optionele manager-goedkeuring. Voordelen boven permanente rol: (1) beperkt het aanvalsoppervlak bij een gecompromitteerd account, (2) elke activering wordt geauditeerd (wie, wanneer, waarvoor), (3) automatisch verlopen van privileges na de ingestelde tijdsduur.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+6. Het helpdeskteam van een bedrijf, bestaande uit 15 medewerkers, moet wachtwoorden van gebruikers kunnen resetten en accounts kunnen deblokkeren, maar mag geen groepslidmaatschappen wijzigen of licenties beheren. Welke beheerdersrol moet aan het helpdeskteam worden toegewezen?
+
+   - A) Global Administrator
+   - B) User Administrator
+   - C) Helpdesk Administrator
+   - D) Password Administrator
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Helpdesk Administrator.** De rol Helpdesk Administrator kan wachtwoorden resetten en serviceaanvragen beheren voor niet-beheerdersgebruikers. De rol Password Administrator is beperkter (kan geen wachtwoorden resetten van andere beheerders). User Administrator biedt bredere rechten zoals groeps- en licentiebeheer, wat hier in strijd is met least privilege.
+
+</details>
+
+7. Een organisatie wil dat alle gebruikers in de afdeling `Marketing` automatisch een specifieke Microsoft 365-licentie ontvangen, zonder handmatige tussenkomst. Nieuwe medewerkers die bij de afdeling komen, moeten de licentie direct ontvangen zodra hun attribuut in Active Directory is bijgewerkt. Welke combinatie van functies bereikt dit?
+
+   - A) Assigned group + handmatige licentietoewijzing per gebruiker
+   - B) Dynamische groep op basis van het attribuut `department` + group-based licensing
+   - C) Dynamische groep + een geplande PowerShell-script om licenties toe te wijzen
+   - D) Beveiligingsgroep + een DLP-policy gericht op de afdeling Marketing
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Dynamische groep op basis van het attribuut `department` + group-based licensing.** Een dynamische groep met de lidmaatschapsregel `(user.department -eq "Marketing")` voegt gebruikers automatisch toe wanneer het attribuut is ingesteld. Door een E5-licentie (of andere) aan de groep toe te wijzen via group-based licensing, wordt de licentie automatisch verstrekt. Er is geen script of handmatige actie vereist.
+
+</details>
+
+8. Het account van een Global Administrator bij een financiële dienstverlener is gecompromitteerd. De aanvaller kon 72 uur lang wijzigingen aanbrengen voordat hij werd ontdekt. Het beveiligingsteam wil het actieve privilege-venster bij soortgelijke incidenten in de toekomst verkleinen. Welke maatregel had de actieve privilege-periode het meest direct beperkt?
+
+   - A) Multi-Factor Authentication inschakelen voor de Global Administrator
+   - B) PIM configureren zodat de rol Global Administrator eligible is in plaats van permanent actief
+   - C) Een Conditional Access-policy aanmaken die een compliant apparaat vereist
+   - D) Security Defaults inschakelen voor de tenant
+
+<details>
+<summary>Antwoord</summary>
+
+**B) PIM configureren zodat de rol Global Administrator eligible is in plaats van permanent actief.** Met PIM en Just-in-Time activering is de rol Global Administrator niet permanent actief. Zelfs als inloggegevens worden gestolen, kan de aanvaller geen global admin-rechten uitoefenen zonder een activeringsworkflow te doorlopen die MFA, een onderbouwing en eventueel managergoedkeuring vereist. Dit beperkt het actieve privilege-venster direct.
 
 </details>
 
@@ -297,6 +389,52 @@ Get-MgAuditLogSignIn -Filter "authenticationRequirement eq 'multiFactorAuthentic
 
 ---
 
+**Scenario-vragen:**
+
+7. Een bedrijf heeft twee Active Directory-forests: een primair forest (2.000 gebruikers) dat al wordt gesynchroniseerd met Entra ID via Entra Connect Sync, en een recent overgenomen dochterforest (200 gebruikers) zonder directe netwerkverbinding met de Entra Connect-server van het primaire forest. Welke synchronisatieoplossing moet worden gebruikt voor het dochterforest?
+
+   - A) Installeer een tweede Entra Connect Sync-server in het dochterforest in actieve modus
+   - B) Implementeer Entra Cloud Sync-agents in het dochterforest
+   - C) Breid de bestaande Entra Connect Sync-server uit om beide forests te dekken via een VPN-tunnel
+   - D) Maak handmatig cloud-only accounts aan voor alle gebruikers van de dochterorganisatie
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Implementeer Entra Cloud Sync-agents in het dochterforest.** Entra Cloud Sync maakt gebruik van lichtgewichte agents die minimale on-premises infrastructuur vereisen en geschikt zijn voor afgeschermde of geïsoleerde forests. Het uitvoeren van twee actieve Entra Connect Sync-servers die dezelfde tenant targeten, wordt niet ondersteund. Cloud Sync-agents kunnen zelfstandig opereren in het dochterforest en synchroniseren naar dezelfde tenant.
+
+</details>
+
+8. Een organisatie gebruikt Security Defaults en heeft een Entra ID P1-licentie. Het IT-team wil een Conditional Access-policy maken die het break-glass-beheerdersaccount uitsluit van MFA-vereisten. Wat moet er eerst worden gedaan?
+
+   - A) Het break-glass-account verwijderen en opnieuw aanmaken als cloud-only account
+   - B) Security Defaults uitschakelen voordat Conditional Access-policies worden aangemaakt
+   - C) Het break-glass-account toevoegen aan de uitsluitingslijst van Security Defaults
+   - D) Upgraden naar Entra ID P2 voordat Conditional Access-policies kunnen worden gebruikt
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Security Defaults uitschakelen voordat Conditional Access-policies worden aangemaakt.** Security Defaults en Conditional Access zijn onderling uitsluitend — ze kunnen niet tegelijkertijd actief zijn. Security Defaults moet worden uitgeschakeld voordat Conditional Access-policies van kracht kunnen worden. Entra ID P1 is voldoende voor Conditional Access; P2 is niet vereist.
+
+</details>
+
+9. Een gebruiker in een hybride omgeving meldt dat hij herhaaldelijk om inloggegevens wordt gevraagd bij het openen van Microsoft 365-services vanaf zijn domein-joined bedrijfslaptop, ondanks dat Seamless SSO is geconfigureerd. Wat is de meest waarschijnlijke oorzaak?
+
+   - A) Het account van de gebruiker is niet gesynchroniseerd met Entra ID
+   - B) De M365-aanmeldings-URL's staan niet in de Intranetzone of lijst met vertrouwde sites van de browser
+   - C) Het computeraccount AZUREADSSOACC is verwijderd uit Active Directory
+   - D) Zowel B als C kunnen elk afzonderlijk het probleem veroorzaken
+
+<details>
+<summary>Antwoord</summary>
+
+**D) Zowel B als C kunnen elk afzonderlijk het probleem veroorzaken.** Seamless SSO vereist zowel dat het computeraccount `AZUREADSSOACC` bestaat in AD (het verwijderen ervan verbreekt de uitgifte van Kerberos-tickets) als dat de browser de Microsoft-aanmeldings-URL's behandelt als Intranetzone-sites (zodat Integrated Windows Authentication wordt geprobeerd). Als een van beide ontbreekt, resulteert dit in herhaalde inlogprompts.
+
+</details>
+
+---
+
 ## Week 4 — Exchange Online beheer
 > **Examendomein:** Microsoft 365 tenant deployen en beheren · **Gewicht:** 25–30%
 
@@ -377,6 +515,52 @@ Get-MessageTrace -SenderAddress "sender@external.com" -StartDate (Get-Date).AddH
 
 ---
 
+**Scenario-vragen:**
+
+5. De financieel directeur van een bedrijf meldt dat externe partners steeds vaker e-mails ontvangen die afkomstig lijken te zijn van het domein van het bedrijf, maar nooit door medewerkers zijn verstuurd. Het beveiligingsteam vermoedt domain spoofing. Welke combinatie van e-mailauthenticatiecontroles, in de juiste implementatievolgorde, beperkt dit risico?
+
+   - A) Configureer DMARC eerst (reject-policy), dan SPF, dan DKIM
+   - B) Configureer eerst SPF en DKIM, verifieer dat beide slagen, stel dan DMARC in met een `p=none` monitoringbeleid
+   - C) Schakel Safe Links en Safe Attachments in om gespoofde inkomende berichten te blokkeren
+   - D) Maak een mail flow-regel die alle berichten weigert die niet afkomstig zijn van het zakelijke IP-bereik
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Configureer eerst SPF en DKIM, verifieer dat beide slagen, stel dan DMARC in met een `p=none` monitoringbeleid.** DMARC is afhankelijk van een correcte configuratie en het slagen van SPF en DKIM. Beginnen met een `p=none`-beleid maakt monitoring mogelijk zonder legitieme mail te blokkeren, terwijl je uitlijningsproblemen identificeert en oplost. Daarna overstappen naar `p=quarantine` en vervolgens `p=reject` volgt de beste praktijk. Safe Links en Safe Attachments beschermen tegen inkomende bedreigingen maar voorkomen geen uitgaande spoofing.
+
+</details>
+
+6. Een medewerker ontvangt een e-mail die afkomstig lijkt te zijn van de CEO, met het dringende verzoek om geld over te maken. Het bericht heeft zowel SPF als DKIM-controles doorstaan, omdat het werd verstuurd vanuit een legitiem extern domein dat sterk lijkt op de bedrijfsnaam. Welke Defender for Office 365-functie is specifiek ontworpen om dit type aanval te detecteren?
+
+   - A) Anti-spam policy met hoog-vertrouwen spamdrempel
+   - B) Anti-phishing policy met gebruikersimpersonation en mailbox intelligence ingeschakeld
+   - C) Safe Links-policy met real-time URL-scanning
+   - D) DMARC-rejectbeleid voor het tenantdomein
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Anti-phishing policy met gebruikersimpersonation en mailbox intelligence ingeschakeld.** Bescherming tegen gebruikersimpersonation in anti-phishing policies detecteert wanneer de weergavenaam of het verzendende domein sterk lijkt op een beveiligde gebruiker (bijv. de CEO). Mailbox intelligence leert de echte communicatiepatronen van de CEO om afwijkingen te detecteren. Het slagen van SPF en DKIM biedt geen bescherming tegen impersonation via de weergavenaam vanuit externe domeinen.
+
+</details>
+
+7. Een transport rule is geconfigureerd om aan alle uitgaande berichten een juridische disclaimer toe te voegen. Gebruikers melden dat bij het beantwoorden van externe partijen de disclaimer bij elke reply in de thread wordt gedupliceerd. Welke voorwaarde moet aan de transport rule worden toegevoegd om dit te voorkomen?
+
+   - A) Voeg een voorwaarde toe die de berichtHeader `X-Disclaimer-Added` controleert en de regel overslaat als die aanwezig is
+   - B) Wijzig de regelactie van Append naar Prepend
+   - C) Beperk de regel tot gevallen waarbij het ontvangersdomein extern is en het onderwerp niet "RE:" bevat
+   - D) Voeg een regeluitzondering toe voor berichten die de disclaimertekst al bevatten
+
+<details>
+<summary>Antwoord</summary>
+
+**D) Voeg een regeluitzondering toe voor berichten die de disclaimertekst al bevatten.** Door een uitzondering toe te voegen die overeenkomt met de disclaimertekst zelf (via de voorwaarde "berichtinhoud bevat" als uitzondering), wordt voorkomen dat de regel opnieuw wordt toegepast wanneer de disclaimer al aanwezig is in een thread. Het controleren op een aangepaste header (optie A) is ook een geldig patroon voor grote organisaties, maar vereist dat de header eerder door een regelactie is ingesteld.
+
+</details>
+
+---
+
 ## Week 5 — SharePoint Online en Microsoft Teams
 > **Examendomein:** Microsoft 365 tenant deployen en beheren · **Gewicht:** 25–30%
 
@@ -450,6 +634,52 @@ Set-Team -GroupId "<team-group-id>" -Sensitivity "<label-GUID>"
 3. **Sensitivity labels** classificeren en beschermen content. Op **Teams/SharePoint-sites** stelt een label de privacyinstelling in (Publiek/Privé), of externe gebruikers mogen worden toegevoegd, en of onbeheerde apparaten toegang krijgen. Toepassen: beheerder maakt label aan in Purview → configureert *Groups & sites*-scope → publiceert via labelbeleid → teamseigenaar kan het label selecteren bij het aanmaken van een team of site. Automatische toepassing is ook mogelijk via een auto-labelbeleid.
 
 4. **PnP PowerShell** (SharePoint): `Connect-PnPOnline -Url https://tenant.sharepoint.com -Interactive`. Voorbeelden: `Get-PnPList`, `Add-PnPListItem`, bulk-aanmaken van sites via `New-PnPSite`. **MicrosoftTeams-module**: `Connect-MicrosoftTeams`. Voorbeelden: `Get-Team | Export-Csv`, `New-Team`, `Add-TeamUser`. Gebruik voor: bulk-aanmaken/verwijderen van teams, rapporteren van lidmaatschappen, exporteren van configuraties voor audits.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Een bedrijf wil externe partners laten samenwerken aan een specifieke SharePoint-documentbibliotheek, maar de tenant-brede deelinstelling staat ingesteld op "Alleen mensen in uw organisatie". De SharePoint-beheerder moet extern delen inschakelen voor één enkele site. Wat moet er worden gedaan?
+
+   - A) Wijzig de tenant-brede deelinstelling naar "Iedereen" om site-niveau overschrijvingen mogelijk te maken
+   - B) Wijzig de tenant-brede instelling naar minimaal "Nieuwe en bestaande gasten" en configureer daarna de betreffende site op "Nieuwe en bestaande gasten"
+   - C) Maak een sensitivity label aan dat extern delen inschakelt voor de site zonder de tenant-instellingen te wijzigen
+   - D) Schakel B2B Direct Connect in voor de specifieke partnertenant; er zijn geen verdere wijzigingen nodig
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Wijzig de tenant-brede instelling naar minimaal "Nieuwe en bestaande gasten" en configureer daarna de betreffende site op "Nieuwe en bestaande gasten".** Site-niveau deelmogelijkheden in SharePoint kunnen niet ruimer zijn dan de tenant-brede instelling. De tenant moet eerst worden ingesteld op minimaal "Nieuwe en bestaande gasten" voordat afzonderlijke sites op dat niveau of lager kunnen worden geconfigureerd. Sensitivity labels kunnen het delen beperken maar kunnen de tenantlimiet niet overschrijden.
+
+</details>
+
+6. De Teams-beheerder van een organisatie moet voorkomen dat gastgebruikers vergaderingen kunnen opnemen in alle Teams binnen de tenant, terwijl opname voor interne medewerkers beschikbaar blijft. Wat is de juiste aanpak?
+
+   - A) Maak een vergaderbeleid aan met opname uitgeschakeld en wijs dit toe aan alle gastgebruikers via een gastmeetingbeleid
+   - B) Schakel opname uit in het globale (tenant-standaard) Teams-vergaderbeleid
+   - C) Maak een aangepast vergaderbeleid aan met opname uitgeschakeld en wijs dit toe aan een groep met alle gasten
+   - D) Verwijder de gast-toegangsinstelling uit alle afzonderlijke Teams-teams
+
+<details>
+<summary>Antwoord</summary>
+
+**A) Maak een vergaderbeleid aan met opname uitgeschakeld en wijs dit toe aan alle gastgebruikers via een gastmeetingbeleid.** Teams-vergaderbeleid kan worden gericht op specifieke gebruikers of gebruikerstypen. Het toewijzen van een aangepast beleid met opname uitgeschakeld specifiek aan gasten (of het configureren van het tenant-brede gastmeetingbeleid) is de juiste aanpak. Het uitschakelen van opname in het globale beleid zou alle gebruikers treffen, inclusief interne medewerkers.
+
+</details>
+
+7. Een SharePoint-beheerder moet alle sitecollecties in de tenant identificeren waarbij het externe deelniveau is ingesteld op "Iedereen" (anonieme links) en deze beperken tot "Alleen bestaande gasten". De tenant heeft 200 sitecollecties. Wat is de meest efficiënte methode?
+
+   - A) Bezoek handmatig de deelpagina van elke site in het SharePoint admin center
+   - B) Gebruik `Get-SPOSite` om alle sites op te halen, filter op `SharingCapability -eq "ExternalUserAndGuestSharing"` en stuur ze door naar `Set-SPOSite`
+   - C) Maak een DLP-policy aan die het aanmaken van anonieme links op alle sites blokkeert
+   - D) Pas een sensitivity label toe op alle sites dat extern delen beperkt
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Gebruik `Get-SPOSite` om alle sites op te halen, filter op `SharingCapability -eq "ExternalUserAndGuestSharing"` en stuur ze door naar `Set-SPOSite`.** Het gebruik van de SharePoint Online PowerShell-module (`Get-SPOSite | Where-Object { $_.SharingCapability -eq "ExternalUserAndGuestSharing" } | Set-SPOSite -SharingCapability ExistingExternalUserSharingOnly`) is de efficiënte bulkbenadering. DLP-policies en sensitivity labels beheren de deelmogelijkheidsinstelling niet rechtstreeks op schaal.
 
 </details>
 
@@ -540,6 +770,52 @@ Get-MgSecuritySecureScore -Top 1 | Select-Object CurrentScore, MaxScore, Created
 
 ---
 
+**Scenario-vragen:**
+
+6. Een beveiligingsanalist ontvangt een melding dat een gebruiker op een kwaadaardige link in een e-mail heeft geklikt. De analist moet bepalen of dezelfde kwaadaardige URL ook aan andere gebruikers in de tenant is bezorgd en of iemand anders erop heeft geklikt. Welk Defender XDR-hulpmiddel biedt deze informatie het meest direct?
+
+   - A) Verbeteracties in Microsoft Secure Score
+   - B) Threat Explorer gefilterd op URL
+   - C) Aanvalspadanalyse in Exposure Management
+   - D) Action Center van Automated Investigation and Response
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Threat Explorer gefilterd op URL.** Threat Explorer maakt het mogelijk om te filteren op URL, afzender of onderwerp om alle berichten te identificeren die een specifieke kwaadaardige link bevatten, en toont welke gebruikers het hebben ontvangen en of op de link is geklikt. Dit is het primaire hulpmiddel voor het opsporen van e-mailbedreigingen. AIR heeft mogelijk al een onderzoek gestart, maar Threat Explorer is de directe queryinterface.
+
+</details>
+
+7. De verbeteracties voor Secure Score van een organisatie bevatten "MFA vereisen voor alle gebruikers" en "Legacy-authenticatieprotocollen blokkeren". Het beveiligingsteam heeft deze maatregelen al geïmplementeerd via een externe identiteitsprovider. Hoe moet de beheerder deze verbeteracties afhandelen in het Secure Score-portal?
+
+   - A) De acties negeren — Secure Score detecteert de externe maatregelen automatisch
+   - B) Elke actie markeren als "Opgelost via derde partij" om de werkelijke beveiligingssituatie weer te geven
+   - C) De Microsoft-maatregelen implementeren naast de externe maatregelen
+   - D) De verbeteracties verwijderen uit het portal
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Elke actie markeren als "Opgelost via derde partij" om de werkelijke beveiligingssituatie weer te geven.** Verbeteracties in Secure Score kunnen worden gemarkeerd als "Opgelost via derde partij" wanneer een gelijkwaardige maatregel buiten de native Microsoft-tooling is geïmplementeerd. Dit werkt de score bij om de werkelijke beveiligingssituatie te weerspiegelen zonder dat dubbele maatregelen nodig zijn.
+
+</details>
+
+8. Een bedrijf wil alle Windows 11-apparaten onboarden naar Defender for Endpoint. De omgeving wordt beheerd via Microsoft Intune. Welke onboardingmethode wordt aanbevolen voor door Intune beheerde apparaten?
+
+   - A) Implementeer handmatig een lokaal onboardingscript op elk apparaat
+   - B) Gebruik een Group Policy Object (GPO) om het onboardingpakket te verspreiden
+   - C) Gebruik een Intune-apparaatconfiguratieprofile met het Defender for Endpoint-onboardingpakket
+   - D) Installeer de Defender for Endpoint-agent vanuit de Microsoft Store op elk apparaat
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Gebruik een Intune-apparaatconfiguratieprofile met het Defender for Endpoint-onboardingpakket.** Voor door Intune beheerde apparaten is de aanbevolen methode het gebruik van een Intune-eindpuntbeveiligingsbeleid of apparaatconfiguratieprofile om het MDE-onboardingpakket te implementeren. Dit is geautomatiseerd, schaalbaar en vereist geen lokale scriptuitvoering of GPO-infrastructuur.
+
+</details>
+
+---
+
 ## Week 7 — Microsoft Purview Compliance
 > **Examendomein:** Compliance beheren via Microsoft Purview · **Gewicht:** 10–15%
 
@@ -614,6 +890,52 @@ Start-ComplianceSearch -Identity "TestUser01-MailSearch"
 3. **Communication Compliance** scant intern communicatieverkeer (Exchange e-mail, Teams-berichten, Teams-chats) op overtredingen van een geconfigureerd beleid, zoals: ongepaste of beledigende taal, blootstelling van vertrouwelijke of gevoelige informatie, of overtreding van regulatoire vereisten (bijv. financiële sector). Het is **verplicht** voor organisaties die onder financiële regelgeving vallen (bijv. MiFID II, FINRA) die communicatiemonitoring vereist. In andere sectoren is het optioneel maar aanbevolen voor risicobeheersing.
 
 4. **Core eDiscovery:** basisfunctionaliteit voor juridisch onderzoek — zoekopdrachten op Exchange, SharePoint, Teams, OneDrive, resultaten exporteren als PST of bestandsmap, en Holds plaatsen op mailboxen/sites (voorkomt verwijdering tijdens onderzoek). Geschikt voor kleinere onderzoeken. **eDiscovery Premium:** geavanceerde workflow voor grote juridische onderzoeken — beheer van meerdere custodianen (bewaarders), review sets met samenwerking van juridische teams, AI-gestuurde analyse (near-duplicate clustering, e-mail threading, relevantiemodellen), stapsgewijs exporteren en volledige keten-van-bewaring-documentatie. Vereist Microsoft 365 E5 of E5 Compliance add-on.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Het juridische team van een bedrijf plaatst een eDiscovery-hold op de mailbox van een ex-medewerker. Twee weken later verwijdert de IT-afdeling het gebruikersaccount als onderdeel van de standaard offboarding-procedure. Wat gebeurt er met de mailboxinhoud die onder de eDiscovery-hold viel?
+
+   - A) De mailbox en alle inhoud worden permanent verwijderd samen met het gebruikersaccount
+   - B) De mailboxinhoud wordt verplaatst naar de map Herstelbare items en na 30 dagen verwijderd
+   - C) De mailbox wordt omgezet naar een inactieve mailbox en de hold bewaart de inhoud zolang de hold actief is
+   - D) De eDiscovery-hold wordt automatisch opgeheven wanneer het account wordt verwijderd
+
+<details>
+<summary>Antwoord</summary>
+
+**C) De mailbox wordt omgezet naar een inactieve mailbox en de hold bewaart de inhoud zolang de hold actief is.** Wanneer een gebruikersaccount met een actieve eDiscovery-hold wordt verwijderd, wordt de mailbox een inactieve mailbox. De hold blijft de inhoud bewaren zolang deze actief is. De inhoud blijft doorzoekbaar via eDiscovery. De hold moet expliciet worden opgeheven voordat de inactieve mailbox permanent kan worden verwijderd.
+
+</details>
+
+6. Een DLP-policy is geconfigureerd om Nederlandse BSN-nummers in Exchange Online e-mail te detecteren. Een gebruiker probeert een document met zo'n nummer per mail te sturen naar een externe partner. De actie van de DLP-policy is ingesteld op "Blokkeren met override". Wat gebeurt er wanneer de gebruiker de e-mail verstuurt?
+
+   - A) De e-mail wordt stil geblokkeerd en de gebruiker ontvangt geen melding
+   - B) De e-mail wordt bezorgd met een waarschuwing toegevoegd aan het bericht
+   - C) De e-mail wordt geblokkeerd en de gebruiker ontvangt een beleidstip waarmee hij een zakelijke onderbouwing kan opgeven en toch kan versturen
+   - D) De e-mail wordt in quarantaine geplaatst en een beheerder moet bezorging goedkeuren
+
+<details>
+<summary>Antwoord</summary>
+
+**C) De e-mail wordt geblokkeerd en de gebruiker ontvangt een beleidstip waarmee hij een zakelijke onderbouwing kan opgeven en toch kan versturen.** "Blokkeren met override" stopt de verzendactie en toont de gebruiker een beleidstip met uitleg over de overtreding. De gebruiker kan een zakelijke onderbouwing opgeven en kiezen om de blokkering te omzeilen, waarna de e-mail wordt verzonden en de override wordt vastgelegd in het auditlogboek. Stil blokkeren hoort bij "Blokkeren" zonder override; quarantaine met beheerdergoedkeuring is een afzonderlijk actietype.
+
+</details>
+
+7. Een organisatie wil automatisch een sensitivity label toepassen op alle Excel-bestanden die creditcardnummers bevatten en zijn opgeslagen in SharePoint Online, zonder dat gebruikers actie hoeven te ondernemen. Welke Purview-functie maakt dit mogelijk?
+
+   - A) Een DLP-policy met een actie "Sensitivity label toepassen"
+   - B) Een handmatig sensitivity label-beleid gepubliceerd naar alle gebruikers
+   - C) Een auto-labelbeleid geconfigureerd om een label toe te passen op basis van het Sensitive Information Type Creditcardnummer
+   - D) Een eDiscovery-zoekopdracht die overeenkomende bestanden tagt met het juiste label
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Een auto-labelbeleid geconfigureerd om een label toe te passen op basis van het Sensitive Information Type Creditcardnummer.** Auto-labelbeleidsregels in Microsoft Purview kunnen SharePoint Online-inhoud scannen en automatisch een sensitivity label toepassen wanneer een Sensitive Information Type (zoals Creditcardnummer) wordt gedetecteerd — zonder gebruikersinteractie. DLP-policies detecteren gevoelige inhoud en nemen actie, maar de primaire methode voor automatische classificatie van opgeslagen inhoud is het auto-labelbeleid.
 
 </details>
 

@@ -123,6 +123,49 @@ Start-ADSyncSyncCycle -PolicyType Initial
 
 ---
 
+**Scenario-vragen:**
+
+5. Een bedrijf gebruikt Pass-through Authentication (PTA) voor 1.200 gebruikers. Tijdens een gepland onderhoudsvenster worden de on-premises PTA-agentservers vier uur offline gehaald. Wat gebeurt er met gebruikers die tijdens dit venster proberen in te loggen op Microsoft 365?
+   - A) Gebruikers kunnen nog steeds inloggen omdat Entra ID inloggegevens 24 uur lang in de cache bewaart
+   - B) Gebruikers kunnen niet inloggen omdat PTA de agent nodig heeft om inloggegevens te valideren
+   - C) Gebruikers worden automatisch doorgestuurd naar SSPR om hun wachtwoord te resetten
+   - D) Gebruikers kunnen inloggen met de laatste bekende wachtwoordhash die in Entra ID is opgeslagen
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Gebruikers kunnen niet inloggen omdat PTA de agent nodig heeft om inloggegevens te valideren.** PTA verifieert elke inlogpoging in realtime door deze door te sturen naar een on-premises agent. Als alle PTA-agents offline zijn, mislukt de authenticatie volledig. Dit is een belangrijk verschil met PHS, waarbij authenticatie vanuit de cloud doorgaat zelfs als on-prem AD tijdelijk onbereikbaar is.
+
+</details>
+
+6. Een medewerker heeft het bedrijf 15 dagen geleden verlaten en het account is verwijderd in Entra ID. De HR-afdeling meldt dat de medewerker terugkeert en wil het account volledig herstellen, inclusief alle groepslidmaatschappen en licentietoewijzingen. Welke actie moet de Identity Administrator uitvoeren?
+   - A) Handmatig een nieuw account aanmaken en groepslidmaatschappen opnieuw toevoegen
+   - B) De soft-deleted gebruiker herstellen via de Entra-portal of `Restore-MgDirectoryDeletedItem`
+   - C) Entra Connect Sync gebruiken om het account opnieuw te synchroniseren vanuit on-premises AD
+   - D) Contact opnemen met Microsoft Support om het hard-deleted account te herstellen
+
+<details>
+<summary>Antwoord</summary>
+
+**B) De soft-deleted gebruiker herstellen via de Entra-portal of `Restore-MgDirectoryDeletedItem`.** Het account is 15 dagen geleden verwijderd en valt nog binnen de 30-daagse soft-delete-bewaarperiode. Het herstellen van een soft-deleted gebruiker brengt alle attributen, groepslidmaatschappen en licentietoewijzingen terug. Optie C werkt alleen voor gesynchroniseerde accounts als het on-premises AD-object ook nog bestaat, maar de directe weg via de Entra-portal is de juiste aanpak.
+
+</details>
+
+7. Een bedrijf wil Entra Cloud Sync gebruiken in plaats van Entra Connect Sync. In welk scenario is Entra Cloud Sync de betere keuze?
+   - A) Het bedrijf vereist attribute writeback voor apparaten naar on-premises AD
+   - B) Het bedrijf heeft drie afzonderlijke AD-forests en heeft een eenvoudige sync-configuratie nodig zonder writeback-vereisten
+   - C) Het bedrijf moet Exchange Hybrid-attributen synchroniseren inclusief mailboxinstellingen
+   - D) Het bedrijf gebruikt AD FS en wil migreren naar PTA
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Het bedrijf heeft drie afzonderlijke AD-forests en heeft een eenvoudige sync-configuratie nodig zonder writeback-vereisten.** Entra Cloud Sync is ontworpen voor eenvoudige multi-forest scenario's waarbij de lichtere footprint en cloud-beheerde updates voordelen bieden. Het ondersteunt geen device writeback, Exchange Hybrid-attributen of PTA — die scenario's vereisen volledige Entra Connect Sync.
+
+</details>
+
+---
+
 ## Week 2 — Externe identiteiten en Entra B2B
 > **Examendomein:** Gebruikersidentiteiten implementeren en beheren · **Gewicht:** 20–25%
 
@@ -198,6 +241,49 @@ Invoke-MgConfirmRiskyUserCompromised -UserIds "<user-object-id>"
 3. **Risky sign-in:** een specifieke inlogpoging heeft een verhoogd risiconiveau. Remediatie: de gebruiker wordt gevraagd MFA te voltooien (bij medium risico) of de inlogpoging wordt geblokkeerd (bij hoog risico via CA policy). Na succesvolle MFA wordt het sign-in risico gecleard. **Risky user:** het account zelf is mogelijk gecompromitteerd (bijv. wachtwoord gevonden in dark web breach). Remediatie: de gebruiker moet een beveiligde wachtwoordwijziging uitvoeren via SSPR (met MFA). Dit cleared het user risk. Een beheerder kan ook handmatig dismissal of confirm compromise uitvoeren via de portal.
 
 4. Een CA policy op basis van user risk controleert de cumulatieve risicoscore van het account bij elke inlogpoging. Bij een ingesteld drempel (bijv. High) wordt een aanvullende actie afgedwongen als Grant control. Typisch: "Require password change" — de gebruiker moet via SSPR een nieuw wachtwoord instellen met een sterke MFA-verificatie. Na de geslaagde wachtwoordwijziging wordt het user risk automatisch gereset naar None. Dit is essentieel voor geautomatiseerde incidentrespons zonder handmatig beheerdersingrijpen.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Een bedrijf gebruikt B2B collaboration om partnerconsultants toegang te geven tot een SharePoint-site. Het securityteam merkt dat partnergebruikers twee keer om MFA worden gevraagd — eenmaal bij het inloggen in hun eigen tenant en nogmaals bij het benaderen van de bedrijfsresources. Welke configuratie elimineert de dubbele MFA-prompt zonder de beveiliging te verlagen?
+   - A) MFA-vereisten uitschakelen voor alle gastgebruikers in de Conditional Access policy
+   - B) Inbound cross-tenant access settings configureren om MFA-claims van de partner-tenant te vertrouwen
+   - C) B2B Direct Connect inschakelen in plaats van B2B collaboration voor de partner-tenant
+   - D) Gastgebruikers voor elke sessie een Temporary Access Pass toewijzen
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Inbound cross-tenant access settings configureren om MFA-claims van de partner-tenant te vertrouwen.** Met inbound cross-tenant access settings kun je MFA-voltooiingen die zijn uitgevoerd in de tenant van de partner vertrouwen. Wanneer de partnergebruiker al MFA heeft voltooid bij zijn eigen Entra ID, wordt die MFA-claim erkend waardoor een tweede verificatie wordt voorkomen. Opties A en D verlagen de beveiliging; optie C wijzigt het toegangsmodel volledig.
+
+</details>
+
+6. Het account van een gebruiker toont een hoog user risk in Identity Protection door gelekte credentials op het dark web. Het bedrijf heeft een Conditional Access policy die gebruikers met hoog risico blokkeert. De gebruiker belt de helpdesk omdat hij niet kan inloggen. Welke remediation-stap geeft de gebruiker toegang terug zonder dat een beheerder het risico handmatig hoeft te resetten?
+   - A) De gebruiker vragen 24 uur te wachten totdat het risico automatisch verloopt
+   - B) De beheerder verwerpt het risico in de Identity Protection-portal
+   - C) De gebruiker tijdelijk uitsluiten van alle Conditional Access policies
+   - D) De gebruiker voert een self-service wachtwoordreset uit via SSPR, waardoor het user risk na voltooiing wordt gewist
+
+<details>
+<summary>Antwoord</summary>
+
+**D) De gebruiker voert een self-service wachtwoordreset uit via SSPR, waardoor het user risk na voltooiing wordt gewist.** Wanneer een Conditional Access policy "Require password change" gebruikt als grant control voor hoog user risk, wordt de gebruiker door SSPR geleid met sterke MFA-verificatie. Een succesvol voltooide beveiligde wachtwoordwijziging wist automatisch de user risk-status. Optie B (dismiss) is ook geldig als het een vals-positief betreft, maar vereist geen wachtwoordwijziging en laat mogelijk gecompromitteerde inloggegevens ongewijzigd.
+
+</details>
+
+7. Een bedrijf wil gebruikers van Tenant A toegang geven tot Teams shared channels in Tenant B zonder gastobjecten aan te maken in de directory van Tenant B. Welke functie moet de beheerder configureren?
+   - A) B2B collaboration met automatische uitnodigingsacceptatie
+   - B) Cross-tenant synchronisatie van Tenant A naar Tenant B
+   - C) B2B Direct Connect met een wederzijdse vertrouwensconfiguratie tussen de twee tenants
+   - D) Entra Application Proxy met een connector in Tenant B
+
+<details>
+<summary>Antwoord</summary>
+
+**C) B2B Direct Connect met een wederzijdse vertrouwensconfiguratie tussen de twee tenants.** B2B Direct Connect is speciaal ontworpen voor Teams shared channels en maakt geen gastobjecten aan in een van beide directories. Het vereist een wederzijdse vertrouwensconfiguratie (beide tenants moeten inbound en outbound cross-tenant access settings configureren). Cross-tenant synchronisatie (B) zou interne gebruikers inrichten, niet shared channel-toegang mogelijk maken. B2B collaboration (A) maakt gastobjecten aan.
 
 </details>
 
@@ -280,6 +366,49 @@ Get-MgReportAuthenticationMethodUserRegistrationDetail |
 3. **Authentication methods policy** (nieuwe methode): centraal geconfigureerd in Entra ID → Protection → Authentication methods → Policies. Beheert welke methoden beschikbaar zijn per gebruikersgroep. Inclusief FIDO2, Authenticator, TAP, certificaten, passkeys. Is tenant-breed of per groep. **Legacy per-user MFA** (verouderd): configureerbaar via de afzonderlijke MFA-beheerportal. Instelling per individuele gebruiker (Enabled, Enforced, Disabled). Bevat ook service settings voor allowed methods. Microsoft raadt aan om te migreren naar de Authentication methods policy en legacy MFA uit te schakelen. Na migratie zijn alle MFA-instellingen centraal in één policy beheerd.
 
 4. TAP gebruik je in drie scenario's: **(1) Initiële onboarding:** een nieuwe medewerker heeft nog geen MFA-methode geregistreerd. De beheerder maakt een TAP aan en de gebruiker gebruikt deze om in te loggen en vervolgens zijn permanente MFA-methoden te registreren op aka.ms/mysecurityinfo. **(2) Accountherstel:** een gebruiker heeft toegang tot zijn MFA-methoden verloren (verloren telefoon, vergeten FIDO2-sleutel). De beheerder genereert een TAP die de gebruiker kan gebruiken voor eenmalig inloggen en het opnieuw registreren van methoden. **(3) Tijdelijke toegang:** voor een externe medewerker of tijdelijk scenario waarbij snel toegang nodig is. TAP kan worden ingesteld als eenmalig (isUsableOnce) of met een tijdsvenster.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Het securityteam van een bedrijf wil ervoor zorgen dat gebruikers die inloggen op een gevoelige financiële applicatie uitsluitend phishing-resistente MFA gebruiken. Gewone MFA (SMS of standaard Authenticator-push) mag de vereiste niet vervullen. Welke Conditional Access-configuratie bereikt dit?
+   - A) Een CA policy aanmaken gericht op de financiële app met grant control "Require multi-factor authentication"
+   - B) Een CA policy aanmaken gericht op de financiële app met een aangepaste Authentication strength die alleen FIDO2 en certificate-based authentication bevat
+   - C) Een Entra ID Protection sign-in risk policy inschakelen op High voor de financiële app
+   - D) De Enterprise Application van de financiële app configureren om apparaatcompliance te vereisen
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Een CA policy aanmaken gericht op de financiële app met een aangepaste Authentication strength die alleen FIDO2 en certificate-based authentication bevat.** De ingebouwde "MFA" grant control accepteert elke geregistreerde MFA-methode, inclusief SMS. Om te beperken tot uitsluitend phishing-resistente methoden moet je een aangepaste Authentication strength aanmaken die expliciet alleen FIDO2, WHfB, CBA of passkeys bevat, en deze als grant control in de CA policy gebruiken.
+
+</details>
+
+6. Een nieuwe medewerker treedt in dienst bij een bedrijf dat passwordless authenticatie gebruikt. De medewerker heeft nog geen authenticatiemethoden geregistreerd. De IT-beheerder moet de medewerker op de eerste werkdag laten inloggen en een FIDO2-sleutel laten registreren. Welke inlogmogelijkheid moet de beheerder aanmaken voor de medewerker?
+   - A) Een Temporary Access Pass (TAP) met `isUsableOnce: false` zodat de medewerker meerdere keren kan inloggen tijdens het registratieproces
+   - B) Een standaard tijdelijk wachtwoord dat na 24 uur verloopt
+   - C) Een via SSPR gegenereerde e-mailverificatiecode
+   - D) Een gastaccount in een aparte onboarding-tenant
+
+<details>
+<summary>Antwoord</summary>
+
+**A) Een Temporary Access Pass (TAP) met `isUsableOnce: false` zodat de medewerker meerdere keren kan inloggen tijdens het registratieproces.** Een meervoudig bruikbare TAP is de juiste onboarding-inlogmogelijkheid voor passwordless accounts. Hiermee kan de medewerker inloggen, naar `aka.ms/mysecurityinfo` navigeren en zijn FIDO2-sleutel registreren. Een TAP met `isUsableOnce: false` en een passend tijdvenster (bijv. 4 uur) ondersteunt de registratieworkflow zonder bij de eerste gebruik te worden verbruikt.
+
+</details>
+
+7. Een organisatie migreert van legacy per-user MFA naar Conditional Access-beheerde MFA. Tijdens het testen melden sommige gebruikers dat ze nog steeds om MFA worden gevraagd, ook al staat de nieuwe CA policy in report-only modus. Wat veroorzaakt de extra MFA-prompts hoogstwaarschijnlijk?
+   - A) De CA policy in report-only modus dwingt MFA nog steeds af naast het loggen
+   - B) De gebruikers hebben nog steeds per-user MFA ingeschakeld in de legacy MFA-portal, die onafhankelijk van Conditional Access werkt
+   - C) De gecombineerde registratieportal triggert MFA-registratieprompts
+   - D) De gebruikers hebben nog geen methode geregistreerd in de Authentication methods policy
+
+<details>
+<summary>Antwoord</summary>
+
+**B) De gebruikers hebben nog steeds per-user MFA ingeschakeld in de legacy MFA-portal, die onafhankelijk van Conditional Access werkt.** Legacy per-user MFA werkt onafhankelijk van Conditional Access en blijft MFA afdwingen ongeacht de status van de CA policy. Voor een volledige migratie moet zowel de nieuwe CA policy worden ingeschakeld ALS per-user MFA worden uitgeschakeld in de legacy MFA-portal voor die gebruikers. Report-only modus (A) logt maar dwingt niet af.
 
 </details>
 
@@ -379,6 +508,49 @@ Update-MgIdentityConditionalAccessPolicy -ConditionalAccessPolicyId "<policy-id>
 
 ---
 
+**Scenario-vragen:**
+
+7. Een beheerder schakelt een nieuwe Conditional Access policy in afdwingingsmodus in die apparaatcompliance vereist voor alle cloud-apps. De volgende ochtend kan de IT-beheerder niet inloggen bij de Entra-portal vanaf zijn persoonlijke laptop om de policy te herstellen. Wat had de beheerder van tevoren moeten configureren om van deze situatie te herstellen?
+   - A) Een Named Location voor het thuis-IP-adres van de beheerder, uitgesloten van de policy
+   - B) Een break-glass account dat is uitgesloten van alle Conditional Access policies
+   - C) De What If-tool om de policy te pre-testen voordat deze werd ingeschakeld
+   - D) Een Conditional Access policy in report-only modus die parallel wordt uitgevoerd
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Een break-glass account dat is uitgesloten van alle Conditional Access policies.** Een break-glass (noodtoegang) account dat is uitgesloten van alle CA policies is de standaardbescherming tegen CA-vergrendeling. Opties A en C zijn goede praktijken maar lossen het herstelprobleem niet op zodra de policy al vergrendeld is. Optie D helpt niet omdat de report-only policy geen invloed heeft op de handhaving.
+
+</details>
+
+8. Een CA policy maakt gebruik van Continuous Access Evaluation (CAE). Een beheerder trekt om 14:00 alle actieve sessies in voor een gebruikersaccount omdat het account verdacht is gecompromitteerd. De gebruiker heeft een actief toegangstoken dat om 13:30 is uitgegeven. Wat gebeurt er met de sessie van de gebruiker?
+   - A) De sessie van de gebruiker gaat door totdat het toegangstoken verloopt rond 15:00–15:30
+   - B) De sessie van de gebruiker wordt binnen seconden beëindigd omdat CAE near-real-time tokenintrekking mogelijk maakt
+   - C) De sessie van de gebruiker wordt pas beëindigd nadat de gebruiker opnieuw inlogt
+   - D) De gebruiker ontvangt binnen het volgende uur een MFA-prompt om opnieuw te verifiëren
+
+<details>
+<summary>Antwoord</summary>
+
+**B) De sessie van de gebruiker wordt binnen seconden beëindigd omdat CAE near-real-time tokenintrekking mogelijk maakt.** CAE maakt near-real-time intrekking van tokens mogelijk door een intrekkingsgebeurtenis naar de applicatie te sturen. Applicaties die CAE ondersteunen (waaronder Microsoft 365-apps) ontvangen de gebeurtenis en maken de sessie onmiddellijk ongeldig, in plaats van te wachten op de standaard tokenlevensduur van 60–90 minuten.
+
+</details>
+
+9. Een Global Secure Access-beheerder wil ervoor zorgen dat gebruikers die toegang hebben tot een gevoelige on-premises HR-applicatie verbonden zijn via de GSA-client — niet vanuit willekeurige internetlocaties. Welke CA-voorwaarde moet worden geconfigureerd?
+   - A) Named Location beperkt tot de kantoor-IP-ranges van het bedrijf
+   - B) Apparaatcompliance vereist
+   - C) Compliant network locatie (Global Secure Access)
+   - D) Sign-in risico lager dan Medium
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Compliant network locatie (Global Secure Access).** De "Compliant network" locatievoorwaarde in CA verifieert dat het verkeer afkomstig is via de Global Secure Access-client en door de GSA-infrastructuur is gegaan. Kantoor-IP-ranges (A) zouden alleen on-site toegang dekken en niet externe medewerkers die GSA gebruiken. Apparaatcompliance (B) verifieert de apparaatstatus maar niet het netwerkpad.
+
+</details>
+
+---
+
 ## Week 5 — Applicatietoegang en app registraties
 > **Examendomein:** Workload-identiteiten plannen en implementeren · **Gewicht:** 20–25%
 
@@ -455,6 +627,49 @@ Get-MgServicePrincipal -Filter "servicePrincipalType eq 'Application'" |
 3. **Managed Identity:** een Azure-resource-identiteit (service principal) beheerd door het Azure-platform — geen wachtwoord of secret vereist. Het platform geeft automatisch tokens uit via de Instance Metadata Service (endpoint op 169.254.169.254). **System-assigned:** aangemaakt voor één specifieke resource (bijv. een Azure VM of Function App). Wordt automatisch verwijderd als die resource verwijderd wordt. Één-op-één relatie. Gebruik als de identiteit uitsluitend voor die ene resource bedoeld is. **User-assigned:** een zelfstandige Azure-resource die aan meerdere resources kan worden toegewezen. Lifecycle is onafhankelijk van de resources waaraan het is gekoppeld. Gebruik als meerdere resources dezelfde identiteit moeten delen of als je de identiteit wilt behouden na verwijdering van een resource.
 
 4. Application Proxy publiceert on-premises webapplicaties veilig via Entra ID zonder dat er inkomende netwerkverbindingen nodig zijn. Architectuur: een lichtgewicht **connector** wordt on-premises geïnstalleerd (bijv. op een server in het interne netwerk). De connector maakt een uitgaande HTTPS-verbinding (poort 443) naar de Entra Application Proxy-dienst in Azure. Externe gebruikers verbinden met een extern gepubliceerde URL op msappproxy.net, authenticeren via Entra ID, en hun verzoeken worden via de connector intern doorgestuurd naar de webapplicatie. **Benodigde poorten:** uitsluitend **poort 443 uitgaand** vanuit de connector naar Azure. Geen inkomende poorten nodig in de firewall — dit is de kernkracht van de oplossing.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Een ontwikkelaar registreert een Azure Function-app in Entra ID om via Microsoft Graph de agenda's van alle gebruikers te lezen (`Calendars.Read`). De functie wordt uitgevoerd als achtergrondservice zonder aangemelde gebruiker. Welk type permissie is vereist en welke aanvullende stap moet worden voltooid voordat de app de API kan aanroepen?
+   - A) Delegated permission; de functie moet inloggen als serviceaccount en de gebruiker moet toestemming geven
+   - B) Application permission; een beheerder moet admin consent verlenen voor de `Calendars.Read` application permission
+   - C) Delegated permission; admin consent wordt automatisch verleend voor achtergrondservices
+   - D) Application permission; de functie kan de API onmiddellijk aanroepen nadat de app registration is aangemaakt
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Application permission; een beheerder moet admin consent verlenen voor de `Calendars.Read` application permission.** Achtergrondservices zonder aangemelde gebruiker vereisen Application permissions. Application permissions vereisen altijd expliciete admin consent — ze worden nooit automatisch verleend. Zonder admin consent mislukt het tokenverzoek met een insufficient_scope-fout.
+
+</details>
+
+6. Een bedrijf implementeert 10 identieke Azure VM's die allemaal secrets moeten lezen uit dezelfde Azure Key Vault. Het securityteam wil één identiteit die onafhankelijk van individuele VM's kan worden beheerd, zodat als een VM opnieuw wordt opgebouwd, de toegang tot Key Vault niet wordt onderbroken. Welk type managed identity moet worden gebruikt?
+   - A) System-assigned managed identity op elke VM
+   - B) User-assigned managed identity gedeeld over alle 10 VM's
+   - C) Een service principal met een gedeeld client secret over alle 10 VM's
+   - D) Een system-assigned managed identity op de Key Vault-resource
+
+<details>
+<summary>Antwoord</summary>
+
+**B) User-assigned managed identity gedeeld over alle 10 VM's.** Een user-assigned managed identity heeft een onafhankelijke lifecycle en kan tegelijkertijd aan meerdere resources worden toegewezen. Alle 10 VM's delen dezelfde identiteit en Key Vault-toegangsbeleidstoewijzing. System-assigned (A) zou een aparte Key Vault-toegangsbeleidsinvoer per VM vereisen en zou worden verwijderd als een VM wordt verwijderd, waardoor toegang wordt onderbroken. Optie C omvat secrets die moeten worden opgeslagen en geroteerd, wat managed identities juist overbodig maken.
+
+</details>
+
+7. Een organisatie wil een on-premises intranetportal beschikbaar stellen aan externe medewerkers zonder inkomende firewallpoorten te openen. Externe gebruikers moeten authenticeren met hun Entra ID-inloggegevens en Conditional Access moet worden toegepast voordat ze de portal kunnen bereiken. Welke oplossing moet de beheerder configureren?
+   - A) Site-to-site VPN tussen Azure en het on-premises netwerk
+   - B) Entra Application Proxy met een connector geïnstalleerd op een on-premises server
+   - C) Global Secure Access Private Access met een ZTNA-connector
+   - D) Azure AD B2C voor externe authenticatie bij de intranetportal
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Entra Application Proxy met een connector geïnstalleerd op een on-premises server.** Entra Application Proxy is specifiek ontworpen om on-premises webapplicaties te publiceren via een uitgaande connector, met Entra ID-authenticatie (inclusief CA) afgedwongen aan de perimeter. Er zijn geen inkomende firewallpoorten vereist. Optie C (GSA Private Access) is een alternatief voor ZTNA, maar Application Proxy is het canonieke antwoord voor dit specifieke on-premises webapplicatiepubliceringsscenario in de SC-300-examencontext.
 
 </details>
 
@@ -540,6 +755,49 @@ Get-MgEntitlementManagementAssignmentRequest -Filter "state eq 'pendingApproval'
 3. Lifecycle Workflows zijn geautomatiseerde processen in Entra Identity Governance die identiteitsacties uitvoeren op basis van attributen of triggers. Drie hoofdscenario's: **Joiner** (nieuwe medewerker): automatisch aanmaken van account, toewijzen van groups en access packages, sturen van welkomstmail. **Mover** (functiewijziging): aanpassen van groepslidmaatschappen, intrekken van oude toegang, verlenen van nieuwe toegang bij promotie of overplaatsing. **Leaver** (vertrek): deactiveren van account, intrekken van toegang, verwijderen uit groepen, sturen van IT-notificatie, uiteindelijk verwijderen van account na retentieperiode. Workflows worden getriggerd op basis van Entra-attributen zoals `employeeHireDate` en `employeeLeaveDateTime`.
 
 4. Separation of duties in Entitlement Management: ga naar een Access Package → Policies → **Requestor scope** → voeg een incompatibiliteitsregel toe. Je selecteert een ander access package dat niet tegelijk mag worden bezit. Wanneer een gebruiker probeert het tweede, incompatibele access package aan te vragen, wordt de aanvraag automatisch geblokkeerd als de gebruiker het eerste package al heeft. Voorbeeld: een medewerker die toegang heeft tot het "Financieel Goedkeuren" access package, mag niet tegelijk het "Financiële Orders Invoeren" package hebben — vier-ogen-principe afgedwongen via Entitlement Management.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Het complianceteam van een bedrijf vereist dat de Global Administrator-rol nooit permanent aan een gebruiker wordt toegewezen. Alle beheerders moeten de rol maximaal 4 uur per keer activeren, een zakelijke rechtvaardiging opgeven en hun verzoek laten goedkeuren door het securityteam. Welke PIM-configuratie implementeert dit?
+   - A) Alle beheerders een Active assignment geven met een sessietimeout van 4 uur in Conditional Access
+   - B) Alle beheerders een Eligible assignment geven met een maximale activatieduur van 4 uur, goedkeuring vereisen en het securityteam configureren als goedkeurders
+   - C) Alle beheerders een Active assignment geven met een vervaldatum 90 dagen vanaf nu
+   - D) Een Access Package aanmaken voor de Global Administrator-rol met een vervaldatum van 4 uur
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Alle beheerders een Eligible assignment geven met een maximale activatieduur van 4 uur, goedkeuring vereisen en het securityteam configureren als goedkeurders.** PIM Eligible assignment is de juiste aanpak. Met de activatie-instellingen op de rol kun je de maximale duur configureren, rechtvaardiging vereisen en goedkeuring instellen met aangewezen goedkeurders. Active assignments (A, C) vereisen geen activering en kunnen geen limieten voor duur per sessie afdwingen. Access packages (D) beheren resourcetoegang, niet direct bevoorrechte Entra ID-rollen.
+
+</details>
+
+6. Een kwartaalse access review is geconfigureerd voor de beveiligingsgroep "Finance Approvers" met auto-apply resultaten ingeschakeld. Een reviewer reageert niet op een reviewitem binnen de reviewperiode. Wat gebeurt er met de toegang van die gebruiker wanneer de review wordt afgesloten?
+   - A) De toegang van de gebruiker blijft behouden omdat een reviewer toegang expliciet moet verwijderen voordat het effect heeft
+   - B) De toegang van de gebruiker wordt automatisch verwijderd omdat auto-apply is ingeschakeld en het standaardgedrag bij geen respons is om toegang te verwijderen
+   - C) Het reviewitem wordt geëscaleerd naar de manager van de reviewer voor een secundaire beslissing
+   - D) De access review wordt met 7 extra dagen verlengd zodat de reviewer alsnog kan reageren
+
+<details>
+<summary>Antwoord</summary>
+
+**B) De toegang van de gebruiker wordt automatisch verwijderd omdat auto-apply is ingeschakeld en het standaardgedrag bij geen respons is om toegang te verwijderen.** Wanneer een reviewer niet reageert en auto-apply resultaten is ingeschakeld, past het systeem de geconfigureerde instelling "Als reviewers niet reageren" toe. De aanbevolen en meest gebruikelijke standaard is om toegang te verwijderen voor niet-beoordeelde gebruikers, zodat verouderde toegang wordt opgeschoond zelfs zonder expliciete actie van de reviewer. Het exacte gedrag hangt af van de reviewconfiguratie, maar B weerspiegelt de beoogde compliancehouding.
+
+</details>
+
+7. Een organisatie wil de deactivering van gebruikersaccounts automatiseren binnen 24 uur na de laatste werkdag van een medewerker, zoals vastgelegd in het HR-systeem (via het `employeeLeaveDateTime`-attribuut in Entra ID). Welke functie moet de Identity Administrator configureren?
+   - A) Een access review die handmatig door de HR-afdeling wordt gestart elke keer dat een medewerker vertrekt
+   - B) Een Conditional Access policy die inloggen blokkeert na de vertrekdatum
+   - C) Een Lifecycle workflow met een Leaver-trigger op basis van het `employeeLeaveDateTime`-attribuut, geconfigureerd om het account te deactiveren en groepslidmaatschappen te verwijderen
+   - D) Een Entra Connect Sync-regel die het AD-account verwijdert wanneer het HR-attribuut is ingesteld
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Een Lifecycle workflow met een Leaver-trigger op basis van het `employeeLeaveDateTime`-attribuut, geconfigureerd om het account te deactiveren en groepslidmaatschappen te verwijderen.** Lifecycle workflows zijn speciaal gebouwd voor joiner/mover/leaver-automatisering. Een Leaver-workflow getriggerd door `employeeLeaveDateTime` (met een vooraf geconfigureerde offset, bijv. "op de dag van vertrek") kan het account deactiveren, licenties en groepslidmaatschappen verwijderen en access packages intrekken — allemaal automatisch en met een volledige audittrail. Handmatige reviews (A) kunnen de SLA van 24 uur niet garanderen. CA-policies (B) blokkeren inloggen maar voeren geen opschoontaken uit.
 
 </details>
 

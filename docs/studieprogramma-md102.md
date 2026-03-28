@@ -121,6 +121,49 @@ oscdimg.exe -n -m -bC:\WinPE\boot\etfsboot.com C:\WinPE_x64 C:\Output\WinPE.iso
 
 ---
 
+**Scenario-vragen:**
+
+5. Een bedrijf migreert 300 laptops van Windows 10 naar Windows 11. De bestaande laptops hebben allemaal hun originele OEM-software, domein-gekoppelde profielen en aangepaste applicatieconfiguraties die maanden hebben gekost om op te zetten. De projecttijdlijn is krap. Welke deploymentmethode is het meest geschikt?
+   - A) Wipe-and-load met een nieuw masterimage
+   - B) In-place upgrade via Windows Setup
+   - C) Fresh start via de Windows Reset-optie
+   - D) Autopilot Reset
+
+<details>
+<summary>Antwoord</summary>
+
+**B) In-place upgrade via Windows Setup.** Een in-place upgrade behoudt alle bestaande applicaties, instellingen en gebruikersdata, wat het de juiste keuze maakt als herinstallatie tijdrovend en verstorend zou zijn. Wipe-and-load (A) vereist migratie van applicaties en data. Fresh start (C) verwijdert applicaties. Autopilot Reset (D) vereist dat het apparaat al Autopilot-geregistreerd is en wist gebruikersdata.
+
+</details>
+
+6. Een endpoint engineer moet een Windows 11-referentieimage voorbereiden voor uitrol naar 200 nieuwe desktops. Na volledige configuratie van de referentiemachine, wat moet hij doen vóór het capturen van het image met DISM?
+   - A) `Get-WindowsUpdateLog` uitvoeren om de patchstatus te controleren
+   - B) `Sysprep /generalize /oobe /shutdown` uitvoeren
+   - C) `DISM /CheckHealth` uitvoeren op het live systeem
+   - D) De machine koppelen aan het domein vóór het capturen
+
+<details>
+<summary>Antwoord</summary>
+
+**B) `Sysprep /generalize /oobe /shutdown` uitvoeren.** Sysprep moet uitgevoerd worden vóór het capturen van een referentieimage om machinespecifieke identifiers te verwijderen (SID, computernaam, hardwarespecifieke drivers). Zonder generalisatie zouden alle uitgerolde machines dezelfde SID delen, wat identiteitsconflicten veroorzaakt. De machine mag NIET aan het domein gekoppeld zijn vóór generalisatie (D), omdat Sysprep met generalize de domainkoppeling toch verwijdert.
+
+</details>
+
+7. Een deployment engineer gebruikt `DISM /Mount-Image` om een WIM-bestand te inspecteren en bijgewerkte drivers toe te voegen. Na het aanbrengen van wijzigingen voert de engineer `DISM /Unmount-Image /Discard` uit in plaats van `/Commit`. Wat is het resultaat?
+   - A) Alle wijzigingen inclusief de geïnjecteerde drivers worden opgeslagen in het WIM
+   - B) Alleen de driver-injectie wordt opgeslagen; overige wijzigingen worden genegeerd
+   - C) Alle wijzigingen worden genegeerd en het WIM keert terug naar de originele staat
+   - D) Het WIM-bestand wordt van schijf verwijderd
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Alle wijzigingen worden genegeerd en het WIM keert terug naar de originele staat.** De `/Discard`-vlag ontkoppelt het image zonder de aangebrachte wijzigingen door te voeren — het WIM is precies zoals het was vóór het mounten. Om wijzigingen op te slaan, moet `/Commit` gebruikt worden.
+
+</details>
+
+---
+
 ## Week 2 — Intune enrollment en device management
 > **Examendomein:** Infrastructuur voor devices voorbereiden · **Gewicht:** 25–30%
 
@@ -200,6 +243,49 @@ Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Enrollments\*" | Select PSChildName, 
 3. **Compliant:** het apparaat voldoet aan alle ingestelde compliance-vereisten (bijv. BitLocker aan, Defender actief, juiste OS-versie). Intune rapporteert "Compliant" en Conditional Access policies die compliance vereisen laten de gebruiker door. **Not compliant:** het apparaat voldoet niet aan één of meer vereisten. Afhankelijk van de ingestelde grace period wordt toegang geblokeerd via CA na het verstrijken van die periode. De gebruiker ziet in Company Portal welke vereisten niet voldaan zijn.
 
 4. De **Enrollment Status Page (ESP)** toont de eindgebruiker tijdens de Autopilot-provisioning de voortgang van drie fases: apparaatvoorbereiding, apparaatinstallatie (profielen en apps die vereist zijn voor het apparaat) en accountinstallatie (profielen en apps voor de gebruiker). Het bureaublad wordt geblokkeerd totdat alle verplichte items geïnstalleerd zijn — dit voorkomt dat gebruikers het apparaat gaan gebruiken voordat het correct geconfigureerd is. De ESP is configureerbaar: je kunt een timeout instellen en beslissen of gebruikers de installatie mogen overslaan.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Een bedrijf wil bestaande Windows 11-laptops enrollen die momenteel lid zijn van een on-premises Active Directory-domein. Het IT-team wil dat gebruikers geen handmatige stappen hoeven te nemen. Welke enrollmentmethode is het meest geschikt?
+   - A) Handmatig enrollen via Instellingen → Accounts → Werk of school
+   - B) Windows Autopilot User-Driven mode
+   - C) GPO-gestuurde automatische MDM-enrollment voor Hybrid Azure AD Joined devices
+   - D) Bulk enrollment via Provisioning Package (PPKG)
+
+<details>
+<summary>Antwoord</summary>
+
+**C) GPO-gestuurde automatische MDM-enrollment voor Hybrid Azure AD Joined devices.** De apparaten zijn al domeinlid, dus als ze ook Hybrid Azure AD Joined zijn (gesynchroniseerd via Azure AD Connect), zal een Group Policy die de MDM enrollment-URL target ze stil in Intune enrollen zonder gebruikersinteractie. Handmatig enrollen (A) vereist actie van de gebruiker. Autopilot (B) is bedoeld voor nieuwe of gereset apparaten die door OOBE gaan. PPKG (D) is bedoeld voor offline scenario's of apparaten zonder Intune-licentie.
+
+</details>
+
+6. Een Intune compliance policy vereist dat BitLocker ingeschakeld is en de OS-versie minimaal Windows 11 22H2 is. Een apparaat draait Windows 11 21H2 met BitLocker ingeschakeld. Er is een grace period van 3 dagen ingesteld. Het apparaat heeft 1 dag geleden ingecheckt. Wat is de huidige compliancestatus?
+   - A) Compliant
+   - B) Not compliant
+   - C) In grace period
+   - D) Not evaluated
+
+<details>
+<summary>Antwoord</summary>
+
+**C) In grace period.** Het apparaat voldoet niet aan de OS-versievereiste (21H2 is lager dan het vereiste 22H2), dus is het technisch niet-compliant. Omdat de grace period van 3 dagen echter nog niet verstreken is (er is pas 1 dag voorbij), wordt het apparaat weergegeven als "In grace period" in plaats van "Not compliant". Na 3 dagen zonder herstel verandert de status naar "Not compliant" en kunnen Conditional Access-blokkades van kracht worden.
+
+</details>
+
+7. Na het aanmaken van een nieuw configuration profile in Intune en het toewijzen aan een apparaatgroep, hoe lang duurt het doorgaans voordat de policy toegepast wordt op een enrolled Windows-apparaat, en hoe kan een engineer directe levering forceren?
+   - A) Tot 24 uur; geen mogelijkheid om levering te forceren
+   - B) Tot 8 uur; start een Sync remote action vanuit de Intune-portal of vanuit de Company Portal-app op het apparaat
+   - C) Direct; Intune pusht policies altijd in real time
+   - D) Tot 72 uur; het apparaat moet opnieuw gestart worden
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Tot 8 uur; start een Sync remote action vanuit de Intune-portal of vanuit de Company Portal-app op het apparaat.** Intune-apparaten checken standaard ongeveer elke 8 uur in. Om een directe beleidssync te forceren kan een beheerder de **Sync** remote action gebruiken in de Intune-portal (Devices → selecteer apparaat → Sync), of de gebruiker kan de Company Portal openen en **Sync** kiezen op de apparaatdetailspagina. Het standaard check-in interval is 8 uur voor enrolled Windows-apparaten (niet 24 uur, niet direct, niet 72 uur).
 
 </details>
 
@@ -297,6 +383,49 @@ Get-LapsAADPassword -DeviceId (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Window
 
 ---
 
+**Scenario-vragen:**
+
+6. Een bedrijf wil ervoor zorgen dat medewerkers alleen toegang hebben tot Microsoft 365-applicaties (Exchange Online, SharePoint) wanneer ze een apparaat gebruiken dat in Intune enrolled en als compliant gemarkeerd is. Medewerkers die inloggen vanaf persoonlijke, niet-beheerde apparaten moeten volledig geblokkeerd worden. Welke Conditional Access-configuratie bereikt dit?
+   - A) Grant access with controls: MFA vereisen
+   - B) Grant access with controls: compliant device vereisen
+   - C) Block access voor alle locaties behalve Named Locations
+   - D) Grant access with controls: Hybrid Azure AD Joined device vereisen
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Grant access with controls: compliant device vereisen.** Een compliant device vereisen betekent dat alleen Intune-enrolled apparaten die voldoen aan de compliance policy toegang kunnen krijgen — niet-beheerde persoonlijke apparaten worden geblokkeerd omdat ze niet enrolled zijn en daardoor geen compliancestatus hebben. Optie A (alleen MFA) blokkeert geen niet-beheerde apparaten. Optie C beperkt alleen op basis van locatie, niet op apparaatbeheerstatus. Optie D (Hybrid AADJ) blokkeert cloud-only Entra ID-joined apparaten en is niet de juiste keuze voor een cloud-first omgeving.
+
+</details>
+
+7. Een organisatie heeft recentelijk een migratie naar een cloud-only Entra ID-omgeving voltooid zonder resterende on-premises Active Directory-infrastructuur. Ze willen lokale admin-wachtwoorden op alle Windows 11 22H2-apparaten rouleren en veilig opslaan. Welke oplossing moet de consultant aanbevelen?
+   - A) Legacy Microsoft LAPS met wachtwoorden opgeslagen in on-premises AD
+   - B) Windows LAPS geconfigureerd om te back-uppen naar Entra ID via Intune-policy
+   - C) Een PowerShell-script dat wachtwoorden genereert en e-mailt naar het IT-team
+   - D) Het lokale administrator-account op alle apparaten uitschakelen
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Windows LAPS geconfigureerd om te back-uppen naar Entra ID via Intune-policy.** Windows LAPS (ingebouwd in Windows 11 22H2+) ondersteunt Entra ID als back-upbestemming, wat precies is wat een cloud-only omgeving vereist. Legacy LAPS (A) vereist on-premises Active Directory en kan geen wachtwoorden opslaan in Entra ID. Een script (C) is geen beheerde, controleerbare oplossing. Het lokale administrator-account uitschakelen (D) verwijdert de break-glass hersteloptie en wordt niet aanbevolen.
+
+</details>
+
+8. Er wordt een Conditional Access-policy aangemaakt om MFA af te dwingen voor alle gebruikers die SharePoint Online benaderen. Het security team wil de impact testen vóór activering, om te voorkomen dat medewerkers onbedoeld buitengesloten worden. Welke CA-instelling moet worden gebruikt tijdens de testfase?
+   - A) Stel de policy in op **Uitgeschakeld**
+   - B) Stel de policy in op **Report-only** modus
+   - C) Stel de policy in op **Block access** voor een pilotgroep
+   - D) Schakel de policy in met een Named Location-uitzondering voor het bedrijfsnetwerk
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Stel de policy in op Report-only modus.** Report-only modus evalueert elke aanmelding aan de hand van de policycondities en logt wat de policy zou hebben gedaan (verlenen, blokkeren of MFA vereisen), maar handhaaft geen actie. Hiermee kan het security team de aanmeldlogs in Entra ID analyseren en getroffen gebruikers identificeren vóór het inschakelen van de policy. De policy uitschakelen (A) levert geen testdata op. Optie C (blokkeren voor pilotgroep) is handhaving, geen testen. Optie D wijzigt de scope van de policy in plaats van deze veilig te testen.
+
+</details>
+
+---
+
 ## Week 4 — Applicatiebeheer met Intune
 > **Examendomein:** Applicaties beheren · **Gewicht:** 15–20%
 
@@ -376,6 +505,49 @@ Restart-Service -Name IntuneManagementExtension
    - **Beveiliging van bedrijfsdata:** app-data (bijv. e-mail in Outlook, bestanden in OneDrive) wordt versleuteld en afgeschermd, kopiëren naar persoonlijke apps wordt geblokkeerd
    - **Flexibiliteit:** werkt op iOS, Android en Windows zonder volledige MDM-controle
    - **Acceptatie:** medewerkers accepteren MAM-WE eerder dan volledige MDM-enrollment op een persoonlijk apparaat
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+5. Een bedrijf implementeert een Win32-app naar een apparaatgroep in Intune met een Required-toewijzing. De app installeert niet op één apparaat en er is geen foutmelding zichtbaar in de Intune-portal. Waar moet de engineer als eerste kijken om het probleem te diagnosticeren?
+   - A) Windows Event Viewer → Application-log
+   - B) `C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log`
+   - C) Het Microsoft Endpoint Manager-beheercentrum → Troubleshooting + support
+   - D) Het Windows Update-log (`Get-WindowsUpdateLog`)
+
+<details>
+<summary>Antwoord</summary>
+
+**B) `C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log`.** Dit is altijd het eerste bestand om te controleren bij mislukte Win32-app-implementaties. Het bevat de volledige uitvoer van het installatieprogramma, het resultaat van de detectieregel-evaluatie, de exitcode van het installatieprogramma en eventuele nieuwe pogingen. De Intune-portal toont vaak een generieke foutcode; het IME-log onthult de specifieke oorzaak. Windows Event Viewer (A) en het Windows Update-log (D) bevatten geen Win32-app-implementatiedetails.
+
+</details>
+
+6. Een bedrijf wil Microsoft Outlook-data op privé-iPhones van medewerkers beschermen zonder de apparaten in Intune te enrollen. Medewerkers moeten hun persoonlijke iPhones kunnen gebruiken voor zakelijke e-mail, maar het kopiëren van zakelijke e-mails naar persoonlijke notities of apps van derden moet geblokkeerd worden. Welke Intune-functie moet de consultant configureren?
+   - A) Device compliance policy voor iOS
+   - B) Device configuration profile: e-mailinstellingen voor iOS
+   - C) App Protection Policy (MAM zonder enrollment) voor Outlook op iOS
+   - D) Conditional Access policy die een compliant device vereist
+
+<details>
+<summary>Antwoord</summary>
+
+**C) App Protection Policy (MAM zonder enrollment) voor Outlook op iOS.** MAM-WE past App Protection Policies toe op beheerde apps (Outlook) op niet-beheerde persoonlijke apparaten zonder MDM-enrollment te vereisen. Het kan kopiëren/plakken naar niet-beheerde apps beperken, een PIN vereisen bij het openen van Outlook, app-data versleutelen en selectief zakelijke data wissen — allemaal zonder persoonlijke data aan te raken of de gebruiker te verplichten zijn iPhone te enrollen. Een device compliance policy (A) vereist enrollment. Een configuration profile (B) vereist ook enrollment. Een CA-policy die een compliant device vereist (D) zou de toegang volledig blokkeren vanaf niet-beheerde apparaten.
+
+</details>
+
+7. Een engineer uploadt een Win32-app naar Intune en moet een detectieregel configureren. Het installatieprogramma maakt na een geslaagde installatie een registersleutel `HKLM:\SOFTWARE\MijnBedrijf\MijnApp` aan met de waarde `Versie = 2.1`. Welk type detectieregel moet worden gebruikt?
+   - A) MSI-productcode detectie
+   - B) Bestandspad detectie
+   - C) Registersleutel detectie
+   - D) PowerShell-script detectie
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Registersleutel detectie.** Omdat de geslaagde installatie een specifieke registersleutel en -waarde aanmaakt, is een register-detectieregel de meest directe en betrouwbare aanpak. Configureer deze om te controleren op de aanwezigheid van `HKLM:\SOFTWARE\MijnBedrijf\MijnApp` met waarde `Versie = 2.1`. MSI-productcode detectie (A) is alleen van toepassing op MSI-gebaseerde installatieprogramma's. Bestandspad detectie (B) werkt als de installatie een bekend bestand aanmaakt, maar het scenario specificeert een registersleutel. PowerShell detectie (D) is het meest flexibel maar ook het meest complex — onnodig als een ingebouwd regeltype direct overeenkomt met het bewijs.
 
 </details>
 
@@ -465,6 +637,49 @@ Import-AutoPilotCSV -csvFile C:\Temp\AutopilotHash.csv
 5. **Windows 365** is een Desktop-as-a-Service: elke gebruiker krijgt een vaste, persoonlijke Cloud PC (virtuele Windows-desktop in Microsoft-cloud) voor een vaste prijs per gebruiker/maand. Beheerd volledig via Intune. **Azure Virtual Desktop (AVD)** is Microsoft-hosted VDI: multi-session mogelijk (meerdere gebruikers per VM-host), kosten op basis van Azure-verbruik (flexibeler bij laag gebruik), meer complex om op te zetten en te beheren. Sleutelonderscheid: Windows 365 = vaste prijs, altijd persistent, persoonlijk; AVD = variabele kosten, kan gedeeld/niet-persistent zijn, vereist Azure-infrastructuurbeheer.
 
 6. KQL Device Query uitvoeren: Intune → Devices → All devices → selecteer een apparaat → tabblad **Device query**. Typ een KQL-query in het interactieve queryvenster en klik op **Run**. Beschikbare tabellen (voorbeelden): `InstalledApplications` (geïnstalleerde apps), `SystemInfo` (hardware, OS-versie), `LocalUsers` (lokale gebruikersaccounts), `LogicalDrive` (schijfruimte). De resultaten zijn real-time (huidig moment), anders dan de gecachte Intune-hardware-inventory. Vereist: Intune Advanced Analytics (onderdeel van Intune Suite of Plan 2).
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+7. Een bedrijf implementeert magazijn-kioskterminals met Windows 11. De terminals moeten zichzelf automatisch configureren wanneer ze verbinding maken met het netwerk — geen gebruiker hoeft ooit in te loggen tijdens de provisioning, en er mag geen gebruikersaccount worden gekoppeld aan het apparaat in Entra ID. Welke Autopilot-modus moet worden gebruikt?
+   - A) User-Driven mode met Entra ID join
+   - B) Pre-Provisioning (White Glove) met technician flow
+   - C) Self-Deploying mode
+   - D) Autopilot for Existing Devices
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Self-Deploying mode.** Self-Deploying mode richt het apparaat in zonder gebruikersinteractie — het apparaat authenticeert via TPM 2.0 hardware-attestation, er is geen gebruikersaccount vereist en User Affinity is ingesteld op Geen. Dit is de juiste modus voor kiosken, shared devices en digital signage. User-Driven mode (A) vereist dat een gebruiker zich authenticeert. White Glove (B) is een tweefasenmodus voor het vooraf inrichten van apparaten vóór uitgifte aan de gebruiker. Autopilot for Existing Devices (D) is voor het migreren van bestaande domeingebonden machines naar Autopilot, niet voor kioskimplementatie.
+
+</details>
+
+8. Een apparaat werd recentelijk gebruikt door een medewerker die het bedrijf heeft verlaten. Het IT-team wil het opnieuw toewijzen aan een nieuwe medewerker. Het apparaat is momenteel enrolled in Intune en geregistreerd in Autopilot. Het IT-team wil de Intune-enrollment en Autopilot-registratie behouden, alle vorige gebruikersdata verwijderen en de nieuwe medewerker de standaard OOBE-provisioning laten doorlopen. Wat is de juiste actie?
+   - A) Een Wipe (fabrieksreset) uitvoeren vanuit de Intune-portal
+   - B) Een Autopilot Reset uitvoeren vanuit de Intune-portal
+   - C) Het apparaat uit Intune verwijderen en de hardware hash opnieuw importeren
+   - D) Het apparaat uit Intune pensioneren (Retire) en handmatig opnieuw enrollen
+
+<details>
+<summary>Antwoord</summary>
+
+**B) Een Autopilot Reset uitvoeren vanuit de Intune-portal.** Autopilot Reset verwijdert alle gebruikersdata en applicaties, zet Windows terug naar een schone OOBE-ready staat, maar houdt het apparaat geregistreerd in Autopilot en het Entra ID-object intact. De nieuwe medewerker kan vervolgens inloggen tijdens de OOBE en het apparaat richt zichzelf automatisch opnieuw in met alle toegewezen profielen en apps. Een volledige Wipe (A) reset het apparaat ook maar verwijdert het Entra ID-apparaatobject en de Intune-enrollment — het apparaat zou opnieuw geregistreerd moeten worden. Het verwijderen uit Intune (C) of Retire (D) introduceert onnodige complexiteit.
+
+</details>
+
+9. Een Intune-beheerder voert de volgende KQL-query uit op een apparaat via de Device Query-functie: `InstalledApplications | where ApplicationName contains "Chrome"`. De query geeft geen resultaten, maar de beheerder kan Chrome zien in de standaard Intune-hardware-inventory. Wat is de meest waarschijnlijke verklaring?
+   - A) KQL device queries werken alleen op apparaten met Windows 11 23H2 of later
+   - B) De standaard Intune-inventory is real-time; KQL-queries gebruiken gecachte data
+   - C) De KQL-query is succesvol uitgevoerd maar Chrome is verwijderd tussen de inventory-sync en de query
+   - D) KQL Device Query vereist Intune Advanced Analytics; het apparaat heeft mogelijk niet de juiste licentie
+
+<details>
+<summary>Antwoord</summary>
+
+**D) KQL Device Query vereist Intune Advanced Analytics; het apparaat heeft mogelijk niet de juiste licentie.** Device Query is onderdeel van Intune Advanced Analytics, wat Intune Suite- of Intune Plan 2-licenties vereist. Zonder deze licentie kan het Device Query-tabblad zichtbaar zijn maar geen resultaten retourneren of een fout tonen. Het beschreven scenario waarbij resultaten leeg zijn terwijl de inventory de app wel toont, is het klassieke symptoom van een licentie- of functie-activeringsprobleem. Merk ook op dat KQL-queries *real-time* zijn (niet gecacht) — het tegenovergestelde van optie B — dus de discrepantie die in optie B wordt beschreven is in werkelijkheid omgekeerd.
 
 </details>
 
@@ -570,7 +785,50 @@ Update-MpSignature
    - **Microsoft Cloud PKI:** volledig beheerde CA in de cloud — elimineert on-premises ADCS + NDES + Certificate Connector
    - **Microsoft Tunnel for MAM:** VPN-tunnel voor MAM-beheerde apps op niet-enrolled iOS/Android apparaten
 
-6. **Endpoint Privilege Management** stelt standaardgebruikers (zonder lokaal adminrecht) in staat om specifieke, door IT goedgekeurde applicaties te starten met verhoogde (admin) rechten. Je gebruikt **elevation rules** wanneer: gebruikers een specifieke applicatie soms als admin moeten starten (bijv. een legacy installer, een beheertool), maar je ze permanent lokaal admin maken te riskant is. Configureer per applicatie: bestandsnaam, eventueel bestandshash (voor extra verificatie), en het elevatietype — *managed elevation* (automatisch, geen gebruikersinteractie) of *user-confirmed elevation* (gebruiker bevestigt via pop-up, genereert audittrail). Vereist Intune Suite of Intune Plan 2.
+6. **Endpoint Privilege Management** stelt standaardgebruikers (zonder lokaal adminrecht) in staat om specifieke, door IT goedgekeurde applicaties te starten met verhoogde (admin) rechten. Je gebruikt **elevation rules** wanneer: gebruikers een specifieke applicatie soms als admin moeten starten (bijv. een legacy installer, een beheertool), maar ze permanent lokaal admin maken te riskant is. Configureer per applicatie: bestandsnaam, eventueel bestandshash (voor extra verificatie), en het elevatietype — *managed elevation* (automatisch, geen gebruikersinteractie) of *user-confirmed elevation* (gebruiker bevestigt via pop-up, genereert audittrail). Vereist Intune Suite of Intune Plan 2.
+
+</details>
+
+---
+
+**Scenario-vragen:**
+
+7. Het security team van een bedrijf vereist dat alle Windows-kwaliteitsupdates (beveiligingspatches) binnen 10 dagen na de releasedatum van Microsoft geïnstalleerd zijn, met verplichte herstart-handhaving na de deadline. Feature updates moeten op de huidige Windows 11-versie blijven totdat ze expliciet goedgekeurd worden. Welke combinatie van Intune-policies bereikt dit?
+   - A) Één Update ring met een kwaliteits-deferral van 10 dagen en verplichte herstart; geen Feature update policy nodig
+   - B) Één Update ring met een kwaliteits-deferral van 0 dagen; een Feature update policy die de huidige Windows 11-versie vastpint
+   - C) Één Update ring met een kwaliteits-deferral van 10 dagen en herstart-handhaving; plus een Feature update policy die de huidige Windows 11-versie vastpint
+   - D) Twee Update rings — één voor kwaliteit, één voor feature — met verschillende deferral-instellingen
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Één Update ring met een kwaliteits-deferral van 10 dagen en herstart-handhaving; plus een Feature update policy die de huidige Windows 11-versie vastpint.** De Update ring regelt de timing van kwaliteitsupdates en het herstartgedrag. De Feature update policy beheert apart welke Windows-versie apparaten op blijven, waardoor het security team feature updates onafhankelijk van kwaliteitspatches kan goedkeuren. Optie A laat feature updates onbeheerd (ze worden geregeld door de feature-deferral van de update ring, wat niet noodzakelijk een specifieke versie vastpint). Optie B stelt de kwaliteits-deferral in op 0 (direct), wat het 10-dagenvenster niet toestaat. Optie D werkt niet zo — één ring beheert beide updatetypen.
+
+</details>
+
+8. Een medewerker heeft een bedrijf verlaten en zijn persoonlijke iPhone ingeleverd die gebruikt werd voor zakelijke e-mail via een MAM App Protection Policy (geen MDM-enrollment). IT wil alle zakelijke data van het apparaat verwijderen terwijl de persoonlijke foto's en apps van de medewerker intact blijven. Welke Intune-actie moet worden uitgevoerd?
+   - A) Het apparaat op afstand wissen (Wipe) vanuit Intune
+   - B) Het apparaat pensioneren (Retire) vanuit Intune
+   - C) Het apparaat uit Intune verwijderen
+   - D) Een selectieve app-wipe uitvoeren via App Protection
+
+<details>
+<summary>Antwoord</summary>
+
+**D) Een selectieve app-wipe uitvoeren via App Protection.** Omdat het apparaat niet MDM-enrolled is, zijn de Retire- en Wipe-remote-acties niet van toepassing (ze vereisen MDM-enrollment). Een selectieve app-wipe (beschikbaar voor MAM-beveiligde apps) verwijdert alleen de zakelijke data in de beheerde apps (wist bijv. het Outlook- en OneDrive-zakelijke account) terwijl persoonlijke data, foto's en apps volledig onaangeroerd blijven. Het apparaat uit Intune verwijderen (C) verwijdert de apparaatrecord maar wist geen zakelijke app-data.
+
+</details>
+
+9. Een bedrijf heeft 500 Windows-apparaten die momenteel worden beheerd door Configuration Manager (SCCM). De organisatie wil geleidelijk overstappen naar Intune-beheer. Ze willen ConfigMgr software-deployments en Windows Updates laten beheren, maar direct Intune-compliancerapportage inschakelen. Welke co-management-workload moet als eerste naar Intune worden verschoven?
+   - A) Windows Update-policies
+   - B) Office Click-to-Run apps
+   - C) Compliance policies
+   - D) Endpoint Protection
+
+<details>
+<summary>Antwoord</summary>
+
+**C) Compliance policies.** Het verschuiven van de Compliance policies-workload naar Intune is de aanbevolen eerste stap bij een co-management-migratie. Het is laagrisico (compliancerapportage verstoort het apparaatgedrag niet), levert direct waarde op (apparaten beginnen compliancestatus te rapporteren aan Intune, wat Conditional Access mogelijk maakt), en stelt het team in staat de Intune-integratie te valideren voordat workloads worden aangeraakt die direct invloed hebben op software-levering of beveiliging. Windows Update-policies (A), Office-apps (B) en Endpoint Protection (D) hebben een grotere operationele impact als ze tijdens de overgang verkeerd worden geconfigureerd.
 
 </details>
 
@@ -627,4 +885,3 @@ Doel: dit blok dicht de laatste gaten tussen het leerpad en de actuele exam-scop
 - **Devices beheren & onderhouden (30–35%):** Autopilot deployment modes, configuratieprofielen, Windows 365 vs AVD, KQL device queries, Intune Suite add-ons (EPM, Remote Help, Tunnel for MAM)
 - **Applicaties beheren (15–20%):** Win32/LOB/Store/M365 Apps, app protection policies, ODT/OCT, Enterprise App Catalog
 - **Devices beveiligen (15–20%):** Security baselines, Defender for Endpoint onboarding, update rings vs feature update policies
-

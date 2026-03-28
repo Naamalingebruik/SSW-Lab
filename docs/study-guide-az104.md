@@ -14,6 +14,8 @@
 | Implement and manage virtual networking | 15–20% |
 | Monitor and maintain Azure resources | 10–15% |
 
+> **Updated:** Skills measured as of April 17, 2026. Domain weights and structure unchanged. Minor updates to storage (blob lifecycle, versioning), compute (VM encryption at host, Scale Sets), networking (VNet troubleshooting), and monitoring (Site Recovery failover now explicitly in scope).
+
 > **Prerequisite:** Azure subscription via MSDN/Visual Studio Subscriptions (monthly credit)
 > The SSW-Lab VMs serve as a *hybrid on-premises endpoint* for some labs (VPN, Azure Arc)
 > **Tenant note:** the shared dev tenant helps with Entra and identity topics, but most of AZ-104 still requires real Azure resources. Follow the guide explicitly when it tells you to switch from local VM work to the tenant or Azure subscription.
