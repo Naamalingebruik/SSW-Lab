@@ -2,6 +2,8 @@
 
 Dit document legt vast welke keuzes zijn gemaakt, waarom, en wat er gewijzigd is. Niet auto-gegenereerd — handmatig bijgehouden.
 
+Voor oude scriptpaden die bewust als compatlaag blijven bestaan: zie `docs/compatibility-wrappers.md`.
+
 ---
 
 ## 2026-03-21
