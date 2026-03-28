@@ -16,6 +16,7 @@
 
 > **Voorwaarde:** Azure subscription via MSDN/Visual Studio Subscriptions (maandelijks tegoed)
 > De SSW-Lab VMs dienen als *hybride on-premises endpoint* voor sommige labs (VPN, Azure Arc)
+> **Tenantnotitie:** de gedeelde dev-tenant helpt voor Entra- en identity-onderdelen, maar het grootste deel van AZ-104 vraagt echte Azure-resources. Volg dus expliciet de momenten waarop je van lokale VM naar tenant of Azure-subscription schakelt.
 
 ## Zo gebruik je dit studieprogramma
 

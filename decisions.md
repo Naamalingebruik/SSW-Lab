@@ -10,7 +10,7 @@ Dit document legt vast welke keuzes zijn gemaakt, waarom, en wat er gewijzigd is
 
 ### Studiegidsen verrijkt voor examengerichte voorbereiding
 
-**Beslissing:** De studiegidsen in `docs/` zijn aangescherpt als de primaire, deelbare examvoorbereiding voor collega's. Ze moeten zelfstandig bruikbaar zijn zonder toegang tot het private `M365-Lab`.
+**Beslissing:** De studiegidsen in `docs/` zijn aangescherpt als de primaire, deelbare examvoorbereiding voor collega's. Ze moeten zelfstandig bruikbaar zijn zonder toegang tot het private `M365-Lab`, maar wel in combinatie met de gedeelde MSDN / Microsoft 365 dev-tenant die voor collega's beschikbaar is.
 
 **Doel:** Collega's moeten zich met alleen `SSW-Lab` inhoudelijk kunnen voorbereiden op de examens, inclusief:
 - weekopbouw per examendomein
@@ -23,9 +23,10 @@ Dit document legt vast welke keuzes zijn gemaakt, waarom, en wat er gewijzigd is
 - De officiële Microsoft Learn study guides zijn de referentie voor domeinen, accenten en examscope.
 - De Nederlandse studiegidsen zijn gelijkgetrokken met de Engelse versies qua scenario-opbouw en `Labcommando's`.
 - Waar `SSW-Lab` een onderwerp niet volledig kan afdekken, wordt dat expliciet benoemd in plaats van impliciet verondersteld.
+- Waar tenant- of portalwerk vereist is, moet dat expliciet benoemd worden zodat collega's weten wanneer ze naar de gedeelde dev-tenant of Azure-portal moeten.
 - Real-world scenario's zijn bewust toegevoegd zodat de gidsen niet alleen theorie opsommen, maar ook ontwerpkeuzes en operationele context trainen.
 
-**Gevolg:** `SSW-Lab` is nu de publieke bron van waarheid voor de gedeelde studiegidsen. Het private `M365-Lab` mag nog als inspiratiebron dienen, maar is geen vereiste meer voor collega's om de studieroute te volgen.
+**Gevolg:** `SSW-Lab` is nu de publieke bron van waarheid voor de gedeelde studiegidsen. Het private `M365-Lab` mag nog als inspiratiebron dienen, maar is geen vereiste meer voor collega's om de studieroute te volgen; de gedeelde dev-tenant blijft wel onderdeel van de beoogde leeromgeving.
 
 **Bestanden geraakt:**
 - `docs/studieprogramma-AZ104.md`

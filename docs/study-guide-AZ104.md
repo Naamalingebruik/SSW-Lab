@@ -16,6 +16,7 @@
 
 > **Prerequisite:** Azure subscription via MSDN/Visual Studio Subscriptions (monthly credit)
 > The SSW-Lab VMs serve as a *hybrid on-premises endpoint* for some labs (VPN, Azure Arc)
+> **Tenant note:** the shared dev tenant helps with Entra and identity topics, but most of AZ-104 still requires real Azure resources. Follow the guide explicitly when it tells you to switch from local VM work to the tenant or Azure subscription.
 
 ## How to use this study guide
 

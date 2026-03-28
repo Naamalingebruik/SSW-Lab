@@ -17,6 +17,7 @@
 
 > **Voorwaarde:** Microsoft 365 E5 developer tenant + Azure subscription (MSDN)
 > SC-300 heeft meer Azure-portal werkzaamheden dan MD-102/MS-102
+> **Tenantnotitie:** gebruik de lokale VM's voor hybride identiteit en de gedeelde dev-tenant voor Entra-, governance- en portalwerk. Zodra een oefening tenantbeleid of Entra-portalstappen noemt, hoort die in de tenant thuis.
 
 > **Nieuw per november 2025:** *Implement Global Secure Access* is toegevoegd aan het examen (vervangt deels de Azure RBAC voor resources scope). SSW-Lab-scripts dekken dit onderdeel nog niet — raadpleeg de [MS Learn module](https://learn.microsoft.com/en-us/training/modules/deploy-configure-microsoft-entra-global-secure-access/) als zelfstandige voorbereiding.
 

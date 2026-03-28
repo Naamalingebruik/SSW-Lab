@@ -17,6 +17,7 @@
 
 > **Prerequisite:** Microsoft 365 E5 developer tenant (via MSDN/M365 developer program)
 > Sign up at: [developer.microsoft.com/microsoft-365/dev-program](https://developer.microsoft.com/microsoft-365/dev-program)
+> **Tenant note:** MS-102 uses the local VMs and the shared dev tenant together. Whenever a topic moves into the Microsoft 365 admin center, Defender, Purview, or Entra portal, switch to the tenant explicitly.
 
 ## How to use this study guide
 

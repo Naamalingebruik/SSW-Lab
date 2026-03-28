@@ -17,6 +17,7 @@
 
 > **Voorwaarde:** Microsoft 365 E5 developer tenant (via MSDN/M365 developer program)
 > Registreer op: [developer.microsoft.com/microsoft-365/dev-program](https://developer.microsoft.com/microsoft-365/dev-program)
+> **Tenantnotitie:** MS-102 gebruikt de lokale VM's en de gedeelde dev-tenant samen. Zodra een onderdeel over Microsoft 365 admin center, Defender, Purview of Entra-portal gaat, moet je naar de tenant.
 
 ## Zo gebruik je dit studieprogramma
 

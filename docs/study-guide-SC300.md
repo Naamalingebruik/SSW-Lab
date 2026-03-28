@@ -17,6 +17,7 @@
 
 > **Prerequisite:** Microsoft 365 E5 developer tenant + Azure subscription (MSDN)
 > SC-300 involves more Azure portal work than MD-102/MS-102
+> **Tenant note:** use the local VMs for hybrid identity and the shared dev tenant for Entra, governance, and portal work. Whenever an exercise mentions tenant policy or Entra portal steps, that part belongs in the tenant.
 
 > **New as of November 2025:** *Implement Global Secure Access* was added to the exam. Current SSW-Lab scripts do not yet cover this area end-to-end, so use the matching [MS Learn module](https://learn.microsoft.com/en-us/training/modules/deploy-configure-microsoft-entra-global-secure-access/) as a required companion.
 
