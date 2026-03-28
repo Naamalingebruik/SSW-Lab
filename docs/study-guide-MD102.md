@@ -17,6 +17,7 @@
 
 > **Prerequisite:** MSDN/Visual Studio subscription with Microsoft 365 E5/E3 developer tenant (for Intune, Entra ID)
 > **Tenant note:** when an exercise mentions Intune, Entra, or portal steps, perform those in the shared Sogeti / Capgemini dev tenant and use the local VMs as your test devices.
+> **Domain note:** your own verified custom domain in the dev tenant is not required, but it is useful when you want more realistic UPN, Entra Connect, and hybrid identity practice.
 
 ## How to use this study guide
 

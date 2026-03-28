@@ -17,6 +17,7 @@
 
 > **Voorwaarde:** MSDN/Visual Studio-subscriptie met Microsoft 365 E5/E3 developer tenant (voor Intune, Entra ID)
 > **Tenantnotitie:** als een oefening Intune, Entra of portalstappen noemt, voer je die uit in de gedeelde dev-tenant van Sogeti / Capgemini en gebruik je de lokale VM's als testdevices.
+> **Domeinnotitie:** een eigen geverifieerd domein in je dev-tenant is niet verplicht, maar wel nuttig als je realistischer wilt oefenen met UPN's, Entra Connect en hybrid identity.
 
 ## Zo gebruik je dit studieprogramma
 

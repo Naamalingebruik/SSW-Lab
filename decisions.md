@@ -24,6 +24,7 @@ Dit document legt vast welke keuzes zijn gemaakt, waarom, en wat er gewijzigd is
 - De Nederlandse studiegidsen zijn gelijkgetrokken met de Engelse versies qua scenario-opbouw en `Labcommando's`.
 - Waar `SSW-Lab` een onderwerp niet volledig kan afdekken, wordt dat expliciet benoemd in plaats van impliciet verondersteld.
 - Waar tenant- of portalwerk vereist is, moet dat expliciet benoemd worden zodat collega's weten wanneer ze naar de gedeelde dev-tenant of Azure-portal moeten.
+- Waar een eigen geverifieerd domein extra waarde geeft voor realismere Entra Connect- of hybrid identity-oefeningen, mag dat als aanbevolen uitbreiding genoemd worden, maar niet als harde voorwaarde.
 - Real-world scenario's zijn bewust toegevoegd zodat de gidsen niet alleen theorie opsommen, maar ook ontwerpkeuzes en operationele context trainen.
 
 **Gevolg:** `SSW-Lab` is nu de publieke bron van waarheid voor de gedeelde studiegidsen. Het private `M365-Lab` mag nog als inspiratiebron dienen, maar is geen vereiste meer voor collega's om de studieroute te volgen; de gedeelde dev-tenant blijft wel onderdeel van de beoogde leeromgeving.

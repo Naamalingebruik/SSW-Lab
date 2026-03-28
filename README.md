@@ -21,6 +21,7 @@ Gebouwd door en voor Sogeti SSW collega's — geen eigen domein of dedicated har
 | Licenties | MSDN | MSDN |
 
 > **Geen eigen domein nodig.** Het lab gebruikt `ssw.lab` als intern domein. Activering verloopt via MSDN — geen productkeys in scripts.
+> **Wel nuttig als je het hebt:** een geverifieerd eigen domein in je dev-tenant kan extra waarde geven voor realistische UPN's, Entra Connect en hybrid identity-scenario's. Zie dit als een aanbevolen uitbreiding, niet als harde voorwaarde voor collega's.
 
 > **Sogeti-laptop (High Flex):** Start lab-scripts als Administrator via *Uitvoeren als andere gebruiker* met je High Flex-beheerdersaccount (`admin-xxx@sogeti.com`). Zscaler SSL-inspectie is transparant — de Sogeti-root CA is vertrouwd op beheerde laptops, dus cloud-verbindingen (`Connect-AzAccount`, `Connect-MgGraph`) werken zonder aanpassing. Installeer benodigde PS-modules (`Az`, `Microsoft.Graph.*`, `ExchangeOnlineManagement`) eenmalig vooraf.
 
@@ -117,7 +118,8 @@ Het lab gebruikt `ssw.lab` als intern AD-domein met NetBIOS-naam `LAB`.
 | LAB-W11-AUTOPILOT | Windows 11 Autopilot | Autopilot → Entra ID |
 
 **Entra Connect** wordt geïnstalleerd op `LAB-MGMT01` via `scripts/Install-EntraConnect.ps1`.  
-Vereist: MSI op `D:\SSW-Lab\AzureADConnect.msi` en een geverifieerd custom domein in je MSDN dev-tenant (bijv. `lab.stts.nl`).
+Minimaal vereist: MSI op `D:\SSW-Lab\AzureADConnect.msi` en tenanttoegang.  
+Aanbevolen voor realistischer hybrid identity: een geverifieerd custom domein in je MSDN dev-tenant (bijv. `lab.stts.nl`), zodat UPN's en synchronisatiegedrag beter aansluiten op praktijkomgevingen.
 
 ---
 
