@@ -17,10 +17,33 @@
 
 > **Prerequisite:** MSDN/Visual Studio subscription with Microsoft 365 E5/E3 developer tenant (for Intune, Entra ID)
 
+## How to use this study guide
+
+- Start each week by reading the learning objectives and MS Learn modules so you know which exam scope you are covering before opening the lab.
+- Then perform the lab exercises on the listed VMs and write down what you observe in the portal, PowerShell, and on the client devices.
+- Complete the knowledge check only after finishing both the theory and the lab; use the answers to identify weak spots in understanding, not just to verify memorisation.
+- If you work with both Dutch-speaking and English-speaking colleagues, deliberately keep both terms in mind, for example *compliance policy / compliancebeleid* and *hybrid join / hybride join*.
+
+## Lab coverage and expectations
+
+- **Strong SSW-Lab coverage:** Windows deployment, Intune enrollment, Autopilot fundamentals, configuration profiles, compliance, update management, app deployment, endpoint security, and LAPS.
+- **Partial coverage:** co-management, Windows 365, Endpoint Privilege Management, advanced reporting, and some Intune Suite features require extra tenant capabilities or remain partly conceptual in this lab.
+- **Not fully reproducible locally:** fast-moving Microsoft UI changes, licence-dependent features, and features only visible in a fully provisioned Microsoft 365 tenant.
+- Use this guide as a complete study path, but be honest about the gaps: if a topic feels only partially covered, revisit the matching MS Learn module directly in the portal.
+
+## How to use the knowledge checks
+
+- Answer every question without looking at the solution first.
+- Explain your answer out loud as if you are handing over the topic to a colleague.
+- Revisit only the questions you missed or answered with uncertainty.
+- Pay special attention to scenario questions: the exam often tests whether you can choose the right approach, not just recognise the term.
+
 ---
 
 ## Week 1 — Windows client deployment
 > **Exam domain:** Prepare infrastructure for devices · **Weight:** 25–30%
+
+> **Real-world scenario:** A consultant at a mid-sized financial services firm is tasked with rolling out Windows 11 to 400 desktops currently running Windows 10 21H2. The IT manager wants to preserve existing applications and user profiles but also needs a clean deployment method for 50 new machines arriving from the OEM. The consultant must choose between in-place upgrade and wipe-and-load, prepare answer files for the new hardware, and validate that all devices meet the Windows 11 hardware requirements before the project starts.
 
 ### Learning Objectives
 - [ ] Identify the minimum hardware requirements for Windows 11 (TPM 2.0, UEFI + Secure Boot, 64 GB storage, 4 GB RAM)
@@ -56,6 +79,25 @@
 | **SSW-W11-01** | Run in-place upgrade simulation: analyse `Get-WindowsUpdateLog` |
 | **SSW-MGMT01** | Create an answer file using Windows System Image Manager (SIM) |
 
+### Lab commands
+
+```powershell
+# Check current Windows build number
+(Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion').CurrentBuild
+
+# Mount a WIM image with DISM for offline servicing
+dism /Mount-Image /ImageFile:"C:\Images\install.wim" /Index:1 /MountDir:"C:\Mount"
+
+# Unmount and commit changes
+dism /Unmount-Image /MountDir:"C:\Mount" /Commit
+
+# Generalise the reference machine before capture
+C:\Windows\System32\Sysprep\sysprep.exe /generalize /oobe /shutdown
+
+# Create a bootable ISO from a directory (Windows ADK)
+oscdimg.exe -n -m -bC:\WinPE\boot\etfsboot.com C:\WinPE_x64 C:\Output\WinPE.iso
+```
+
 ### Knowledge check
 1. What is the difference between a *wipe-and-load* and an *in-place upgrade*?
 2. What is the minimum build Windows 11 requires for Intune enrollment?
@@ -73,12 +115,57 @@
 
 4. **DISM** operates on Windows image files (`.wim`, `.esd`, `.ffu`) offline — without booting into them. Use DISM to: mount an image, add/remove Windows features, inject drivers, apply updates, capture or apply images, and check image health (`/CheckHealth`, `/RestoreHealth`). **Sysprep** runs on a live, booted Windows installation that has been configured as a reference image. Use Sysprep to generalise the installation before capture — it removes machine-specific identifiers (computer SID, hardware-specific driver entries, activation state) so the image can be deployed to many different machines without identity conflicts. Rule of thumb: DISM manipulates images as files; Sysprep prepares a running system for imaging.
 
+---
+
+**Scenario-based questions:**
+
+5. A company is migrating 300 laptops from Windows 10 to Windows 11. The existing laptops all have their original OEM software, domain-joined profiles, and customised application configurations that took months to set up. The project timeline is tight. Which deployment method is most appropriate?
+   - A) Wipe-and-load using a new master image
+   - B) In-place upgrade using Windows Setup
+   - C) Fresh-start via the Windows Reset option
+   - D) Autopilot Reset
+
+<details>
+<summary>Answer</summary>
+
+**B) In-place upgrade using Windows Setup.** An in-place upgrade preserves all existing applications, settings, and user data, making it the appropriate choice when re-installation would be disruptive and time-consuming. Wipe-and-load (A) would require migrating applications and data. Fresh-start (C) removes applications. Autopilot Reset (D) requires the device to already be Autopilot-registered and wipes user data.
+
+</details>
+
+6. An endpoint engineer needs to prepare a Windows 11 reference image that will be deployed to 200 new desktops. After fully configuring the reference machine, what must they do before capturing the image with DISM?
+   - A) Run `Get-WindowsUpdateLog` to verify patch status
+   - B) Run `Sysprep /generalize /oobe /shutdown`
+   - C) Run `DISM /CheckHealth` on the live system
+   - D) Join the machine to the domain before capture
+
+<details>
+<summary>Answer</summary>
+
+**B) Run `Sysprep /generalize /oobe /shutdown`.** Sysprep must be run before capturing a reference image to remove machine-specific identifiers (SID, computer name, hardware-specific drivers). Without generalisation, all deployed machines would share the same SID causing identity conflicts. The machine should NOT be domain-joined before generalisation (D), as Sysprep with generalise will remove the domain join anyway.
+
+</details>
+
+7. A deployment engineer uses `DISM /Mount-Image` to inspect a WIM file and inject updated drivers. After making changes, the engineer runs `DISM /Unmount-Image /Discard` instead of `/Commit`. What is the result?
+   - A) All changes including injected drivers are saved to the WIM
+   - B) Only the driver injection is saved; other changes are discarded
+   - C) All changes are discarded and the WIM reverts to its original state
+   - D) The WIM file is deleted from disk
+
+<details>
+<summary>Answer</summary>
+
+**C) All changes are discarded and the WIM reverts to its original state.** The `/Discard` flag unmounts the image without committing any staged changes — the WIM is left exactly as it was before mounting. To save changes, `/Commit` must be used instead.
+
+</details>
+
 </details>
 
 ---
 
 ## Week 2 — Intune enrollment and device management
 > **Exam domain:** Prepare infrastructure for devices · **Weight:** 25–30%
+
+> **Real-world scenario:** A Sogeti consultant is onboarding a new client — a 200-person professional services company that has no on-premises domain infrastructure. The client wants all Windows 11 laptops managed via Intune with BitLocker enforced on every device. New employees receive laptops directly from the hardware vendor and should be able to self-provision without calling the helpdesk. The consultant must choose the right enrollment method, configure a BitLocker enforcement profile, and ensure the compliance dashboard is operational before go-live.
 
 ### Learning Objectives
 - [ ] Explain the difference between MDM enrollment and Hybrid Azure AD Join and identify when each approach is appropriate
@@ -115,6 +202,24 @@
 | **SSW-W11-01** | Verify BitLocker status: `manage-bde -status` |
 | **SSW-MGMT01** | Review **Device compliance** — create a compliance policy (minimum OS version) |
 
+### Lab commands
+
+```powershell
+# Check BitLocker encryption status on C: drive
+manage-bde -status C:
+
+# Force an immediate Intune policy sync from the device
+Start-Process "ms-device-enrollment://enroll"
+# Alternatively, trigger sync via Scheduled Task:
+Start-ScheduledTask -TaskPath "\Microsoft\Windows\EnterpriseMgmt\" -TaskName "Schedule to run OMADMClient by client"
+
+# Collect MDM diagnostic bundle for enrollment troubleshooting
+MdmDiagnosticsTool.exe -out C:\Temp\MdmDiag
+
+# Check Intune enrollment status in registry
+Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Enrollments\*" | Select PSChildName, EnrollmentType, UPN
+```
+
 ### Knowledge check
 1. What is the difference between MDM enrollment and Hybrid Azure AD Join?
 2. What enrollment methods exist in Intune and when do you use each?
@@ -137,12 +242,57 @@
 
 4. The Enrollment Status Page is a full-screen progress display that appears on a device during Autopilot provisioning after the user authenticates. It is divided into three phases: (1) **Device preparation** — Autopilot profile is downloaded; (2) **Device setup** — device-targeted apps and configuration profiles are installed; (3) **Account setup** — user-targeted apps and profiles are installed for the signed-in user. The ESP blocks access to the Windows desktop until all tracked apps and profiles finish installing, ensuring the device is fully configured before the user starts working. Administrators configure the ESP in Intune under **Devices → Windows → Enrollment → Enrollment Status Page**, where they can set a timeout, specify which apps must complete before the desktop is released, and control error behaviour.
 
+---
+
+**Scenario-based questions:**
+
+5. A company wants to enroll existing Windows 11 laptops that are currently joined to an on-premises Active Directory domain. The IT team does not want users to take any manual steps. Which enrollment method is most appropriate?
+   - A) Manual enrollment via Settings → Accounts → Work or school
+   - B) Windows Autopilot User-Driven mode
+   - C) GPO-triggered automatic MDM enrollment for Hybrid Azure AD Joined devices
+   - D) Bulk enrollment via Provisioning Package (PPKG)
+
+<details>
+<summary>Answer</summary>
+
+**C) GPO-triggered automatic MDM enrollment for Hybrid Azure AD Joined devices.** The devices are already domain-joined, so if they are also Hybrid Azure AD Joined (synced via Azure AD Connect), a Group Policy targeting the MDM enrollment URL will silently enroll them in Intune without any user interaction. Manual enrollment (A) requires user action. Autopilot (B) is designed for new or reset devices going through OOBE. PPKG (D) is intended for offline scenarios or devices without Intune licensing.
+
+</details>
+
+6. An Intune compliance policy requires BitLocker to be enabled and OS version to be at least Windows 11 22H2. A device is running Windows 11 21H2 with BitLocker enabled. A grace period of 3 days is configured. The device checked in 1 day ago. What is the current compliance status?
+   - A) Compliant
+   - B) Not compliant
+   - C) In grace period
+   - D) Not evaluated
+
+<details>
+<summary>Answer</summary>
+
+**C) In grace period.** The device fails the OS version requirement (21H2 is below the required 22H2), so it is technically non-compliant. However, because the 3-day grace period has not yet elapsed (only 1 day has passed), the device is shown as "In grace period" rather than "Not compliant." After 3 days without remediation, the status changes to "Not compliant" and Conditional Access blocks can take effect.
+
+</details>
+
+7. After creating a new configuration profile in Intune and assigning it to a device group, how long does it typically take for the policy to apply on an enrolled Windows device, and how can an engineer force immediate delivery?
+   - A) Up to 24 hours; no way to force delivery
+   - B) Up to 8 hours; trigger a Sync remote action from the Intune portal or from the device's Company Portal app
+   - C) Immediately; Intune always pushes policies in real time
+   - D) Up to 72 hours; the device must be restarted
+
+<details>
+<summary>Answer</summary>
+
+**B) Up to 8 hours; trigger a Sync remote action from the Intune portal or from the device's Company Portal app.** Intune devices check in approximately every 8 hours by default. To force an immediate policy sync, an administrator can use the **Sync** remote action in the Intune portal (Devices → select device → Sync), or the user can open Company Portal and select **Sync** from the device details page. The default check-in interval is 8 hours for enrolled Windows devices (not 24h, not immediate, not 72h).
+
+</details>
+
 </details>
 
 ---
 
 ## Week 3 — Compliance, Conditional Access and identity
 > **Exam domain:** Prepare infrastructure for devices · **Weight:** 25–30%
+
+> **Real-world scenario:** A Sogeti consultant is engaged by a manufacturing company after a targeted phishing attack compromised several employee accounts. The CISO mandates that all cloud application access must require MFA when users are off-site, and that only Intune-enrolled, compliant devices can access Microsoft 365 services. The consultant must configure Conditional Access policies, set up Named Locations for the corporate network, deploy Windows LAPS to prevent lateral movement via shared local admin passwords, and ensure the hybrid identity sync is working correctly via Azure AD Connect.
 
 ### Learning Objectives
 - [ ] Describe the three categories of signals that Conditional Access evaluates (user/group, device condition, location/risk) and explain how they combine into an access decision
@@ -181,6 +331,23 @@
 | **SSW-MGMT01** | Enable **Windows LAPS** in Intune: Endpoint security → Account protection → LAPS policy |
 | **SSW-W11-01** | Verify LAPS: retrieve the rotated local admin password via Intune portal |
 
+### Lab commands
+
+```powershell
+# Create a test user in Active Directory
+New-ADUser -Name "TestUser01" -SamAccountName "testuser01" -UserPrincipalName "testuser01@ssw.lab" `
+  -AccountPassword (ConvertTo-SecureString "P@ssw0rd!" -AsPlainText -Force) -Enabled $true
+
+# Force an Azure AD Connect delta sync
+Start-ADSyncSyncCycle -PolicyType Delta
+
+# Retrieve the LAPS-managed local admin password via Microsoft Graph (requires Az or Graph module)
+Get-MgDeviceLocalCredentials -DeviceId "<device-object-id>" -IncludeSecrets
+
+# Check Windows LAPS status on the local device
+Get-LapsAADPassword -DeviceId (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon").DefaultDomainName
+```
+
 ### Knowledge check
 1. What signals does Conditional Access use to make an access decision?
 2. What is the difference between *Block* and *Grant with controls* in CA?
@@ -205,12 +372,57 @@
 
 5. **Windows LAPS** (introduced in Windows 11 22H2 / Windows Server 2022) is built directly into the Windows operating system — no separate agent or MSI installation is required. It can back up the local administrator password to **Entra ID** (for Azure AD Joined or Hybrid AADJ devices) or to **on-premises Active Directory**. It is configured via Intune (Endpoint security → Account protection) or Group Policy, and passwords are retrievable via the Intune portal or Microsoft Graph API. Passwords can be automatically rotated on a schedule or on demand, and post-authentication actions (e.g., reset password and log off after use) are configurable. **Legacy Microsoft LAPS** (the original solution) requires installing a client-side extension (MSI) on each managed device and backs up passwords **only to on-premises Active Directory**. It is configured exclusively via Group Policy and does not support Entra ID backup. Microsoft recommends migrating to Windows LAPS for all new deployments; legacy LAPS remains supported but not enhanced.
 
+---
+
+**Scenario-based questions:**
+
+6. A company wants to ensure that employees can only access Microsoft 365 applications (Exchange Online, SharePoint) when they are using a device that is enrolled in Intune and marked compliant. Employees signing in from personal, unmanaged devices should be blocked entirely. Which Conditional Access configuration achieves this?
+   - A) Grant access with controls: require MFA
+   - B) Grant access with controls: require compliant device
+   - C) Block access for all locations except Named Locations
+   - D) Grant access with controls: require Hybrid Azure AD Joined device
+
+<details>
+<summary>Answer</summary>
+
+**B) Grant access with controls: require compliant device.** Requiring a compliant device means only Intune-enrolled devices that satisfy the compliance policy can access the applications — unmanaged personal devices are blocked because they are not enrolled and therefore have no compliance status. Option A (MFA only) does not block unmanaged devices. Option C would only restrict by location, not by device management state. Option D (Hybrid AADJ) would block cloud-only Entra ID joined devices and is not the right choice for a cloud-first environment.
+
+</details>
+
+7. An organisation recently completed a migration to a cloud-only Entra ID environment with no remaining on-premises Active Directory infrastructure. They need to rotate local administrator passwords on all Windows 11 22H2 devices and store them securely. Which solution should the consultant recommend?
+   - A) Legacy Microsoft LAPS with passwords stored in on-premises AD
+   - B) Windows LAPS configured to back up to Entra ID via Intune policy
+   - C) A PowerShell script that generates and emails passwords to the IT team
+   - D) Disable the local administrator account on all devices
+
+<details>
+<summary>Answer</summary>
+
+**B) Windows LAPS configured to back up to Entra ID via Intune policy.** Windows LAPS (built into Windows 11 22H2+) supports Entra ID as a backup destination, which is exactly what a cloud-only environment requires. Legacy LAPS (A) requires on-premises Active Directory and cannot store passwords in Entra ID. A script (C) is not a managed, auditable solution. Disabling the local administrator account (D) removes the break-glass recovery option and is not recommended.
+
+</details>
+
+8. A Conditional Access policy is being created to enforce MFA for all users accessing SharePoint Online. The security team wants to test the impact before enabling enforcement, to avoid unintentionally locking out employees. What CA setting should be used during the testing phase?
+   - A) Set the policy to **Disabled**
+   - B) Set the policy to **Report-only** mode
+   - C) Set the policy to **Block access** for a pilot group only
+   - D) Enable the policy with a Named Location exclusion for the corporate network
+
+<details>
+<summary>Answer</summary>
+
+**B) Set the policy to Report-only mode.** Report-only mode evaluates every sign-in against the policy conditions and logs what the policy would have done (grant, block, or require MFA), but does not enforce any action. This allows the security team to analyse the sign-in logs in Entra ID and identify affected users before enabling the policy. Setting it to Disabled (A) provides no testing data. Option C (Block for pilot group) is enforcement, not testing. Option D changes the policy scope rather than testing it safely.
+
+</details>
+
 </details>
 
 ---
 
 ## Week 4 — Application management with Intune
 > **Exam domain:** Manage applications · **Weight:** 15–20%
+
+> **Real-world scenario:** A Sogeti consultant is supporting a retail chain that manages 600 Windows 11 endpoints entirely via Intune. The IT team needs to deploy a legacy ERP application (complex EXE installer with custom switches) silently to all corporate devices, make the Adobe Acrobat Reader available optionally in the Company Portal, and ensure that employees using personal iPhones for work email cannot copy corporate data to their personal apps. The consultant must package the Win32 app, configure app assignment intents, and set up App Protection Policies for mobile BYOD.
 
 ### Learning Objectives
 - [ ] Package a Win32 application using the Intune Win32 Content Prep Tool (`IntuneWinAppUtil.exe`) and upload it to Intune with a correct detection rule
@@ -248,6 +460,22 @@
 | **SSW-W11-02** | Verify Office installation after sync (`imdssync` or wait for Intune check-in) |
 | **SSW-MGMT01** | Configure an *App protection policy* (MAM) for Microsoft Edge |
 
+### Lab commands
+
+```powershell
+# Package a Win32 app installer into .intunewin format
+.\IntuneWinAppUtil.exe -c "C:\AppSource\MyApp" -s "setup.exe" -o "C:\IntunePackages"
+
+# Tail the IntuneManagementExtension log in real time for troubleshooting
+Get-Content "C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log" -Wait -Tail 50
+
+# Check if a specific app is detected (simulate detection rule - file path)
+Test-Path "C:\Program Files\MyApp\myapp.exe"
+
+# Trigger IME app re-evaluation (restart the service)
+Restart-Service -Name IntuneManagementExtension
+```
+
 ### Knowledge check
 1. What is the difference between a *Required* and *Available* app assignment?
 2. When do you use Win32 app packaging versus Microsoft Store for Business?
@@ -265,12 +493,57 @@
 
 4. MAM without MDM enrollment (MAM-WE) enables organisations to protect corporate data within specific managed apps on personal, unmanaged BYOD devices — without requiring the user to enrol their personal device into full MDM management. Benefits include: (a) **Privacy** — the organisation has no visibility into the personal device, its apps, or its location; only the specific managed apps are in scope; (b) **Data separation** — corporate data within apps like Outlook and Teams is encrypted, and copy/paste to unmanaged apps (personal email, social media) is blocked; (c) **Selective wipe** — only the corporate data within managed apps can be remotely wiped; the personal data and the device itself are never touched; (d) **No enrollment barrier** — employees do not need to accept full MDM management of their personal phone to access corporate email, making adoption easier; (e) **Supported on unmanaged devices** — works on iOS, Android, and Windows without any agent or MDM enrollment.
 
+---
+
+**Scenario-based questions:**
+
+5. A company deploys a Win32 app to a device group in Intune with a Required assignment. The app does not install on one device, and there is no error visible in the Intune portal. Where should the engineer look first to diagnose the issue?
+   - A) Windows Event Viewer → Application log
+   - B) `C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log`
+   - C) The Microsoft Endpoint Manager admin centre → Troubleshooting + support
+   - D) The Windows Update log (`Get-WindowsUpdateLog`)
+
+<details>
+<summary>Answer</summary>
+
+**B) `C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log`.** This is always the first file to check for Win32 app deployment failures. It contains the full execution output of the installer, the detection rule evaluation result, the exit code returned by the installer, and any retry attempts. The Intune portal often shows a generic error code; the IME log reveals the specific root cause. The Windows Event Viewer (A) and Windows Update log (D) do not contain Win32 app deployment details.
+
+</details>
+
+6. A company wants to protect Microsoft Outlook data on employee-owned iPhones without requiring the devices to be enrolled in Intune. Employees must be able to use their personal iPhones for corporate email, but copying corporate emails to personal notes or third-party apps must be blocked. Which Intune feature should the consultant configure?
+   - A) Device compliance policy for iOS
+   - B) Device configuration profile: Email settings for iOS
+   - C) App Protection Policy (MAM without enrollment) for Outlook on iOS
+   - D) Conditional Access policy requiring a compliant device
+
+<details>
+<summary>Answer</summary>
+
+**C) App Protection Policy (MAM without enrollment) for Outlook on iOS.** MAM-WE applies App Protection Policies to managed apps (Outlook) on unmanaged personal devices without requiring MDM enrollment. It can restrict copy/paste to unmanaged apps, require a PIN to open Outlook, encrypt app data, and enable selective corporate data wipe — all without touching personal data or requiring the user to enrol their iPhone. A device compliance policy (A) requires enrollment. A configuration profile (B) also requires enrollment. A CA policy requiring a compliant device (D) would block access entirely from unmanaged devices.
+
+</details>
+
+7. An engineer is uploading a Win32 app to Intune and must configure a detection rule. The installer creates a registry key `HKLM:\SOFTWARE\MyCompany\MyApp` with a value `Version = 2.1` after successful installation. Which detection rule type should be used?
+   - A) MSI product code detection
+   - B) File path detection
+   - C) Registry key detection
+   - D) PowerShell script detection
+
+<details>
+<summary>Answer</summary>
+
+**C) Registry key detection.** Since the successful installation creates a specific registry key and value, a registry detection rule is the most direct and reliable approach. Configure it to check for the existence of `HKLM:\SOFTWARE\MyCompany\MyApp` with value `Version = 2.1`. MSI product code detection (A) is only applicable for MSI-based installers. File path detection (B) would work if the installation creates a known file, but the scenario specifies a registry key. PowerShell detection (D) is the most flexible but also the most complex — unnecessary when a built-in rule type directly matches the evidence.
+
+</details>
+
 </details>
 
 ---
 
 ## Week 5 — Windows Autopilot
 > **Exam domain:** Prepare infrastructure for devices · **Weight:** 25–30%
+
+> **Real-world scenario:** A Sogeti consultant is setting up a zero-touch deployment process for a logistics company that receives 50 new laptops per month from a hardware reseller. The company wants new employees to unbox their laptop, connect to the internet, and have a fully configured, corporate-ready Windows 11 device within 30 minutes — without any IT involvement. Additionally, the company has shared kiosk terminals in warehouses that must auto-configure without any user sign-in. The consultant must configure Autopilot for both User-Driven and Self-Deploying scenarios, set up the Enrollment Status Page, and register the hardware hashes via the reseller portal.
 
 ### Learning Objectives
 - [ ] Collect a device hardware hash using `Get-WindowsAutoPilotInfo` and import it into the Intune portal
@@ -311,6 +584,24 @@
 | **SSW-MGMT01** | Explore *Windows 365* in Intune: review Cloud PC provisioning policies |
 | **SSW-MGMT01** | Run a *device query* using KQL: **Devices → select device → Device query** |
 
+### Lab commands
+
+```powershell
+# Collect hardware hash and export to CSV (requires WindowsAutoPilotIntune module)
+Install-Script -Name Get-WindowsAutoPilotInfo
+Get-WindowsAutoPilotInfo -OutputFile C:\Temp\AutopilotHash.csv
+
+# Upload hardware hash to Intune directly (requires MS Graph / WindowsAutoPilotIntune module)
+Install-Module -Name WindowsAutoPilotIntune
+Connect-MgGraph -Scopes "DeviceManagementServiceConfig.ReadWrite.All"
+Import-AutoPilotCSV -csvFile C:\Temp\AutopilotHash.csv
+
+# KQL device query examples in Intune Device Query
+# Run these in: Intune → Devices → [select device] → Device query
+# InstalledApplications | project ApplicationName, ApplicationVersion | order by ApplicationName asc
+# SystemInfo | project DeviceName, Manufacturer, Model, OSVersion, TotalMemory
+```
+
 ### Knowledge check
 1. What is the difference between *User-driven* and *Self-deploying* Autopilot mode?
 2. What is the *Enrollment Status Page* used for and how do you configure it?
@@ -339,12 +630,57 @@
    - `LogicalDrive | project DriveName, TotalSpace, FreeSpace` — disk space per drive
    The key differentiator from standard Intune inventory: device queries return **real-time, live data** from the device at the moment the query runs, whereas the standard hardware and discovered apps inventory is refreshed periodically (cached) based on the Intune sync schedule.
 
+---
+
+**Scenario-based questions:**
+
+7. A company deploys warehouse kiosk terminals running Windows 11. The terminals should configure themselves automatically when connected to the network — no user should ever need to sign in during provisioning, and no user account should be associated with the device in Entra ID. Which Autopilot mode should be used?
+   - A) User-Driven mode with Entra ID join
+   - B) Pre-Provisioning (White Glove) with technician flow
+   - C) Self-Deploying mode
+   - D) Autopilot for Existing Devices
+
+<details>
+<summary>Answer</summary>
+
+**C) Self-Deploying mode.** Self-Deploying mode provisions the device with zero user interaction — the device authenticates using TPM 2.0 hardware attestation, no user account is required, and User Affinity is set to None. This is the correct mode for kiosks, shared devices, and digital signage. User-Driven mode (A) requires a user to authenticate. White Glove (B) is a two-phase mode for pre-staging devices before user delivery. Autopilot for Existing Devices (D) is for migrating existing domain-joined machines to Autopilot, not for kiosk deployment.
+
+</details>
+
+8. A device was recently used by an employee who has left the company. The IT team wants to reassign it to a new employee. The device is currently enrolled in Intune and registered in Autopilot. The IT team wants to preserve the Intune enrollment and Autopilot registration, remove all previous user data, and have the new employee go through the standard OOBE provisioning. What is the correct action?
+   - A) Perform a Wipe (factory reset) from the Intune portal
+   - B) Perform an Autopilot Reset from the Intune portal
+   - C) Delete the device from Intune and re-import the hardware hash
+   - D) Retire the device from Intune and re-enroll manually
+
+<details>
+<summary>Answer</summary>
+
+**B) Perform an Autopilot Reset from the Intune portal.** Autopilot Reset removes all user data and applications, returns Windows to a clean OOBE-ready state, but keeps the device registered in Autopilot and its Entra ID object intact. The new employee can then sign in during OOBE and the device re-provisions automatically with all assigned profiles and apps. A full Wipe (A) also resets the device but removes the Entra ID device object and Intune enrollment — the device would need to re-register. Deleting from Intune (C) or Retiring (D) introduces unnecessary complexity.
+
+</details>
+
+9. An Intune administrator runs the following KQL query on a device via the Device Query feature: `InstalledApplications | where ApplicationName contains "Chrome"`. The query returns no results, but the administrator can see Chrome installed in the standard Intune hardware inventory. What is the most likely explanation?
+   - A) KQL device queries only work on devices running Windows 11 23H2 or later
+   - B) The standard Intune inventory is real-time; KQL queries use cached data
+   - C) The KQL query ran successfully but Chrome was uninstalled between the inventory sync and the query
+   - D) KQL Device Query requires Intune Advanced Analytics; the device may not have the feature licensed
+
+<details>
+<summary>Answer</summary>
+
+**D) KQL Device Query requires Intune Advanced Analytics; the device may not have the feature licensed.** Device Query is part of Intune Advanced Analytics, which requires Intune Suite or Intune Plan 2 licensing. Without this license, the Device Query tab may appear but return no results or show an error. The scenario description of results returning empty while inventory shows the app is the classic symptom of a licensing or feature enablement gap. Note also that KQL queries are *real-time* (not cached) — the opposite of option B — so the inventory/query discrepancy described in option B is reversed in reality.
+
+</details>
+
 </details>
 
 ---
 
 ## Week 6 — Security, updates, Intune Suite and monitoring
 > **Exam domain:** Protect devices · **Weight:** 15–20%
+
+> **Real-world scenario:** A Sogeti consultant is engaged by a healthcare organisation following a ransomware incident that encrypted several file servers. The CISO requires immediate action: enforce Windows Update patching within 7 days of release, onboard all endpoints to Microsoft Defender for Endpoint, remove local administrator rights from all standard users while still allowing certain maintenance tools to run with elevation, and implement a proactive monitoring strategy that alerts IT before devices become a problem. The consultant must configure update rings, Defender onboarding, Endpoint Privilege Management, and Endpoint Analytics.
 
 ### Learning Objectives
 - [ ] Configure a Windows Update for Business update ring in Intune and differentiate between quality update and feature update deferral periods
@@ -387,6 +723,25 @@
 | **SSW-MGMT01** | Review *Advanced Analytics* in Intune: check anomaly detection dashboard |
 | **SSW-MGMT01** | Explore **Enterprise App Catalog**: find a managed app and review its metadata |
 
+### Lab commands
+
+```powershell
+# Check Windows Defender service (SENSE = MDE sensor) status
+sc query sense
+
+# Trigger a Defender Quick Scan
+Start-MpScan -ScanType QuickScan
+
+# Check current Windows Update deferral settings in registry
+Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" | Select DeferQualityUpdates, DeferQualityUpdatesPeriodInDays
+
+# Check Defender threat definitions version
+Get-MpComputerStatus | Select AntivirusSignatureVersion, AntispywareSignatureLastUpdated, RealTimeProtectionEnabled
+
+# Initiate a Defender signature update
+Update-MpSignature
+```
+
 ### Knowledge check
 1. What is the difference between an *Update ring* and a *Feature update policy*?
 2. How does *Co-management* work between Intune and Configuration Manager?
@@ -415,6 +770,49 @@
    - **Microsoft Tunnel for MAM** — solves secure access for unmanaged BYOD mobile devices: provides a per-app VPN tunnel for MAM-managed apps on non-enrolled iOS/Android devices so they can securely reach on-premises resources without enrolling the device into MDM.
 
 6. Endpoint Privilege Management addresses the tension between security (users should not be local administrators) and productivity (some IT tasks or legitimate business applications require elevated rights). EPM works by deploying an Intune policy to devices that installs the EPM client. When a user right-clicks an approved file in Windows Explorer, they see a **"Run with elevated access"** option. Depending on the elevation rule type: **Managed elevation** — the file is silently elevated without any user confirmation (the IT-approved app simply runs as admin); **User-confirmed elevation** — the user sees a confirmation dialog and must acknowledge the elevation (creates an audit trail); **Support-approved elevation** — the user must request approval from the help desk before the elevation is granted. Use EPM elevation policies for: applications that legitimately require admin rights but should not require making users permanent admins (e.g., legacy installers, some diagnostic tools); and for phased least-privilege rollouts where you are removing admin rights from a user population and need a safety net for the remaining edge cases.
+
+---
+
+**Scenario-based questions:**
+
+7. A company's security team requires that all Windows quality updates (security patches) must be installed within 10 days of Microsoft's release date, with forced restart enforcement after the deadline. Feature updates should be held at the current Windows 11 version until explicitly approved. Which combination of Intune policies achieves this?
+   - A) One Update ring with quality deferral of 10 days and forced restart deadline; no Feature update policy needed
+   - B) One Update ring with quality deferral of 0 days; a Feature update policy pinning the current Windows 11 version
+   - C) One Update ring with quality deferral of 10 days and restart enforcement; plus a Feature update policy pinning the current Windows 11 version
+   - D) Two Update rings — one for quality, one for feature — with different deferral settings
+
+<details>
+<summary>Answer</summary>
+
+**C) One Update ring with quality deferral of 10 days and restart enforcement; plus a Feature update policy pinning the current Windows 11 version.** The Update ring handles quality update timing and restart behaviour. The Feature update policy separately controls which Windows version devices stay on, allowing the security team to approve feature updates independently of quality patches. Option A leaves feature updates uncontrolled (they would be governed by the update ring's feature deferral, which may not pin to a specific version). Option B sets quality deferral to 0 (immediate), which does not allow the 10-day window. Option D is not how Intune Update rings work — a single ring manages both update types.
+
+</details>
+
+8. An employee has left a company and returned their personal iPhone that was used for corporate email via an MAM App Protection Policy (no MDM enrollment). IT wants to remove all corporate data from the device while leaving the employee's personal photos and apps intact. Which Intune action should be performed?
+   - A) Wipe the device remotely from Intune
+   - B) Retire the device from Intune
+   - C) Delete the device from Intune
+   - D) Perform a selective app wipe via App Protection
+
+<details>
+<summary>Answer</summary>
+
+**D) Perform a selective app wipe via App Protection.** Since the device is not MDM-enrolled, the Retire and Wipe remote actions are not applicable (they require MDM enrollment). A selective app wipe (available for MAM-protected apps) removes only the corporate data within the managed apps (e.g., wipes the Outlook and OneDrive corporate account) while leaving personal data, photos, and apps completely untouched. Deleting the device from Intune (C) removes the device record but does not wipe corporate app data.
+
+</details>
+
+9. A company has 500 Windows devices currently managed by Configuration Manager (SCCM). The organisation wants to start moving to Intune-based management gradually. They want to keep ConfigMgr managing software deployments and Windows Updates, but immediately gain Intune compliance reporting. Which co-management workload should be shifted to Intune first?
+   - A) Windows Update policies
+   - B) Office Click-to-Run apps
+   - C) Compliance policies
+   - D) Endpoint Protection
+
+<details>
+<summary>Answer</summary>
+
+**C) Compliance policies.** Shifting the Compliance policies workload to Intune is the recommended first step in a co-management migration. It is low-risk (compliance reporting does not disrupt device behaviour), immediately valuable (devices start reporting compliance status to Intune, enabling Conditional Access), and allows the team to validate Intune integration before touching workloads that directly affect software delivery or security. Windows Update policies (A), Office apps (B), and Endpoint Protection (D) have larger operational impact if misconfigured during the transition.
+
+</details>
 
 </details>
 

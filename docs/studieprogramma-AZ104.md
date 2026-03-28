@@ -17,6 +17,27 @@
 > **Voorwaarde:** Azure subscription via MSDN/Visual Studio Subscriptions (maandelijks tegoed)
 > De SSW-Lab VMs dienen als *hybride on-premises endpoint* voor sommige labs (VPN, Azure Arc)
 
+## Zo gebruik je dit studieprogramma
+
+- Lees per week eerst de leerdoelen en bepaal welke taken je echt in Azure moet uitvoeren en welke alleen ondersteunend in SSW-Lab plaatsvinden.
+- Houd tijdens het lab een kostenbewuste werkwijze aan: noteer wat je aanmaakt en ruim resources dezelfde dag weer op als ze niet meer nodig zijn.
+- Maak de kennischeck pas nadat je zowel portal- als CLI/PowerShell-stappen hebt gedaan; AZ-104 toetst vaak of je meerdere beheerpaden herkent.
+- Werk je in een gemengd Nederlands/Engelstalig team, houd termen bewust parallel bij, zoals *resourcegroep / resource group* en *beheerlaag / management group*.
+
+## Labdekking en verwachtingen
+
+- **Sterke dekking in SSW-Lab:** hybride identiteitsbasis, Azure CLI vanaf Windows-clients, Azure File Sync-koppeling, netwerkconcepten en enkele beheer- en monitoringoefeningen.
+- **Gedeeltelijke dekking:** veel AZ-104-onderdelen spelen primair in Azure zelf; de lokale VMs ondersteunen vooral scenario's rond Arc, VPN, File Sync en hybride identiteit.
+- **Cloud-first onderdelen:** compute, storage, VNets, load balancing, monitoring, backup en governance moet je vooral in de Azure-portal en via CLI/PowerShell oefenen.
+- Zie dit document daarom als complete studieroute, maar niet als "lokaal-only" lab: de echte examenfit ontstaat pas als je consequent ook de Azure-resources zelf bouwt en opruimt.
+
+## Werkwijze voor kennischecks
+
+- Beantwoord elke vraag vanuit scope en beheerlaag: op welk niveau wijs je iets toe of dwing je iets af?
+- Controleer of je niet alleen het portalpad kent, maar ook het concept erachter begrijpt.
+- Herhaal vooral vragen over storage-redundantie, networking en RBAC/Policy, omdat die in scenario's snel door elkaar lopen.
+- Koppel je antwoord steeds terug aan operationele impact: kosten, beschikbaarheid, beveiliging en beheerlast.
+
 ---
 
 ## Week 1 — Azure identiteiten en governance

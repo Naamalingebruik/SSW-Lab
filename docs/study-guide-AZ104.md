@@ -17,10 +17,33 @@
 > **Prerequisite:** Azure subscription via MSDN/Visual Studio Subscriptions (monthly credit)
 > The SSW-Lab VMs serve as a *hybrid on-premises endpoint* for some labs (VPN, Azure Arc)
 
+## How to use this study guide
+
+- Start each week by reading the learning objectives and deciding which tasks must happen in Azure itself versus which tasks are only supported by SSW-Lab.
+- Work cost-consciously throughout the lab: note what you create and remove resources on the same day when they are no longer needed.
+- Complete the knowledge check only after doing both the portal and CLI/PowerShell work; AZ-104 often tests whether you recognise multiple administration paths.
+- If you work in a mixed Dutch/English team, keep key terms aligned in both languages, such as *resource group / resourcegroep* and *management group / beheerlaag*.
+
+## Lab coverage and expectations
+
+- **Strong SSW-Lab support:** hybrid identity fundamentals, Azure CLI from Windows clients, Azure File Sync integration, networking concepts, and selected administration and monitoring exercises.
+- **Partial coverage:** many AZ-104 objectives live primarily in Azure; the local VMs mainly support Arc, VPN, File Sync, and hybrid identity scenarios.
+- **Cloud-first areas:** compute, storage, VNets, load balancing, monitoring, backup, and governance should mainly be practised in the Azure portal and via CLI/PowerShell.
+- Treat this as a complete study route, but not as a local-only lab: the real exam fit comes from consistently creating and cleaning up Azure resources yourself.
+
+## How to use the knowledge checks
+
+- Answer every question by first identifying the correct scope and management layer.
+- Verify that you understand not only the portal path, but the underlying platform concept as well.
+- Revisit questions on storage redundancy, networking, and RBAC versus Policy, because these are easy to mix up in scenario questions.
+- Tie each answer back to operational impact: cost, availability, security, and management overhead.
+
 ---
 
 ## Week 1 — Azure identities and governance
 > **Exam domain:** Manage Azure identities and governance · **Weight:** 20–25%
+
+> **Real-world scenario:** A Sogeti consultant is onboarding a newly acquired subsidiary of a financial services client. The subsidiary has its own Active Directory, 200 employees, and needs scoped access to specific Azure workloads without gaining visibility into the parent company's subscriptions. You are asked to design the RBAC delegation model, create a management group hierarchy, and enforce a policy that restricts resource creation to approved regions only.
 
 ### Learning Objectives
 - [ ] Create and manage Entra ID users and groups, including guest (B2B) accounts
@@ -59,6 +82,25 @@
 | **SSW-W11-01** | Use Azure CLI: `az group list --output table` |
 | **Azure portal** | Set up a *Cost budget alert* at €50 for `rg-sswlab-dev` |
 
+### Lab commands
+
+```powershell
+# Create a new Entra ID user
+az ad user create --display-name "AZ Admin" --user-principal-name az-admin@<tenant>.onmicrosoft.com --password "P@ssw0rd123!"
+
+# Assign Contributor role on a resource group
+az role assignment create --assignee az-admin@<tenant>.onmicrosoft.com --role "Contributor" --scope /subscriptions/<sub-id>/resourceGroups/rg-sswlab-dev
+
+# List all role assignments in a resource group
+az role assignment list --resource-group rg-sswlab-dev --output table
+
+# Assign a built-in Azure Policy (Allowed locations)
+az policy assignment create --name "allowed-locations" --policy "e56962a6-4747-49cd-b67b-bf8b01975c4f" --params '{"listOfAllowedLocations":{"value":["westeurope","northeurope"]}}'
+
+# Create a budget alert
+az consumption budget create --budget-name "sswlab-budget" --amount 50 --time-grain Monthly --resource-group rg-sswlab-dev --notifications '[{"enabled":true,"operator":"GreaterThan","threshold":80,"contactEmails":["admin@example.com"]}]'
+```
+
 ### Knowledge check
 1. What is the difference between *Azure RBAC* and *Entra ID roles*?
 2. How does *Policy* compare to *RBAC* — when do you use which?
@@ -76,12 +118,38 @@
 
 4. **Azure Cost Management** collects and analyses spend across subscriptions. A **budget alert** is configured by setting a spend threshold (e.g. €50/month) and alert conditions (e.g. at 80% and 100%). When the threshold is reached, Azure sends an email to configured recipients. Budgets are proactive — they warn before overspend occurs, unlike the Cost Analysis view which is retrospective.
 
+5. A company acquires a new business unit and wants to give its IT team the ability to create and manage VMs in a specific subscription, but not to change network configurations or assign roles to others. Which built-in RBAC role should you assign?
+   - A) Owner
+   - B) Contributor
+   - C) Virtual Machine Contributor
+   - D) User Access Administrator
+
+   **Answer: C** — Virtual Machine Contributor grants rights to create and manage VMs but not to manage the virtual network or assign RBAC roles. Contributor (B) would also allow network changes. Owner (A) includes rights to assign roles. User Access Administrator (D) is specifically for managing role assignments.
+
+6. Your organisation needs to ensure that no Azure resources can be created outside West Europe and North Europe across all subscriptions in the company's management group. What is the correct approach?
+   - A) Assign a Contributor role to all subscription owners and instruct them not to create resources elsewhere
+   - B) Create an Azure Policy with the "Allowed locations" definition and assign it at management group scope
+   - C) Create an Azure Policy at each subscription individually
+   - D) Configure a Resource Lock on each subscription
+
+   **Answer: B** — Assigning the policy at management group scope ensures it cascades to all child subscriptions automatically. Option C would work but is not scalable. Option A relies on manual compliance. Option D — resource locks do not restrict location of new resources.
+
+7. An administrator configures a ReadOnly resource lock on a resource group containing a storage account. A user with the Contributor role attempts to upload a blob. What happens?
+   - A) The upload succeeds because the user has Contributor rights
+   - B) The upload fails because the lock blocks all write operations including data plane writes
+   - C) The upload succeeds because data plane operations bypass ARM locks
+   - D) The upload fails but only for new containers, not existing ones
+
+   **Answer: C** — Resource locks operate at the Azure Resource Manager (control plane) level and do not block data plane operations such as blob uploads, file reads, or queue operations. The Contributor role allows the data plane write; the lock does not prevent it.
+
 </details>
 
 ---
 
 ## Week 2 — Implement and manage storage
 > **Exam domain:** Implement and manage storage · **Weight:** 15–20%
+
+> **Real-world scenario:** A growing data analytics team at a retail client generates around 500 GB of raw data monthly. Reports older than 90 days are rarely accessed, and data older than two years must be kept for compliance but is virtually never read. The storage costs are rising fast and your Sogeti engagement lead asks you to design a lifecycle management strategy and recommend the right redundancy tier given that the team operates from a single Dutch office but the data is business-critical.
 
 ### Learning Objectives
 - [ ] Create and configure a General Purpose v2 storage account with LRS redundancy
@@ -122,6 +190,26 @@
 | **SSW-DC01** | Install Azure File Sync agent → register server → sync an SSW-DC01 folder |
 | **Azure portal** | Configure a *Lifecycle management policy*: move to Cool tier after 30 days |
 
+### Lab commands
+
+```powershell
+# Create a storage account
+az storage account create --name sswlabstorage --resource-group rg-sswlab-dev --location westeurope --sku Standard_LRS --kind StorageV2
+
+# Generate a SAS token for a container (read-only, 1 hour)
+az storage container generate-sas --account-name sswlabstorage --name mycontainer --permissions r --expiry (Get-Date).AddHours(1).ToString("yyyy-MM-ddTHH:mmZ") --output tsv
+
+# Upload a file with azcopy
+azcopy copy "C:\testfile.txt" "https://sswlabstorage.blob.core.windows.net/mycontainer/testfile.txt?<SAS-token>"
+
+# List blobs in a container
+az storage blob list --account-name sswlabstorage --container-name mycontainer --output table
+
+# Create an Azure File Share and mount it
+az storage share create --name myfileshare --account-name sswlabstorage --quota 5
+net use Z: \\sswlabstorage.file.core.windows.net\myfileshare /u:AZURE\sswlabstorage <storage-key>
+```
+
 ### Knowledge check
 1. What are the storage access tiers and when do you use each?
 2. What is the difference between a *SAS token* and an *access key*?
@@ -139,12 +227,38 @@
 
 4. **LRS** replicates data 3 times within a single datacenter — no resilience against datacenter failure. **ZRS** replicates across 3 availability zones in the same region — protects against zone-level failures but not against a full regional outage. **GRS** adds geo-replication: LRS in the primary region plus 3 copies in a paired secondary region. The secondary is not readable by default unless you enable **RA-GRS**. **GZRS** combines zone-level redundancy in the primary (ZRS) with geo-replication — the highest resilience tier. Use GRS or GZRS when you need protection against a complete regional failure.
 
+5. A company shares monthly financial reports with an external auditor. The reports are stored in Azure Blob Storage. The auditor needs read access to a specific container for exactly 48 hours. Which approach provides the least privilege while meeting the requirement?
+   - A) Share the storage account access key with the auditor
+   - B) Create a SAS token scoped to the container with read permission and a 48-hour expiry
+   - C) Assign the auditor the Storage Blob Data Reader role at the subscription level
+   - D) Make the container public (anonymous access)
+
+   **Answer: B** — A SAS token scoped to the container with read-only access and a 48-hour expiry grants exactly the required access. Option A shares full account access with no expiry. Option C grants access beyond the required scope. Option D removes all access control.
+
+6. A lifecycle management policy is configured to move blobs to Cool tier after 30 days and delete them after 365 days. A blob was uploaded 28 days ago and has not been accessed since. What is its current state?
+   - A) Already moved to Cool tier because it has been inactive for more than 7 days
+   - B) Still in Hot tier because the 30-day threshold has not yet been reached
+   - C) Moved to Archive tier because it is not accessed frequently
+   - D) Deleted because inactive blobs are removed after 14 days by default
+
+   **Answer: B** — Lifecycle management policies apply rules based on configured age thresholds. With a 30-day rule, the blob remains in Hot tier until day 30. No default automatic deletion or tiering occurs before a rule threshold is met.
+
+7. A development team needs to store container images in a private Azure Container Registry and pull them from Azure Container Instances. They want to avoid storing credentials in their pipeline configuration. Which authentication method should you recommend?
+   - A) Store the ACR admin username and password as pipeline secrets
+   - B) Use a SAS token generated against the ACR storage account
+   - C) Enable the Managed Identity on the ACI and assign the AcrPull role to the registry
+   - D) Make the ACR registry public temporarily during the pull
+
+   **Answer: C** — Managed Identity eliminates the need to store or rotate credentials. Assigning AcrPull to the managed identity grants the minimum required access. Option A stores credentials which must be rotated. Option B is not applicable to ACR authentication. Option D introduces a security risk.
+
 </details>
 
 ---
 
 ## Week 3 — Deploy and manage Virtual Machines
 > **Exam domain:** Deploy and manage Azure compute resources · **Weight:** 20–25%
+
+> **Real-world scenario:** A logistics company is migrating its on-premises application tier to Azure. The application consists of two web servers and one application server that must remain available during scheduled platform maintenance windows. The client's SLA requires 99.95% uptime. You are the Azure administrator on the Sogeti project team and must design the VM deployment using Availability Sets, configure automated backups, and demonstrate a recovery procedure.
 
 ### Learning Objectives
 - [ ] Deploy a Windows Server 2022 VM using the Azure portal and configure its size, disk, and network settings
@@ -183,6 +297,26 @@
 | **Azure portal** | Deploy an *Availability Set* with 2 VMs → verify fault/update domain distribution |
 | **Azure portal** | Enable *Azure Backup* for the VM → run an on-demand backup |
 
+### Lab commands
+
+```powershell
+# Deploy a VM via Azure CLI
+az vm create --resource-group rg-sswlab-dev --name sswlab-vm01 --image Win2022AzureEditionCore --size Standard_B2s --admin-username azureadmin --admin-password "P@ssw0rd123!" --location westeurope
+
+# Attach a data disk to an existing VM
+az vm disk attach --resource-group rg-sswlab-dev --vm-name sswlab-vm01 --name sswlab-datadisk01 --new --size-gb 32 --sku Standard_LRS
+
+# Take a snapshot of the OS disk
+$diskId = az vm show --resource-group rg-sswlab-dev --name sswlab-vm01 --query "storageProfile.osDisk.managedDisk.id" -o tsv
+az snapshot create --resource-group rg-sswlab-dev --name sswlab-snapshot01 --source $diskId
+
+# Enable Azure Backup for a VM
+az backup protection enable-for-vm --resource-group rg-sswlab-dev --vault-name sswlab-rsv --vm sswlab-vm01 --policy-name DefaultPolicy
+
+# Trigger an on-demand backup job
+az backup protection backup-now --resource-group rg-sswlab-dev --vault-name sswlab-rsv --container-name sswlab-vm01 --item-name sswlab-vm01 --backup-management-type AzureIaasVM
+```
+
 ### Knowledge check
 1. What is the difference between *Availability Sets* and *Availability Zones*?
 2. When do you use *Azure VM Scale Sets* versus standalone VMs?
@@ -200,12 +334,38 @@
 
 4. A **generalised image** has had all machine-specific information removed (via Sysprep on Windows or `waagent -deprovision+user` on Linux). The resulting image can be used to deploy many identical VMs, each of which will receive a new machine SID, hostname, and configuration on first boot. A **specialised image** is a direct copy of a running VM, preserving its exact state including machine SID, local accounts, and installed software state. Use a specialised image to restore or clone a specific machine; use a generalised image to provision a fleet of new VMs from a template.
 
+5. A company runs a two-tier web application with a front-end tier (stateless IIS servers) and a database tier. They want to ensure the front-end servers remain available during Azure platform maintenance. The region supports availability zones. Which configuration provides the best resilience for the front-end tier?
+   - A) Deploy all front-end VMs in an Availability Set with 3 fault domains
+   - B) Deploy each front-end VM in a separate Availability Zone
+   - C) Deploy front-end VMs as Azure Spot VMs in different regions
+   - D) Deploy front-end VMs in the same Availability Zone to reduce latency
+
+   **Answer: B** — Availability Zones protect against datacenter-level failure. Since the region supports zones, this is the better choice over Availability Sets (A), which only protect within one datacenter. Spot VMs (C) can be evicted without warning. Placing VMs in the same zone (D) offers no redundancy.
+
+6. A development team wants to run overnight batch processing jobs at minimum cost. Jobs take 4–6 hours, checkpoint their progress every 30 minutes, and can restart from the last checkpoint if interrupted. Which VM type is most appropriate?
+   - A) Standard D-series VMs for predictable performance
+   - B) Azure Spot VMs because the workload can tolerate interruption and restart from checkpoints
+   - C) Availability Set VMs to ensure the jobs always complete without interruption
+   - D) Azure Reserved VM Instances for maximum cost savings on continuous workloads
+
+   **Answer: B** — Spot VMs are ideal for interruptible batch workloads with checkpointing. The workload explicitly tolerates eviction. Standard VMs (A) and Reserved Instances (D) are more expensive than needed for an interruptible batch job. Availability Sets (C) protect against hardware failure during maintenance, not cost.
+
+7. You are asked to restore a specific server VM to its exact state from 3 days ago, including all installed applications, local user accounts, and machine identity. What type of image or recovery point should you use?
+   - A) A generalised image captured before the change, deployed as a new VM
+   - B) A specialised image or VM restore point that preserves the machine identity and state
+   - C) A Sysprep-prepared image from the Azure Compute Gallery
+   - D) An ARM template export of the VM configuration
+
+   **Answer: B** — A specialised image or an Azure Backup restore point preserves the exact machine state including SID, hostname, and accounts. A generalised image (A, C) strips machine-specific data and cannot restore a specific machine's identity. An ARM template (D) only describes the VM configuration, not its data or state.
+
 </details>
 
 ---
 
 ## Week 4 — Containers and Azure App Service
 > **Exam domain:** Deploy and manage Azure compute resources · **Weight:** 20–25%
+
+> **Real-world scenario:** A software product team at a Sogeti client wants to modernise their release process. They currently deploy a monolithic .NET application to VMs manually, which causes 30-minute outages during each release. You are asked to migrate the application to Azure App Service, implement deployment slots for zero-downtime releases, and explore Azure Container Apps for a new microservices API that the team is building in parallel.
 
 ### Learning Objectives
 - [ ] Deploy an Azure App Service web app using Azure CLI from Cloud Shell with the F1 free tier
@@ -244,6 +404,25 @@
 | **Azure portal** | Configure an *App Service plan* → scale out to 2 instances |
 | **Azure portal** | Review *App Service Diagnostics* → analyse availability graph |
 
+### Lab commands
+
+```bash
+# Deploy an App Service web app (Free tier)
+az webapp create --resource-group rg-sswlab-dev --plan sswlab-asp --name sswlab-app --runtime "DOTNET|8.0"
+
+# Add a deployment slot
+az webapp deployment slot create --name sswlab-app --resource-group rg-sswlab-dev --slot staging
+
+# Swap staging to production
+az webapp deployment slot swap --name sswlab-app --resource-group rg-sswlab-dev --slot staging --target-slot production
+
+# Create a Container Registry and push an image
+az acr create --resource-group rg-sswlab-dev --name sswlabacr --sku Basic
+az acr login --name sswlabacr
+docker tag myapp sswlabacr.azurecr.io/myapp:v1
+docker push sswlabacr.azurecr.io/myapp:v1
+```
+
 ### Knowledge check
 1. What is the difference between *Azure Container Instances*, *Azure Container Apps* and *Azure Kubernetes Service*?
 2. How do *deployment slots* work and why is a *slot swap* useful?
@@ -261,12 +440,38 @@
 
 4. In App Service (Standard plan or higher): navigate to the app → **Scale out (App Service plan)** → enable autoscale → add a rule: if *CPU Percentage* (averaged over 10 minutes) is *greater than* 70%, increase instance count by 1. Add a corresponding scale-in rule at 30% CPU. Set minimum/maximum instance counts. The autoscale engine evaluates the rules every minute. In Azure Container Apps, configure a scaling rule from the portal or via YAML: set `minReplicas`, `maxReplicas`, and add a CPU utilisation trigger with a `utilizationPercentage` threshold.
 
+5. A team deploys a new version of their web app to a staging deployment slot and performs smoke tests. They then execute a slot swap. Shortly after, a critical bug is discovered in the new version. What is the fastest way to restore the previous version?
+   - A) Redeploy the previous version from source control to the production slot
+   - B) Delete the production slot and recreate it from a backup
+   - C) Swap the staging and production slots again — the previous version is still in the staging slot
+   - D) Scale the App Service plan down and back up to force a redeploy
+
+   **Answer: C** — After a slot swap, the previous production code is now in the staging slot. A second swap instantly restores it to production with zero downtime and no redeployment required.
+
+6. A company has a stateless API that processes incoming webhook events. Traffic is minimal during business hours but spikes unpredictably at night when external partners batch-send events. They want to minimise cost while handling spikes automatically. Which hosting option is most appropriate?
+   - A) App Service plan (Standard tier) with a fixed instance count of 5
+   - B) Azure Container Apps with KEDA-based HTTP scaling configured with minReplicas set to 0
+   - C) Azure Kubernetes Service with a node pool of 3 dedicated nodes
+   - D) Azure Container Instances running a single container continuously
+
+   **Answer: B** — ACA with scale-to-zero minimises cost during idle periods and scales out automatically during spikes using KEDA. A fixed instance count (A, C) wastes resources during low-traffic periods. A single ACI container (D) cannot scale and has no built-in autoscaling.
+
+7. A company wants to run a nightly data export job that takes approximately 20 minutes, uses a custom Docker image stored in their private ACR, and requires no persistent state after completion. Which Azure service is best suited?
+   - A) Azure App Service with a WebJob
+   - B) Azure Container Instances pulling the image from ACR
+   - C) Azure Kubernetes Service with a CronJob resource
+   - D) Azure Container Apps with a scheduled trigger
+
+   **Answer: B** — ACI is ideal for short-lived, single-container, stateless tasks with a custom image. It starts quickly, runs the job, and stops — you pay only for runtime. AKS (C) introduces unnecessary cluster management overhead. App Service WebJobs (A) require an always-on App Service plan. ACA scheduled triggers (D) are possible but add more infrastructure than needed for a simple 20-minute job.
+
 </details>
 
 ---
 
 ## Week 5 — Virtual networks
 > **Exam domain:** Implement and manage virtual networking · **Weight:** 15–20%
+
+> **Real-world scenario:** A healthcare client is deploying a patient data processing application in Azure. Regulatory requirements state that no patient data may traverse the public internet, and the storage account and database endpoints must only be reachable from within the corporate Azure VNet. The client's on-premises network must also connect securely to the Azure environment. You are responsible for designing the network segmentation, configuring Private Endpoints, and setting up the VPN connection from the Sogeti-managed lab environment.
 
 ### Learning Objectives
 - [ ] Create a VNet with multiple subnets and assign appropriate address spaces
@@ -309,6 +514,23 @@
 | **Azure portal** | Configure a *Private Endpoint* for a Storage Account → verify DNS resolution |
 | **Azure portal** | Review *Effective routes* on the NIC of a VM |
 
+### Lab commands
+
+```bash
+# Create a VNet with two subnets
+az network vnet create --resource-group rg-sswlab-dev --name sswlab-vnet --address-prefix 10.100.0.0/16 --subnet-name frontend --subnet-prefix 10.100.1.0/24
+az network vnet subnet create --resource-group rg-sswlab-dev --vnet-name sswlab-vnet --name backend --address-prefix 10.100.2.0/24
+
+# Create an NSG and attach to a subnet
+az network nsg create --resource-group rg-sswlab-dev --name sswlab-nsg-frontend
+az network nsg rule create --resource-group rg-sswlab-dev --nsg-name sswlab-nsg-frontend --name AllowHTTP --priority 100 --protocol Tcp --destination-port-range 80 443 --access Allow --direction Inbound
+az network vnet subnet update --resource-group rg-sswlab-dev --vnet-name sswlab-vnet --name frontend --network-security-group sswlab-nsg-frontend
+
+# Configure VNet peering (both directions)
+az network vnet peering create --resource-group rg-sswlab-dev --name vnet1-to-vnet2 --vnet-name sswlab-vnet --remote-vnet sswlab-vnet2 --allow-vnet-access
+az network vnet peering create --resource-group rg-sswlab-dev --name vnet2-to-vnet1 --vnet-name sswlab-vnet2 --remote-vnet sswlab-vnet --allow-vnet-access
+```
+
 ### Knowledge check
 1. What is the difference between an *NSG* applied at the subnet level and at the NIC level?
 2. How does *VNet peering* work — is it transitive?
@@ -326,12 +548,38 @@
 
 4. A **service endpoint** extends a VNet subnet's identity to an Azure PaaS service (like Storage or SQL) over the Azure backbone, allowing you to restrict the PaaS service's firewall to only your subnet. The PaaS service still has and uses its *public* IP address — traffic leaves your subnet but stays on the Microsoft backbone, never touching the public internet. A **private endpoint** assigns a *private IP address* from your VNet directly to the PaaS service. The service becomes accessible only via that private IP; the public endpoint can be disabled entirely. DNS must be configured to resolve the service's hostname to the private IP. Private endpoints are the stronger isolation model and are the current best practice.
 
+5. A company has three VNets: Hub, Spoke-A, and Spoke-B. Hub is peered with Spoke-A and Hub is peered with Spoke-B. A VM in Spoke-A needs to communicate with a VM in Spoke-B. What must be configured?
+   - A) Nothing — traffic flows automatically through the Hub because both spokes are peered with it
+   - B) Enable "Allow gateway transit" on the Hub peering and "Use remote gateway" on both Spoke peerings
+   - C) Create a direct VNet peering between Spoke-A and Spoke-B, or deploy an Azure Firewall or VPN Gateway in the Hub to enable transitive routing
+   - D) Configure an NSG on the Hub VNet to allow traffic between the two spoke address spaces
+
+   **Answer: C** — VNet peering is not transitive. Spoke-A and Spoke-B cannot communicate via Hub without either a direct peering between them or a network appliance (Azure Firewall, VPN Gateway) in the Hub that routes traffic between spokes. Option B alone (gateway transit) enables on-premises-to-spoke routing, not spoke-to-spoke directly.
+
+6. A security audit finding states that the company's Azure SQL database is accessible over the public internet and only protected by a firewall rule. The audit recommends that the database should not be reachable via any public IP. Which solution addresses this requirement?
+   - A) Configure an NSG on the SQL server's subnet with a Deny rule for all inbound internet traffic
+   - B) Enable a Service Endpoint for SQL on the application subnet
+   - C) Create a Private Endpoint for the Azure SQL database in the application VNet and disable the public endpoint
+   - D) Restrict the SQL firewall to the application server's public IP address
+
+   **Answer: C** — A Private Endpoint assigns a private IP from the VNet to the SQL database, making it unreachable from the internet. Disabling the public endpoint fully eliminates internet-facing access. Service endpoints (B) still use a public IP. NSGs (A) cannot be applied to PaaS services directly. Restricting by public IP (D) still leaves the public endpoint open.
+
+7. You deploy Azure Bastion in a VNet to provide secure RDP access to VMs. A VM in a peered VNet is not reachable via Bastion. What is the most likely cause?
+   - A) Bastion requires a public IP on the target VM to establish the RDP session
+   - B) Azure Bastion in one VNet cannot connect to VMs in a peered VNet unless "Allow gateway transit" is configured on the Bastion VNet peering
+   - C) The AzureBastionSubnet is too small — it must be at least a /24
+   - D) Bastion only supports VMs in the same VNet; cross-VNet access requires a VPN Gateway
+
+   **Answer: B** — Azure Bastion supports connecting to VMs in peered VNets, but the peering must have "Allow gateway transit" enabled on the Bastion side and "Use remote gateways" on the peered VNet side. Without this, Bastion cannot reach VMs in peered VNets. The AzureBastionSubnet minimum size is /26, not /24.
+
 </details>
 
 ---
 
 ## Week 6 — Load balancing and network routing
 > **Exam domain:** Implement and manage virtual networking · **Weight:** 15–20%
+
+> **Real-world scenario:** A Sogeti client runs a public-facing e-commerce platform with a web tier and an API tier, both hosted on Azure VMs behind a load balancer. During a recent peak sales event, one web server became unresponsive but continued receiving traffic, causing errors for customers. You are asked to implement proper health probing, configure path-based routing to separate web and API traffic, and use Azure Network Watcher to diagnose an intermittent connectivity issue reported by the operations team.
 
 ### Learning Objectives
 - [ ] Deploy a Standard Load Balancer with a backend pool, health probe, and load balancing rule
@@ -370,6 +618,22 @@
 | **Azure portal** | Use *Azure Network Watcher → IP Flow Verify* to diagnose NSG blocking |
 | **Azure portal** | Use *Connection Troubleshoot* to analyse connectivity issues |
 
+### Lab commands
+
+```bash
+# Create a Standard Load Balancer with a public IP
+az network lb create --resource-group rg-sswlab-dev --name sswlab-lb --sku Standard --frontend-ip-name frontendConfig --public-ip-address sswlab-lb-pip
+
+# Add a health probe
+az network lb probe create --resource-group rg-sswlab-dev --lb-name sswlab-lb --name httpProbe --protocol Http --port 80 --path /
+
+# Add a load balancing rule
+az network lb rule create --resource-group rg-sswlab-dev --lb-name sswlab-lb --name httpRule --protocol Tcp --frontend-port 80 --backend-port 80 --frontend-ip-name frontendConfig --backend-pool-name backendPool --probe-name httpProbe
+
+# Use Network Watcher IP Flow Verify
+az network watcher test-ip-flow --resource-group rg-sswlab-dev --vm sswlab-vm01 --direction Inbound --protocol Tcp --local 10.100.1.4:80 --remote 203.0.113.10:12345
+```
+
 ### Knowledge check
 1. What is the difference between *Azure Load Balancer* (L4) and *Application Gateway* (L7)?
 2. When do you use *Azure Front Door* versus Application Gateway?
@@ -387,12 +651,38 @@
 
 4. **Service tags** are Microsoft-managed named groups of IP address prefixes associated with a specific Azure service. Examples: `Internet` (all public IP space), `AzureLoadBalancer` (Azure health probe source IPs), `Storage.WestEurope` (Azure Storage IPs in West Europe), `VirtualNetwork` (all addresses in the VNet and peered VNets). Using service tags in NSG rules lets you allow or deny traffic to/from Azure services without maintaining static IP lists — Microsoft updates the prefixes behind the tags automatically. This is the recommended approach for writing NSG rules that interact with Azure services.
 
+5. A company deploys a web application with two backend pools: one for the web front-end (`/`) and one for the REST API (`/api/*`). They also need SSL termination and WAF protection. Which Azure service should they use?
+   - A) Azure Standard Load Balancer with two backend pools
+   - B) Azure Application Gateway with WAF and path-based routing rules
+   - C) Azure Front Door with two origin groups
+   - D) An NSG with separate rules for port 80 and port 443
+
+   **Answer: B** — Application Gateway supports path-based routing, WAF, and SSL termination in a single regional service. Load Balancer (A) cannot inspect URL paths. Front Door (C) is global and suitable for multi-region, but adds unnecessary complexity for a single-region app. NSGs (D) have no HTTP-layer awareness.
+
+6. Backend VMs in a Load Balancer pool begin failing to make outbound HTTPS calls to an external payment API. The VMs have no public IPs. Network Watcher shows the outbound connections are being attempted but timing out. What is the most likely cause?
+   - A) The NSG on the backend subnet is blocking inbound traffic on port 443
+   - B) SNAT port exhaustion — the Load Balancer frontend IP has run out of ephemeral ports for outbound connections
+   - C) The health probe is failing, so the Load Balancer is blocking all traffic
+   - D) The VMs cannot reach the internet without a public IP assigned directly to the NIC
+
+   **Answer: B** — SNAT exhaustion is a common production issue when many VMs share a single frontend IP and make high volumes of outbound connections. Each TCP connection consumes an ephemeral SNAT port. The fix is to add a NAT Gateway or additional frontend IPs. NSG rules (A) would block specific ports for all traffic, not cause timeouts. Health probe failure (C) affects inbound distribution, not outbound. VMs without public IPs can still reach the internet via SNAT (D).
+
+7. A company is planning to expand their application to users in Southeast Asia while keeping their primary infrastructure in West Europe. They want users to be routed automatically to the nearest healthy region. Which service provides this capability?
+   - A) Azure Application Gateway deployed in both regions
+   - B) Azure Load Balancer with a global SKU
+   - C) Azure Traffic Manager with performance-based routing
+   - D) Azure Front Door with latency-based routing across regional backends
+
+   **Answer: D** — Azure Front Door provides global anycast routing with latency-based routing, health probes across regions, and CDN caching — designed exactly for this multi-region scenario. Traffic Manager (C) also supports geo/performance routing at DNS level but lacks CDN and WAF capabilities. Application Gateway (A) is regional only. Load Balancer Global SKU (B) handles cross-region TCP/UDP load balancing but not HTTP-layer features.
+
 </details>
 
 ---
 
 ## Week 7 — Monitoring and Azure Monitor
 > **Exam domain:** Monitor and maintain Azure resources · **Weight:** 10–15%
+
+> **Real-world scenario:** A Sogeti client running a production ERP system on Azure VMs reports intermittent performance degradation on Monday mornings. The operations team has no centralised logging and relies on ad-hoc RDP sessions to check Event Viewer. You are asked to implement Azure Monitor with Log Analytics, configure automated CPU alerts, and set up Azure Backup with a proven restore procedure — all before the client's next quarterly review.
 
 ### Learning Objectives
 - [ ] Create a Log Analytics Workspace and connect Azure VMs to it
@@ -435,6 +725,27 @@
 | **Azure portal** | Run a *test restore* → recover a file to an alternate location |
 | **Azure portal** | Configure *Azure Site Recovery* for a VM → perform a test failover to a secondary region |
 
+### Lab commands
+
+```powershell
+# Query CPU usage above 80% for a VM in the last 24 hours (KQL in Log Analytics)
+Perf
+| where TimeGenerated > ago(24h)
+| where CounterName == "% Processor Time"
+| where CounterValue > 80
+| project TimeGenerated, Computer, CounterValue
+| order by TimeGenerated desc
+
+# Create a Log Analytics workspace via CLI
+az monitor log-analytics workspace create --resource-group rg-sswlab-dev --workspace-name sswlab-law --location westeurope
+
+# Create an action group for email alerts
+az monitor action-group create --resource-group rg-sswlab-dev --name sswlab-ag --short-name ssw-ag --email-receiver name=AdminEmail email=admin@example.com
+
+# Create a CPU metric alert rule
+az monitor metrics alert create --resource-group rg-sswlab-dev --name "HighCPU-Alert" --scopes /subscriptions/<sub-id>/resourceGroups/rg-sswlab-dev/providers/Microsoft.Compute/virtualMachines/sswlab-vm01 --condition "avg Percentage CPU > 85" --window-size 5m --evaluation-frequency 1m --action sswlab-ag
+```
+
 ### Knowledge check
 1. What is the difference between *Azure Monitor Metrics* and *Azure Monitor Logs*?
 2. How does *Azure Alerts* work — what are *action groups*?
@@ -459,6 +770,30 @@
    `ResultType == "0"` indicates success; any non-zero value is a failure. You can also use `| summarize count() by UserPrincipalName` to identify accounts with the most failures.
 
 4. **Azure Backup** is a data protection service — its purpose is to recover from data loss caused by accidental deletion, file corruption, or ransomware. It creates and retains recovery points (snapshots and vault-backed copies) from which you can restore individual files, entire VMs, or databases. The VM keeps running normally during backup. **Azure Site Recovery (ASR)** is a disaster recovery service — its purpose is to keep workloads available during a regional outage. ASR continuously replicates VM disk changes to a secondary Azure region. If the primary region fails, you initiate a failover and VMs come online in the secondary region. After the primary is restored, you perform a failback. Use Backup for operational recovery (day-to-day mistakes); use ASR for regional disaster recovery (DR planning and business continuity).
+
+5. A company wants to receive an email notification whenever any resource in their Azure subscription is deleted. Which Azure Monitor feature and log source should they configure?
+   - A) A metric alert rule on the subscription's CPU usage
+   - B) A log alert rule based on the Azure Activity Log querying for "Delete" operations
+   - C) An NSG flow log alert for all outbound traffic
+   - D) A VM Insights alert for disk I/O
+
+   **Answer: B** — The Azure Activity Log records all control-plane operations including resource deletions. A log alert rule querying the `AzureActivity` table for `OperationName contains "delete"` and `ActivityStatus == "Succeeded"` will trigger the action group. Metric alerts (A) and NSG flow logs (C) are not relevant to resource deletion events. VM Insights (D) monitors performance data.
+
+6. An operations team receives too many noisy alerts from a CPU metric alert configured with a 1-minute evaluation window and a 5-minute window size. The alerts fire during brief spikes that resolve themselves. What configuration change reduces false positives without missing genuine sustained high CPU?
+   - A) Lower the CPU threshold from 85% to 70%
+   - B) Increase the evaluation frequency from 1 minute to 15 minutes
+   - C) Increase the window size to 15 or 30 minutes so the alert only fires when CPU is elevated over a sustained period
+   - D) Disable the alert rule during business hours
+
+   **Answer: C** — Increasing the aggregation window size (e.g. to 15 minutes) means the alert only fires if CPU remains above the threshold for the full window, filtering out transient spikes. Lowering the threshold (A) would make alerts more frequent. Increasing evaluation frequency (B) without changing the window does not reduce noise. Disabling during business hours (D) removes visibility entirely.
+
+7. A company has a Recovery Services Vault with daily VM backups retained for 30 days. A developer accidentally deletes critical application data from a VM's data disk at 14:00 today. The last backup completed at 03:00 today. What data can be recovered and what will be lost?
+   - A) All data up to 14:00 today can be recovered because Azure Backup captures changes continuously
+   - B) Data from the 03:00 backup can be restored; approximately 11 hours of changes made between 03:00 and 14:00 will be lost
+   - C) No data can be recovered because the disk was not deleted, only the data on it
+   - D) The entire VM must be restored; individual file recovery is not possible with Azure Backup
+
+   **Answer: B** — Azure Backup takes point-in-time snapshots on a schedule (in this case daily at 03:00). Recovery is possible up to the last recovery point. Data written between the last backup and the deletion event cannot be recovered from backup. Individual file recovery (Item Level Recovery) is supported by Azure Backup, contradicting option D.
 
 </details>
 

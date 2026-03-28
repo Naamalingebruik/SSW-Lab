@@ -17,6 +17,27 @@
 
 > **Voorwaarde:** MSDN/Visual Studio-subscriptie met Microsoft 365 E5/E3 developer tenant (voor Intune, Entra ID)
 
+## Zo gebruik je dit studieprogramma
+
+- Lees per week eerst de leerdoelen en MS Learn modules, zodat je weet welke examenscope je afdekt voordat je het lab start.
+- Voer daarna de lab-oefeningen uit op de genoemde VM's en noteer onderweg wat je ziet in portal, PowerShell en clientgedrag.
+- Maak de kennischeck pas nadat je de theorie en het lab hebt afgerond; gebruik de antwoorden om gaten in begrip op te sporen, niet alleen om te controleren of je iets letterlijk hebt onthouden.
+- Werk je met Nederlandstalige en Engelstalige collega's samen, houd dan bewust beide termen bij: bijvoorbeeld *compliancebeleid / compliance policy* en *hybride join / hybrid join*.
+
+## Labdekking en verwachtingen
+
+- **Sterke dekking in SSW-Lab:** Windows deployment, Intune enrollment, Autopilot-basis, configuration profiles, compliance, updatebeheer, app deployment, endpoint security en LAPS.
+- **Gedeeltelijke dekking:** co-management, Windows 365, Endpoint Privilege Management, geavanceerde reporting en sommige Intune Suite-onderdelen vereisen extra tenantfunctionaliteit of zijn vooral conceptueel.
+- **Niet volledig lokaal af te dwingen:** actuele Microsoft UI-wijzigingen, licentie-afhankelijke features en onderdelen die alleen in een volledig uitgeruste M365-tenant zichtbaar zijn.
+- Gebruik dit document daarom als complete studiegids, maar wees eerlijk naar jezelf: als een onderdeel als "gedeeltelijk" aanvoelt, herhaal dan ook de bijbehorende MS Learn-module in de portal.
+
+## Werkwijze voor kennischecks
+
+- Beantwoord elke vraag eerst zonder spieken.
+- Leg je antwoord hardop uit alsof je het aan een collega overdraagt.
+- Herhaal alleen de vragen die je fout had of onzeker beantwoordde.
+- Let extra op scenario-vragen: het examen toetst vaak of je de juiste techniek kiest, niet alleen of je de term herkent.
+
 ---
 
 ## Week 1 — Windows client deployment

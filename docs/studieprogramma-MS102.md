@@ -18,6 +18,27 @@
 > **Voorwaarde:** Microsoft 365 E5 developer tenant (via MSDN/M365 developer program)
 > Registreer op: [developer.microsoft.com/microsoft-365/dev-program](https://developer.microsoft.com/microsoft-365/dev-program)
 
+## Zo gebruik je dit studieprogramma
+
+- Begin elke week met de leerdoelen en MS Learn modules; MS-102 beloont overzicht en samenhang meer dan losse feitjes.
+- Voer de lab-oefeningen uit in zowel de tenant als op de genoemde VM's, zodat je het verband ziet tussen cloudbeheer en de hybride praktijk.
+- Maak de kennischeck pas na de theorie en de praktijk, en markeer expliciet welke vragen je alleen "ongeveer" wist.
+- Gebruik bij samenwerking met Nederlandstalige en Engelstalige collega's bewust dezelfde kerntermen in beide talen, bijvoorbeeld *retentiebeleid / retention policy* en *roltoewijzing / role assignment*.
+
+## Labdekking en verwachtingen
+
+- **Sterke dekking in SSW-Lab:** tenantbeheer, Entra Connect, basisrollen, licenties, Conditional Access, Defender for Endpoint, identity hygiene en een deel van Purview-beheer.
+- **Gedeeltelijke dekking:** Defender for Office 365, Defender for Cloud Apps, Insider Risk, geavanceerde Purview-workflows en sommige compliancefuncties hangen sterk af van tenantlicenties en portalbeschikbaarheid.
+- **Cloud-only of beperkt simuleerbaar:** Microsoft 365 Backup-ervaring, production mailflow-scenario's, externe domeinconfiguratie en sommige cross-workload Defender XDR-koppelingen.
+- Zie het lab als primaire oefenomgeving, maar plan voor de gemarkeerde onderdelen altijd ook directe portalverkenning of MS Learn-herhaling in.
+
+## Werkwijze voor kennischecks
+
+- Beantwoord eerst zonder hulpmiddelen wat je in een echte beheerderrol zou doen.
+- Controleer daarna of je antwoord niet alleen technisch klopt, maar ook past bij least privilege, governance en operationele realiteit.
+- Herhaal zwakke vragen na een dag nog een keer; MS-102 vraagt vaak om ketendenken over meerdere portals heen.
+- Let extra op verschillen tussen vergelijkbare termen zoals *security group*, *Microsoft 365 group*, *directory role* en *Azure RBAC role*.
+
 ---
 
 ## Week 1 — Microsoft 365 tenant inrichten

@@ -20,6 +20,27 @@
 
 > **Nieuw per november 2025:** *Implement Global Secure Access* is toegevoegd aan het examen (vervangt deels de Azure RBAC voor resources scope). SSW-Lab-scripts dekken dit onderdeel nog niet — raadpleeg de [MS Learn module](https://learn.microsoft.com/en-us/training/modules/deploy-configure-microsoft-entra-global-secure-access/) als zelfstandige voorbereiding.
 
+## Zo gebruik je dit studieprogramma
+
+- Lees per week eerst de examendomeinen en leerdoelen; SC-300 draait sterk om keuzes maken tussen vergelijkbare identiteitsopties.
+- Voer daarna de lab-oefeningen uit in Entra, Azure en waar nodig op de on-premises VM's zodat je hybride gedrag echt ziet gebeuren.
+- Maak de kennischeck pas na theorie en lab, en let vooral op waarom een andere optie onjuist is.
+- Werk je met tweetalige collega's, houd de Microsoft-termen bewust in beide talen bij, zoals *guest user / gastgebruiker* en *workload identity / workload-identiteit*.
+
+## Labdekking en verwachtingen
+
+- **Sterke dekking in SSW-Lab:** hybride identiteit, Entra Connect, PHS/PTA, SSPR, Conditional Access, PIM, app-registraties, service principals en identity governance-basics.
+- **Gedeeltelijke dekking:** lifecycle workflows, access reviews op grotere schaal, workload identities in complexe applicatieketens en sommige risicosignalen hangen af van tenantlicenties en testdata.
+- **Nog apart bestuderen:** Global Secure Access, enkele nieuwste Entra-portalonderdelen en scenario's waarvoor een tweede tenant of productieachtige partnertrust nodig is.
+- Gebruik de labstappen om begrip op te bouwen, maar toets jezelf bij elk onderwerp ook op ontwerpkeuzes: wanneer kies je welke identiteit, policy of governance-aanpak?
+
+## Werkwijze voor kennischecks
+
+- Beantwoord eerst welk ontwerp je zou kiezen en daarna pas hoe je het technisch uitvoert.
+- Benoem bij elke vraag expliciet welk risico wordt verkleind of welk governanceprobleem wordt opgelost.
+- Herhaal fout beantwoorde vragen met focus op terminologie: in SC-300 lijken veel opties op elkaar, maar de randvoorwaarden verschillen.
+- Besteed extra aandacht aan guest access, Conditional Access, workload identities en governance, omdat daar veel scenario-vragen uit ontstaan.
+
 ---
 
 ## Week 1 — Entra ID fundamenten en hybride identiteit
