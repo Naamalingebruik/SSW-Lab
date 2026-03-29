@@ -19,6 +19,15 @@ if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -ne 'STA') {
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
+function Convert-PlainTextToSecureString {
+    param([Parameter(Mandatory)][string]$Value)
+
+    $secureString = New-Object System.Security.SecureString
+    $Value.ToCharArray() | ForEach-Object { $secureString.AppendChar($_) }
+    $secureString.MakeReadOnly()
+    $secureString
+}
+
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -237,20 +246,20 @@ $btnJoin.Add_Click({
 
             $localCred = [PSCredential]::new(
                 "$vmName\$localAdmin",
-                (ConvertTo-SecureString $localPwd -AsPlainText -Force)
+                (Convert-PlainTextToSecureString -Value $localPwd)
             )
             $domCred = [PSCredential]::new(
                 "$($SSWConfig.DomainNetBIOS)\$domAdmin",
-                (ConvertTo-SecureString $domainPwd -AsPlainText -Force)
+                (Convert-PlainTextToSecureString -Value $domainPwd)
             )
             try {
                 Invoke-Command -VMName $vmName -Credential $localCred -ScriptBlock {
-                    param($dom, $cred, $newName)
+                    param([string]$dom, [pscredential]$domainCredential, [string]$newName)
                     # Windows-naam gelijkstellen aan Hyper-V VM-naam
                     if ($env:COMPUTERNAME -ne $newName) {
                         Rename-Computer -NewName $newName -Force -ErrorAction SilentlyContinue
                     }
-                    Add-Computer -DomainName $dom -Credential $cred -Restart -Force -ErrorAction Stop
+                    Add-Computer -DomainName $dom -Credential $domainCredential -Restart -Force -ErrorAction Stop
                 } -ArgumentList $domain, $domCred, $vmName
                 Write-Log "✔ $vmName wordt hernoemd naar $vmName en herstart en joint $domain"
             } catch { Write-Log "FOUT $vmName`: $_" }

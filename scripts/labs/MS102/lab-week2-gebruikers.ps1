@@ -10,6 +10,15 @@
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
+function Convert-PlainTextToSecureString {
+    param([Parameter(Mandatory)][string]$Value)
+
+    $secureString = New-Object System.Security.SecureString
+    $Value.ToCharArray() | ForEach-Object { $secureString.AppendChar($_) }
+    $secureString.MakeReadOnly()
+    $secureString
+}
+
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -180,7 +189,7 @@ $btnRun.Add_Click({
             $csvUsers | Set-Content $csvPath
             Copy-Item $csvPath -Destination "\\$dcVM\C$\Temp\ssw-users.csv" -ErrorAction SilentlyContinue
             Invoke-Command -VMName $dcVM -Credential $cred -ScriptBlock {
-                param($dom, $nb)
+                param($dom)
                 $base    = "DC=" + ($dom -replace "\.",",.DC=")
                 $csvPath = "C:\Temp\ssw-users.csv"
                 if (-not (Test-Path $csvPath)) { Write-Warning "CSV niet gevonden op $csvPath"; return }
@@ -191,19 +200,19 @@ $btnRun.Add_Click({
                         $ouPath = "OU=LAB,$base"
                     }
                     if (-not (Get-ADUser -Filter "SamAccountName -eq '$($u.SamAccountName)'" -ErrorAction SilentlyContinue)) {
-                        $pwd = ConvertTo-SecureString "SSWLab@2024" -AsPlainText -Force
+                        $userPassword = Convert-PlainTextToSecureString -Value "SSWLab@2024"
                         New-ADUser -SamAccountName $u.SamAccountName `
                                    -GivenName $u.GivenName -Surname $u.Surname `
                                    -Name "$($u.GivenName) $($u.Surname)" `
                                    -UserPrincipalName "$($u.SamAccountName)@$dom" `
                                    -Department $u.Department -Title $u.Title `
-                                   -Path $ouPath -AccountPassword $pwd -Enabled $true
+                                   -Path $ouPath -AccountPassword $userPassword -Enabled $true
                         "Aangemaakt: $($u.SamAccountName)"
                     } else {
                         "Al aanwezig: $($u.SamAccountName)"
                     }
                 }
-            } -ArgumentList $domain, $nb | ForEach-Object { Write-Log "  $_" }
+            } -ArgumentList $domain | ForEach-Object { Write-Log "  $_" }
         } catch { Write-Log "  Fout: $_" }
     }
 

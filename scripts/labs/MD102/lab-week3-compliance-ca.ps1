@@ -145,7 +145,7 @@ $btnRun.Add_Click({
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $dcVM" -UserName "$dcVM\$($SSWConfig.AdminUser)"
-            $pwd  = Read-Host "Wachtwoord voor TestUser01/02" -AsSecureString
+            $testUserPassword = Read-Host "Wachtwoord voor TestUser01/02" -AsSecureString
             Invoke-Command -VMName $dcVM -Credential $cred -ScriptBlock {
                 param($dom, $pass)
                 $ou = "CN=Users,DC=$($dom.Split('.')[0]),DC=$($dom.Split('.')[1])"
@@ -157,7 +157,7 @@ $btnRun.Add_Click({
                         Write-Host "Aangemaakt: $u"
                     } else { Write-Host "Bestaat al: $u" }
                 }
-            } -ArgumentList $domain, $pwd
+            } -ArgumentList $domain, $testUserPassword
             Write-Log "  ✔ Testgebruikers aangemaakt/geverifieerd"
         } catch { Write-Log "  ✖ Fout: $_" }
     }
