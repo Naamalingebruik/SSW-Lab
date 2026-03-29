@@ -68,6 +68,20 @@ Voor oude scriptpaden die bewust als compatlaag blijven bestaan: zie `docs/compa
 
 **Gevolg:** Onboarding is directer geworden en profielwijzigingen krijgen sneller feedback, zonder dat daarvoor eerst een mislukte VM-aanmaak nodig is.
 
+---
+
+### Engelse scripts weer volledig gespiegeld
+
+**Beslissing:** `scripts-en/` is weer volledig gemaakt als Engelstalige tegenhanger van `scripts/`.
+
+**Waarom:** De setupflow was grotendeels al in het Engels beschikbaar, maar niet alle tracklabs, utility-scripts en extra-VM flows hadden nog een Engelse variant. Daardoor klopte de claim van volledige Engelse beschikbaarheid niet meer.
+
+**Wat is gedaan:**
+- ontbrekende PowerShell-scripts uit `scripts/` gespiegeld naar `scripts-en/`
+- README en wiki-home bijgewerkt zodat deze volledige Engelse scriptspiegel ook expliciet wordt genoemd
+
+**Gevolg:** Zowel de setupflow als alle huidige tracklabs zijn nu weer als Nederlandse en Engelse scriptvariant aanwezig in de repo.
+
 ### Studiegidsen verrijkt voor examengerichte voorbereiding
 
 **Beslissing:** De studiegidsen in `docs/` zijn aangescherpt als de primaire, deelbare examvoorbereiding voor collega's. Ze moeten zelfstandig bruikbaar zijn zonder toegang tot het private `M365-Lab`, maar wel in combinatie met de gedeelde MSDN / Microsoft 365 dev-tenant die voor collega's beschikbaar is.

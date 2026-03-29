@@ -432,3 +432,4 @@ $btnInstall.Add_Click({
 
 # ── Show window ───────────────────────────────────────────────────────────────
 $window.ShowDialog() | Out-Null
+

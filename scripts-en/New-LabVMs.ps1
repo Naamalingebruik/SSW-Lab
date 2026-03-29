@@ -173,7 +173,7 @@ function Update-DryRunBar {
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text       = "🔒  Dry Run — geen VM's worden aangemaakt"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
-        $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
+        $dryRunSub.Text         = "Clear the checkbox to execute for real"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#A6E3A1")
         $btnCreate.Content      = "Simulate (Dry Run)"
@@ -184,7 +184,7 @@ function Update-DryRunBar {
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
         $dryRunTitle.Text       = "⚠  LIVE EXECUTION — VM's worden aangemaakt op dit systeem"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
-        $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
+        $dryRunSub.Text         = "Check the box again to return to Dry Run"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#F38BA8")
         $btnCreate.Content      = "LIVE VM's aanmaken"
@@ -303,7 +303,7 @@ $btnCreate.Add_Click({
     if (-not $isDry) {
       $switch = Get-VMSwitch -Name $SSWConfig.vSwitchName -ErrorAction SilentlyContinue
       if (-not $switch) {
-        Write-Log "vSwitch '$($SSWConfig.vSwitchName)' niet gevonden. Run eerst Configure-HostNetwork.ps1 in LIVE modus."
+        Write-Log "vSwitch '$($SSWConfig.vSwitchName)' not found. Run eerst Configure-HostNetwork.ps1 in LIVE modus."
         $btnCreate.IsEnabled = $true
         return
       }
@@ -380,6 +380,7 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
 
 
 

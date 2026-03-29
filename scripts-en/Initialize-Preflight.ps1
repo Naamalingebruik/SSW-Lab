@@ -577,3 +577,4 @@ $btnNext.Add_Click({
 
 $reader.Add_Loaded({ Show-PreflightCheck })
 $reader.ShowDialog() | Out-Null
+

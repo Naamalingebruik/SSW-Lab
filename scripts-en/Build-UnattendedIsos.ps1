@@ -239,7 +239,7 @@ function Build-UnattendISO {
         $UnattendXml | Set-Content -Path (Join-Path $tmpWork "autounattend.xml") -Encoding UTF8 -Force
         & $Log "ISO bouwen met oscdimg…"
         $oscdimg = "${env:ProgramFiles(x86)}\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe"
-        if (-not (Test-Path $oscdimg)) { throw "oscdimg.exe niet gevonden. Installeer Windows ADK (Deployment Tools)." }
+        if (-not (Test-Path $oscdimg)) { throw "oscdimg.exe not found. Installeer Windows ADK (Deployment Tools)." }
         $bootData = "2#p0,e,b`"$tmpWork\boot\etfsboot.com`"#pEF,e,b`"$tmpWork\efi\microsoft\boot\efisys.bin`""
         & $oscdimg -m -o -u2 -udfver102 "-bootdata:$bootData" $tmpWork $OutputISO 2>&1 | Out-Null
         if (-not (Test-Path $OutputISO)) { throw "oscdimg heeft geen ISO aangemaakt." }
@@ -408,7 +408,7 @@ function Update-DryRunBar {
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text       = "🔒  Dry Run — geen ISO's worden aangemaakt"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
-        $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
+        $dryRunSub.Text         = "Clear the checkbox to execute for real"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#A6E3A1")
         $btnBuild.Content       = "Simulate (Dry Run)"
@@ -419,7 +419,7 @@ function Update-DryRunBar {
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
         $dryRunTitle.Text       = "⚠  LIVE EXECUTION — ISO's worden daadwerkelijk gebouwd"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
-        $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
+        $dryRunSub.Text         = "Check the box again to return to Dry Run"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#F38BA8")
         $btnBuild.Content       = "LIVE ISO('s) bouwen"
@@ -514,5 +514,6 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
 
 

@@ -32,6 +32,8 @@ The current operational flow in `SSW-Lab` is:
 
 Use these primary script names from now on. The old numbered wrappers have been removed.
 
+A full English script mirror is now available under `scripts-en/`. Every script under `scripts/` has a counterpart under `scripts-en/`.
+
 ---
 
 ## Track selection and progress

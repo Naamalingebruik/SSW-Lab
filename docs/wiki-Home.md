@@ -32,6 +32,8 @@ De geldende operationele flow in `SSW-Lab` is:
 
 Gebruik vanaf nu alleen deze primaire scriptnamen. De oude genummerde wrappers zijn verwijderd.
 
+Er is nu ook weer een volledige Engelse scriptspiegel onder `scripts-en/`. Voor elk script onder `scripts/` bestaat een tegenhanger onder `scripts-en/`.
+
 ---
 
 ## Trajectkeuze en voortgang

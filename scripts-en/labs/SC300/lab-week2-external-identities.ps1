@@ -42,7 +42,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
       <TextBlock Text="B2B-uitnodigingen · Cross-tenant toegang · Identity Protection · Risk beleid" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
-      <TextBlock Style="{StaticResource Lbl}" Text="Stappen in dit lab:"/>
+      <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
         <Run Text="1. B2B-gastgebruiker uitnodigen via Graph (New-MgInvitation)"/>
         <LineBreak/><Run Text="2. Cross-tenant toegangsinstellingen bekijken"/>
@@ -71,8 +71,8 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
       </Grid>
     </Border>
     <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-      <Button x:Name="BtnRun"  Content="Lab uitvoeren" Style="{StaticResource Btn}" Margin="0,0,10,0" Width="140"/>
-      <Button x:Name="BtnNext" Content="Doorgaan naar Week 3 >" Style="{StaticResource Btn}"
+      <Button x:Name="BtnRun"  Content="Run lab" Style="{StaticResource Btn}" Margin="0,0,10,0" Width="140"/>
+      <Button x:Name="BtnNext" Content="Continue to Week 3 >" Style="{StaticResource Btn}"
               Background="#A6E3A1" IsEnabled="False" Width="220"/>
     </StackPanel>
   </Grid>
@@ -126,7 +126,7 @@ $btnRun.Add_Click({
                 Write-Log "  Guest user ID: $($invite.InvitedUser.Id)"
                 Write-Log "  Status: $($invite.Status)"
             } else { Write-Log "  Geen geldig e-mailadres ingevoerd — stap overgeslagen" }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-Log "  Error: $_" }
     }
 
     # ── Stap 2: Cross-tenant toegang ────────────────────────
@@ -175,7 +175,7 @@ $btnRun.Add_Click({
     }
 
     # ── Stap 5: Simulatie / portal ───────────────────────────
-    Write-Log "${pre}Stap 5: Manueel — Identity Protection simulatie"
+    Write-Log "${pre}Stap 5: Manual — Identity Protection simulatie"
     $progress.Value = 84
     Write-Log "  Entra portal > Protection > Identity Protection > Risky users"
     Write-Log "  Klik op een gebruiker > Confirm user compromised (test)"
@@ -184,8 +184,8 @@ $btnRun.Add_Click({
     Write-Log "  Risky sign-ins bekijken: Identity Protection > Risky sign-ins"
     Write-Log "  Bekijk: IP, locatie, risicoreden, detectietype"
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 2 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-Log ""; Write-Log "Week 2 lab completed."; Write-Log ""
+    Write-Log "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-Log "1. Wat is het verschil tussen een B2B gastgebruiker en een B2C gebruiker?"
     Write-Log "2. Welke Entra ID licentie is vereist voor Identity Protection?"
     Write-Log "3. Hoe werkt de 'Confirm user compromised' actie in Identity Protection?"
@@ -197,10 +197,11 @@ $btnRun.Add_Click({
 $btnNext.Add_Click({
     $next = Join-Path $PSScriptRoot "lab-week3-authentication.ps1"
     if (Test-Path $next) { Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$next`"" }
-    else { [System.Windows.MessageBox]::Show("lab-week3-authentication.ps1 niet gevonden.", "SSW-Lab") }
+    else { [System.Windows.MessageBox]::Show("lab-week3-authentication.ps1 not found.", "SSW-Lab") }
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
 
 
 

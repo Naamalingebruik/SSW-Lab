@@ -42,7 +42,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
       <TextBlock Text="CA beleid aanmaken · Named Locations · What-If · Sign-in logs" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
-      <TextBlock Style="{StaticResource Lbl}" Text="Stappen in dit lab:"/>
+      <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
         <Run Text="1. Bestaande CA-beleidsregels ophalen via Graph"/>
         <LineBreak/><Run Text="2. MFA-vereiste CA-policy aanmaken (report-only mode)"/>
@@ -71,8 +71,8 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
       </Grid>
     </Border>
     <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-      <Button x:Name="BtnRun"  Content="Lab uitvoeren" Style="{StaticResource Btn}" Margin="0,0,10,0" Width="140"/>
-      <Button x:Name="BtnNext" Content="Doorgaan naar Week 5 >" Style="{StaticResource Btn}"
+      <Button x:Name="BtnRun"  Content="Run lab" Style="{StaticResource Btn}" Margin="0,0,10,0" Width="140"/>
+      <Button x:Name="BtnNext" Content="Continue to Week 5 >" Style="{StaticResource Btn}"
               Background="#A6E3A1" IsEnabled="False" Width="220"/>
     </StackPanel>
   </Grid>
@@ -119,7 +119,7 @@ $btnRun.Add_Click({
             $policies = Get-MgIdentityConditionalAccessPolicy
             Write-Log "  Conditional Access policies ($($policies.Count) totaal):"
             $policies | ForEach-Object { Write-Log "  [$($_.State.PadRight(12))] $($_.DisplayName)" }
-        } catch { Write-Log "  Fout: $_"; $btnRun.IsEnabled = $true; return }
+        } catch { Write-Log "  Error: $_"; $btnRun.IsEnabled = $true; return }
     }
 
     # ── Stap 2: MFA CA policy aanmaken (report-only) ─────────
@@ -155,7 +155,7 @@ $btnRun.Add_Click({
             } else {
                 Write-Log "  Policy bestaat al: $($existingPolicy.DisplayName) [$($existingPolicy.State)]"
             }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-Log "  Error: $_" }
     }
 
     # ── Stap 3: Named Location voor Nederland ────────────────
@@ -179,11 +179,11 @@ $btnRun.Add_Click({
                 Write-Log "  Named Location aangemaakt: Nederland (NL)"
                 Write-Log "  ID: $($nlLocation.id)"
             } else { Write-Log "  Named Location bestaat al: $($nlLocation.displayName)" }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-Log "  Error: $_" }
     }
 
     # ── Stap 4: What-If tool (portal) ───────────────────────
-    Write-Log "${pre}Stap 4: Manueel — CA What-If tool"
+    Write-Log "${pre}Stap 4: Manual — CA What-If tool"
     $progress.Value = 68
     Write-Log "  Entra portal > Protection > Conditional Access > What If"
     Write-Log "  Simuleer scenario:"
@@ -216,7 +216,7 @@ $btnRun.Add_Click({
     }
 
     $progress.Value = 100; Write-Log ""; Write-Log "Week 4 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-Log "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-Log "1. Wat is het verschil tussen 'Report-only' en 'Enabled' CA policies?"
     Write-Log "2. Hoe werkt Continuous Access Evaluation (CAE) in combinatie met CA?"
     Write-Log "3. Wanneer gebruik je een Named Location vs. een IP-filter?"
@@ -228,10 +228,11 @@ $btnRun.Add_Click({
 $btnNext.Add_Click({
     $next = Join-Path $PSScriptRoot "lab-week5-appregistrations.ps1"
     if (Test-Path $next) { Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$next`"" }
-    else { [System.Windows.MessageBox]::Show("lab-week5-appregistrations.ps1 niet gevonden.", "SSW-Lab") }
+    else { [System.Windows.MessageBox]::Show("lab-week5-appregistrations.ps1 not found.", "SSW-Lab") }
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
 
 
 

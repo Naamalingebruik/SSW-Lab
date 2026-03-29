@@ -171,6 +171,17 @@ Werk die opnieuw bij als `profiles/learning-tracks.json` verandert:
 
 ---
 
+## Taalvarianten
+
+`SSW-Lab` heeft nu ook weer een volledige Engelse scriptspiegel onder [scripts-en](D:\GitHub\SSW-Lab\scripts-en).
+
+Dat betekent:
+- elke PowerShell-file onder `scripts/` heeft nu een tegenhanger onder `scripts-en/`
+- de kernsetup is dus zowel in het Nederlands als in het Engels aanwezig
+- hetzelfde geldt nu ook voor de tracklabs en utility-scripts
+
+---
+
 ## Trajectgestuurde voortgang
 
 `SSW-Lab` houdt voortgang nu bij op basis van het actieve certificeringstraject in plaats van via de oude vaste MD-102-statusflow.
