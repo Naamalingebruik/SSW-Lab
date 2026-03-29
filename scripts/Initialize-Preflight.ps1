@@ -22,7 +22,7 @@ Import-Module $modulePath -Force
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 # ── Checks definitie ─────────────────────────────────────────
-function Get-PreflightChecks {
+function Get-PreflightCheck {
     $results = [System.Collections.Generic.List[PSCustomObject]]::new()
 
     # 1. Hyper-V feature
@@ -347,6 +347,7 @@ $studyGuideUrls = @{
 
 $certClickHandler = {
     param($s, $e)
+    $null = $e
     $script:currentCert = $s.Content
     Save-CurrentCertSelection -Certification $script:currentCert
     $advice = Get-CertAdvice $script:currentCert
@@ -394,9 +395,9 @@ $btnDownloadADK.Add_Click({
     Start-Process "https://go.microsoft.com/fwlink/?linkid=2289980"
 })
 
-function Render-Checks {
+function Show-PreflightCheck {
     $checkPanel.Children.Clear()
-    $checks = Get-PreflightChecks
+    $checks = Get-PreflightCheck
 
     $adkMissing  = $false
     $hvMissing   = $false
@@ -482,7 +483,7 @@ function Render-Checks {
     }
 }
 
-$btnRerun.Add_Click({ Render-Checks })
+$btnRerun.Add_Click({ Show-PreflightCheck })
 $btnNext.Add_Click({
 
     # ── Keuze: wel of geen unattended ISOs ──────────────────────
@@ -574,6 +575,6 @@ $btnNext.Add_Click({
     }
 })
 
-$reader.Add_Loaded({ Render-Checks })
+$reader.Add_Loaded({ Show-PreflightCheck })
 $reader.ShowDialog() | Out-Null
 

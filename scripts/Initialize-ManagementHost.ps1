@@ -210,9 +210,11 @@ $modList.ItemsSource = $moduleItems
 # ── Helper: log toevoegen ─────────────────────────────────────────────────────
 function Add-Log {
     param([string]$text, [string]$color = "#A6ADC8")
+    $lineText = "$text`n"
+    $brushColor = $color
     $window.Dispatcher.Invoke([action]{
         $logBox.Inlines.Add((
-            [System.Windows.Documents.Run]@{ Text = "$text`n"; Foreground = [Windows.Media.BrushConverter]::new().ConvertFromString($color) }
+            [System.Windows.Documents.Run]@{ Text = $lineText; Foreground = [Windows.Media.BrushConverter]::new().ConvertFromString($brushColor) }
         ))
         $logScroll.ScrollToBottom()
     })
@@ -285,7 +287,9 @@ $btnInstall.Add_Click({
     $cred = $null
     try {
         $cred = Get-Credential -Message "Credentials voor $vmName`nGebruik: LAB\Administrator of .\Administrator"
-    } catch { }
+    } catch {
+        Write-Verbose "Credential prompt is afgebroken of mislukt: $($_.Exception.Message)"
+    }
     if (-not $cred) {
         $btnInstall.IsEnabled = $true; $btnClose.IsEnabled = $true; return
     }
