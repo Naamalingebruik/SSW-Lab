@@ -35,15 +35,8 @@ if ($scriptAnalyzerModule) {
         (Join-Path $repoRoot 'modules'),
         (Join-Path $repoRoot 'build'),
         (Join-Path $repoRoot 'tests'),
-        (Join-Path $repoRoot 'scripts\Build-UnattendedIsos.ps1'),
-        (Join-Path $repoRoot 'scripts\Configure-HostNetwork.ps1'),
-        (Join-Path $repoRoot 'scripts\Initialize-DomainController.ps1'),
-        (Join-Path $repoRoot 'scripts\Initialize-ManagementHost.ps1'),
-        (Join-Path $repoRoot 'scripts\Initialize-Preflight.ps1'),
-        (Join-Path $repoRoot 'scripts\Join-LabComputersToDomain.ps1'),
-        (Join-Path $repoRoot 'scripts\New-LabExtraVm.ps1'),
-        (Join-Path $repoRoot 'scripts\New-LabExtraVmGui.ps1'),
-        (Join-Path $repoRoot 'scripts\New-LabVMs.ps1')
+        (Join-Path $repoRoot 'scripts'),
+        (Join-Path $repoRoot 'scripts-en')
     )
 
     $errorFindings = @()
@@ -60,4 +53,23 @@ if ($scriptAnalyzerModule) {
     }
 } else {
     Write-Warning 'PSScriptAnalyzer niet gevonden. Linting is overgeslagen.'
+}
+
+Write-Output 'JSON validatie...'
+$jsonFiles = @(
+    (Join-Path $repoRoot 'profiles\vm-profiles.json'),
+    (Join-Path $repoRoot 'profiles\learning-tracks.json')
+)
+
+foreach ($jsonFile in $jsonFiles) {
+    if (-not (Test-Path -LiteralPath $jsonFile)) {
+        throw "JSON bestand niet gevonden: $jsonFile"
+    }
+
+    try {
+        $null = Get-Content -LiteralPath $jsonFile -Raw | ConvertFrom-Json -ErrorAction Stop
+        Write-Output "OK: $(Split-Path $jsonFile -Leaf)"
+    } catch {
+        throw "Ongeldige JSON in $(Split-Path $jsonFile -Leaf): $($_.Exception.Message)"
+    }
 }

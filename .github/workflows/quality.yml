@@ -4,7 +4,19 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '**/*.ps1'
+      - '**/*.psm1'
+      - '**/*.psd1'
+      - '**/*.json'
+      - '.github/workflows/quality.yml'
   pull_request:
+    paths:
+      - '**/*.ps1'
+      - '**/*.psm1'
+      - '**/*.psd1'
+      - '**/*.json'
+      - '.github/workflows/quality.yml'
 
 jobs:
   quality:
@@ -25,4 +37,3 @@ jobs:
       - name: Run quality checks
         shell: pwsh
         run: ./build/Invoke-QualityChecks.ps1
-        working-directory: D:/a/SSW-Lab/SSW-Lab
