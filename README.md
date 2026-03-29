@@ -45,6 +45,9 @@ Gebouwd door en voor Sogeti SSW collega's — geen eigen domein of dedicated har
 # 4. Maak VMs aan
 .\scripts\New-LabVMs.ps1
 
+# 4b. Maak later een extra VM aan op basis van een bestaand labprofiel
+.\scripts\New-LabExtraVm.ps1 -TemplateKey W11-AUTOPILOT -VmName LAB-W11-AUTOPILOT-02
+
 # 5. Richt DC in
 .\scripts\Initialize-DomainController.ps1
 
@@ -53,6 +56,8 @@ Gebouwd door en voor Sogeti SSW collega's — geen eigen domein of dedicated har
 ```
 
 Elk script heeft een GUI en een knop om door te gaan naar het volgende.
+
+Voor een extra test-VM buiten de standaard presetflow gebruik je `New-LabExtraVm.ps1`. Dat script hergebruikt de bestaande labprofielen, switch, diskconventies, Secure Boot, vTPM en unattended ISO-routing.
 
 ---
 

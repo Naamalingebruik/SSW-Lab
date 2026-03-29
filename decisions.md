@@ -451,3 +451,15 @@ Ingesteld via `scripts/utility/Repair-W11-02Network.ps1` op 2026-03-22.
 
 **Rebase succesvol afgerond en gepusht naar origin.**
 
+---
+
+### Repo-eigen extra VM flow toegevoegd
+
+**Beslissing:** `scripts/New-LabExtraVm.ps1` toegevoegd als veilige route om extra lab-VMs aan te maken zonder het oude losse `Create-VM.ps1` te hoeven gebruiken.
+
+**Waarom:** Voor scenario's zoals een tweede Autopilot-client is een generieke Hyper-V VM-builder te los gekoppeld aan het lab. De repo moet zelf naming, switch, diskpad, Secure Boot, vTPM en unattended ISO-keuze blijven afdwingen.
+
+**Werking:** Het script gebruikt een bestaand VM-profiel uit `profiles/vm-profiles.json` als template (`-TemplateKey`) en maakt daarna een extra VM aan met een nieuwe naam (`-VmName`), optionele overrides voor CPU/RAM/disk en ondersteuning voor `-WhatIf`.
+
+**Voorbeeld:** `.\scripts\New-LabExtraVm.ps1 -TemplateKey W11-AUTOPILOT -VmName LAB-W11-AUTOPILOT-02`
+
