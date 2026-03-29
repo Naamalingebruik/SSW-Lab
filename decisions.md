@@ -463,3 +463,5 @@ Ingesteld via `scripts/utility/Repair-W11-02Network.ps1` op 2026-03-22.
 
 **Voorbeeld:** `.\scripts\New-LabExtraVm.ps1 -TemplateKey W11-AUTOPILOT -VmName LAB-W11-AUTOPILOT-02`
 
+**GUI:** `scripts/New-LabExtraVmGui.ps1` biedt nu een lichte GUI bovenop dezelfde CLI-flow. Daar kies je eerst `Client` of `Server` en daarna het template. Clients blijven Windows 11 Enterprise unattended; servers blijven Windows Server Standard Desktop Experience unattended.
+
