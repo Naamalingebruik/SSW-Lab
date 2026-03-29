@@ -9,6 +9,7 @@
     PowerShellVersion = '5.1'
     FunctionsToExport = @(
         'ConvertTo-SSWSecureString',
+        'ConvertFrom-SSWSecureString',
         'ConvertTo-SSWXmlSafeValue',
         'Import-SSWLabConfig',
         'Get-SSWVmProfiles',

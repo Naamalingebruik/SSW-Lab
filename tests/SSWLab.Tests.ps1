@@ -103,7 +103,7 @@ Describe 'Unattend XML generatie' {
             DomainAdmin = 'labadmin'
         }
 
-        $xml = New-SSWW11UnattendXml -Config $config -AdminPassword 'Sterk&Geheim<123>'
+        $xml = New-SSWW11UnattendXml -Config $config -AdminPassword (ConvertTo-SSWSecureString -Value 'Sterk&Geheim<123>')
 
         $xml | Should -Match '<Name>labadmin</Name>'
         $xml | Should -Match 'Sterk&amp;Geheim&lt;123&gt;'
@@ -115,7 +115,7 @@ Describe 'Unattend XML generatie' {
             DomainAdmin = 'labadmin'
         }
 
-        $xml = New-SSWServer2025UnattendXml -Config $config -AdminPassword 'Sterk!123'
+        $xml = New-SSWServer2025UnattendXml -Config $config -AdminPassword (ConvertTo-SSWSecureString -Value 'Sterk!123')
 
         $xml | Should -Match '<ComputerName>\*</ComputerName>'
         $xml | Should -Not -Match '/IMAGE/NAME'

@@ -180,6 +180,23 @@ function ConvertTo-SSWSecureString {
     return $secureString
 }
 
+function ConvertFrom-SSWSecureString {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [securestring]$SecureString
+    )
+
+    $ptr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
+    try {
+        [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+    } finally {
+        if ($ptr -ne [IntPtr]::Zero) {
+            [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+        }
+    }
+}
+
 function New-SSWCredential {
     [CmdletBinding()]
     param(
@@ -290,10 +307,11 @@ function New-SSWW11UnattendXml {
         [hashtable]$Config,
 
         [Parameter(Mandatory)]
-        [string]$AdminPassword
+        [securestring]$AdminPassword
     )
 
-    $adminPassXml = ConvertTo-SSWXmlSafeValue -Value $AdminPassword
+    $adminPasswordPlainText = ConvertFrom-SSWSecureString -SecureString $AdminPassword
+    $adminPassXml = ConvertTo-SSWXmlSafeValue -Value $adminPasswordPlainText
     $domainAdminXml = ConvertTo-SSWXmlSafeValue -Value $Config.DomainAdmin
 
     return @"
@@ -417,10 +435,11 @@ function New-SSWServer2025UnattendXml {
         [hashtable]$Config,
 
         [Parameter(Mandatory)]
-        [string]$AdminPassword
+        [securestring]$AdminPassword
     )
 
-    $adminPassXml = ConvertTo-SSWXmlSafeValue -Value $AdminPassword
+    $adminPasswordPlainText = ConvertFrom-SSWSecureString -SecureString $AdminPassword
+    $adminPassXml = ConvertTo-SSWXmlSafeValue -Value $adminPasswordPlainText
     $domainAdminXml = ConvertTo-SSWXmlSafeValue -Value $Config.DomainAdmin
 
     return @"
@@ -690,6 +709,7 @@ function Get-SSWTrackProgress {
 
 Export-ModuleMember -Function @(
     'ConvertTo-SSWSecureString',
+    'ConvertFrom-SSWSecureString',
     'ConvertTo-SSWXmlSafeValue',
     'Import-SSWLabConfig',
     'Get-SSWVmProfiles',

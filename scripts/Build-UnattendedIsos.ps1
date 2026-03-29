@@ -288,15 +288,16 @@ $btnBuild.Add_Click({
     $step = [math]::Floor(100 / $jobs.Count); $done = 0
 
     foreach ($job in $jobs) {
+        $adminPasswordSecure = ConvertTo-SSWSecureString -Value $adminPass
         if ($job -eq "W11") {
             $src = $txtW11.Text.Trim()
             $dst = Join-Path $outDir "SSW-W11-Unattend.iso"
-            $xml = New-SSWW11UnattendXml -Config $SSWConfig -AdminPassword $adminPass
+            $xml = New-SSWW11UnattendXml -Config $SSWConfig -AdminPassword $adminPasswordSecure
             Write-Log "${pre}W11 ISO bouwen: $src -> $dst"
         } else {
             $src = $txtSrv.Text.Trim()
             $dst = Join-Path $outDir "SSW-WS2025-Unattend.iso"
-            $xml = New-SSWServer2025UnattendXml -Config $SSWConfig -AdminPassword $adminPass
+            $xml = New-SSWServer2025UnattendXml -Config $SSWConfig -AdminPassword $adminPasswordSecure
             Write-Log "${pre}WS2025 ISO bouwen: $src -> $dst"
         }
         if (-not $isDry) {

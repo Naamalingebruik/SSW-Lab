@@ -297,16 +297,11 @@ $btnSetup.Add_Click({
 
         Write-Log "Extra domain admin '$domainAdmin' aanmaken in AD..."
         Invoke-Command -VMName $vmName -Credential $domCred -ScriptBlock {
-            param($user, $passwordText)
-            $sec = New-Object System.Security.SecureString
-            foreach ($character in $passwordText.ToCharArray()) {
-                $sec.AppendChar($character)
-            }
-            $sec.MakeReadOnly()
-            New-ADUser -Name $user -SamAccountName $user -AccountPassword $sec `
+            param([string]$user, [securestring]$password)
+            New-ADUser -Name $user -SamAccountName $user -AccountPassword $password `
                 -Enabled $true -PasswordNeverExpires $true -ErrorAction Stop
             Add-ADGroupMember -Identity "Domain Admins" -Members $user -ErrorAction Stop
-        } -ArgumentList $domainAdmin, $adminPwd
+        } -ArgumentList $domainAdmin, (ConvertTo-SSWSecureString -Value $adminPwd)
         Write-Log "'$domainAdmin' aangemaakt en toegevoegd aan Domain Admins."
 
         # ── DHCP-server + Autopilot IP-reservering ──────────────────────────────
