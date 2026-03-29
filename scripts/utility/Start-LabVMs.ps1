@@ -41,9 +41,9 @@ if (Test-Path $localConfig) { . $localConfig }
 
 # ── Logging ──────────────────────────────────────────────────
 $logFile = Join-Path $repoRoot 'Start-LabVMs.log'
-function Write-Log([string]$msg) {
+function Add-StartLog([string]$msg) {
     $line = "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] $msg"
-    Write-Host $line
+    Write-Output $line
     try {
         Add-Content -Path $logFile -Value $line -ErrorAction SilentlyContinue
     } catch {
@@ -54,7 +54,7 @@ function Write-Log([string]$msg) {
 # ── Hulpfunctie: lab-credential ──────────────────────────────
 function Get-LabCred([string]$user) {
     if (-not $SSWConfig.LabPassword) {
-        Write-Log "  LET OP: LabPassword niet ingesteld in config.local.ps1 - PS Direct-stappen overgeslagen."
+        Add-StartLog "  LET OP: LabPassword niet ingesteld in config.local.ps1 - PS Direct-stappen overgeslagen."
         return $null
     }
     New-SSWCredential -UserName $user -SecretName 'SSWLab-LabPassword' -Config $SSWConfig -ConfigValueName 'LabPassword' -EnvironmentVariableName 'SSW_LAB_PASSWORD'
@@ -67,15 +67,15 @@ function Get-AutopilotCred {
     New-SSWCredential -UserName 'autopilot' -Password (ConvertTo-SSWSecureString -Value $apPw)
 }
 
-Write-Log "======================================================"
-Write-Log "  SSW-Lab Startup"
-Write-Log "======================================================"
+Add-StartLog "======================================================"
+Add-StartLog "  SSW-Lab Startup"
+Add-StartLog "======================================================"
 
 # ══════════════════════════════════════════════════════════════
 # STAP 1 — Netwerk herstellen
 # (vSwitch, gateway-IP en NAT verdwijnen na host-reboot)
 # ══════════════════════════════════════════════════════════════
-Write-Log "[1/3] Netwerk controleren/herstellen..."
+Add-StartLog "[1/3] Netwerk controleren/herstellen..."
 
 $switchName   = $SSWConfig.vSwitchName    # SSW-Internal
 $natName      = $SSWConfig.NATName        # SSW-NAT
@@ -87,10 +87,10 @@ $adapterAlias = "vEthernet ($switchName)"
 if (-not (Get-VMSwitch -Name $switchName -ErrorAction SilentlyContinue)) {
     try {
         New-VMSwitch -Name $switchName -SwitchType Internal -ErrorAction Stop | Out-Null
-        Write-Log "  vSwitch '$switchName' aangemaakt."
-    } catch { Write-Log "  FOUT vSwitch: $_" }
+        Add-StartLog "  vSwitch '$switchName' aangemaakt."
+    } catch { Add-StartLog "  FOUT vSwitch: $_" }
 } else {
-    Write-Log "  vSwitch '$switchName' bestaat al."
+    Add-StartLog "  vSwitch '$switchName' bestaat al."
 }
 
 # Gateway-IP op host-adapter
@@ -99,50 +99,50 @@ $existIP = Get-NetIPAddress -InterfaceAlias $adapterAlias -AddressFamily IPv4 -E
 if (-not $existIP) {
     try {
         New-NetIPAddress -IPAddress $gatewayIP -PrefixLength 24 -InterfaceAlias $adapterAlias -ErrorAction Stop | Out-Null
-        Write-Log "  Gateway-IP $gatewayIP ingesteld op $adapterAlias."
-    } catch { Write-Log "  FOUT gateway-IP: $_" }
+        Add-StartLog "  Gateway-IP $gatewayIP ingesteld op $adapterAlias."
+    } catch { Add-StartLog "  FOUT gateway-IP: $_" }
 } else {
-    Write-Log "  Gateway-IP $gatewayIP al aanwezig."
+    Add-StartLog "  Gateway-IP $gatewayIP al aanwezig."
 }
 
 # NAT
 if (-not (Get-NetNat -Name $natName -ErrorAction SilentlyContinue)) {
     try {
         New-NetNat -Name $natName -InternalIPInterfaceAddressPrefix $natSubnet -ErrorAction Stop | Out-Null
-        Write-Log "  NAT '$natName' aangemaakt."
-    } catch { Write-Log "  FOUT NAT: $_" }
+        Add-StartLog "  NAT '$natName' aangemaakt."
+    } catch { Add-StartLog "  FOUT NAT: $_" }
 } else {
-    Write-Log "  NAT '$natName' bestaat al."
+    Add-StartLog "  NAT '$natName' bestaat al."
 }
 
-Write-Log "[1/3] Netwerk gereed."
+Add-StartLog "[1/3] Netwerk gereed."
 
 # ══════════════════════════════════════════════════════════════
 # STAP 2 — DC01 starten + wachten op AD
 # ══════════════════════════════════════════════════════════════
-Write-Log "[2/3] DC01 starten en wachten op AD..."
+Add-StartLog "[2/3] DC01 starten en wachten op AD..."
 
 $profiles = Get-SSWVmProfiles -Config $SSWConfig
 $dcVMName = (Get-SSWVmProfile -Profiles $profiles -Name 'DC01').Name
 
 $dcVM = Get-VM -Name $dcVMName -ErrorAction SilentlyContinue
 if (-not $dcVM) {
-    Write-Log "  VM '$dcVMName' niet gevonden in Hyper-V - VMs nog niet aangemaakt? Startup gestopt."
+    Add-StartLog "  VM '$dcVMName' niet gevonden in Hyper-V - VMs nog niet aangemaakt? Startup gestopt."
     exit 0
 }
 
 if ($dcVM.State -ne 'Running') {
     Start-VM -Name $dcVMName
-    Write-Log "  '$dcVMName' gestart."
+    Add-StartLog "  '$dcVMName' gestart."
 } else {
-    Write-Log "  '$dcVMName' draait al."
+    Add-StartLog "  '$dcVMName' draait al."
 }
 
 # Wachten tot NTDS-service actief is (= AD beschikbaar)
 $domCred = Get-LabCred "$($SSWConfig.DomainName)\$($SSWConfig.DomainAdmin)"
 $dcOnline = $false
 if ($domCred) {
-    Write-Log "  Wachten op AD (max $DcWaitMinutes min)..."
+    Add-StartLog "  Wachten op AD (max $DcWaitMinutes min)..."
     $deadline = (Get-Date).AddMinutes($DcWaitMinutes)
     while (-not $dcOnline -and (Get-Date) -lt $deadline) {
         Start-Sleep -Seconds 15
@@ -155,13 +155,13 @@ if ($domCred) {
             Write-Verbose "DC nog niet klaar voor NTDS-check: $($_.Exception.Message)"
         }
     }
-    if ($dcOnline) { Write-Log "  DC online - AD actief." }
-    else           { Write-Log "  WAARSCHUWING: DC niet bereikbaar binnen $DcWaitMinutes min - doorgaan zonder AD-check." }
+    if ($dcOnline) { Add-StartLog "  DC online - AD actief." }
+    else           { Add-StartLog "  WAARSCHUWING: DC niet bereikbaar binnen $DcWaitMinutes min - doorgaan zonder AD-check." }
 }
 
 # ── 2b. DHCP op DC01: scope + vaste reservering voor Autopilot-VM ────────
 if ($dcOnline -and $domCred) {
-    Write-Log "  DHCP op DC01 controleren..."
+    Add-StartLog "  DHCP op DC01 controleren..."
 
     # MAC-adres van de Autopilot-VM ophalen via Hyper-V (host-kant, VM hoeft niet te draaien)
     $apVMName  = $profiles.'W11-AUTOPILOT'.Name
@@ -170,7 +170,7 @@ if ($dcOnline -and $domCred) {
         # Hyper-V levert '001234ABCDEF' -> DHCP verwacht '00-12-34-AB-CD-EF'
         ($apAdapter.MacAddress -replace '[:\-]', '') -replace '(..)(..)(..)(..)(..)(..)', '$1-$2-$3-$4-$5-$6'
     } else {
-        Write-Log "  WAARSCHUWING: MAC-adres van '$apVMName' niet gevonden - DHCP-reservering overgeslagen."
+        Add-StartLog "  WAARSCHUWING: MAC-adres van '$apVMName' niet gevonden - DHCP-reservering overgeslagen."
         $null
     }
 
@@ -247,9 +247,9 @@ if ($dcOnline -and $domCred) {
             return $out
         } -ArgumentList $scopeID, $DhcpScopeStart, $DhcpScopeEnd, $AutopilotReservedIP, $apMAC, $dhcpGateway, $dhcpDNS
 
-        foreach ($line in $dhcpLog) { Write-Log "  $line" }
+        foreach ($line in $dhcpLog) { Add-StartLog "  $line" }
     } catch {
-        Write-Log "  WAARSCHUWING DHCP-setup: $_"
+        Add-StartLog "  WAARSCHUWING DHCP-setup: $_"
     }
 }
 
@@ -283,9 +283,9 @@ foreach ($key in $clientW11) {
                 "OK (geen statisch IP in infrastructuurbereik)"
             }
         }
-        Write-Log "  $vmName - $resetResult"
+        Add-StartLog "  $vmName - $resetResult"
     } catch {
-        Write-Log "  $vmName - kan DHCP-check niet uitvoeren: $_"
+        Add-StartLog "  $vmName - kan DHCP-check niet uitvoeren: $_"
     }
 }
 
@@ -294,28 +294,28 @@ foreach ($key in $clientW11) {
 # (MGMT01 → W11-01 → W11-02 → W11-AUTOPILOT)
 # VMs die niet bestaan worden overgeslagen (geen fout).
 # ══════════════════════════════════════════════════════════════
-Write-Log "[3/3] Overige VMs starten..."
+Add-StartLog "[3/3] Overige VMs starten..."
 
 $startOrder = @('MGMT01', 'W11-01', 'W11-02', 'W11-AUTOPILOT')
 foreach ($key in $startOrder) {
     $vmProfile = $profiles.$key
-    if (-not $vmProfile) { Write-Log "  Profiel '$key' niet gevonden - overgeslagen."; continue }
+    if (-not $vmProfile) { Add-StartLog "  Profiel '$key' niet gevonden - overgeslagen."; continue }
 
     $vmName = $vmProfile.Name
     $vm     = Get-VM -Name $vmName -ErrorAction SilentlyContinue
-    if (-not $vm)                  { Write-Log "  '$vmName' niet gevonden in Hyper-V - overgeslagen."; continue }
-    if ($vm.State -eq 'Running')   { Write-Log "  '$vmName' draait al."; continue }
+    if (-not $vm)                  { Add-StartLog "  '$vmName' niet gevonden in Hyper-V - overgeslagen."; continue }
+    if ($vm.State -eq 'Running')   { Add-StartLog "  '$vmName' draait al."; continue }
 
     try {
         Start-VM -Name $vmName
-        Write-Log "  '$vmName' gestart."
+        Add-StartLog "  '$vmName' gestart."
         Start-Sleep -Seconds $VmStartDelay
     } catch {
-        Write-Log "  FOUT bij starten '$vmName': $_"
+        Add-StartLog "  FOUT bij starten '$vmName': $_"
     }
 }
 
-Write-Log "[3/3] Alle aanwezige VMs gestart."
-Write-Log "======================================================"
-Write-Log "  SSW-Lab Startup voltooid."
-Write-Log "======================================================"
+Add-StartLog "[3/3] Alle aanwezige VMs gestart."
+Add-StartLog "======================================================"
+Add-StartLog "  SSW-Lab Startup voltooid."
+Add-StartLog "======================================================"
