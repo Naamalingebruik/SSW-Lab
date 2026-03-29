@@ -204,8 +204,8 @@ $reader.Add_Loaded({
         $vmPanel.Children.Add($cb)
         $checkBoxes[$key] = $cb
     }
-    $w11Path = Join-Path $SSWConfig.ISOPath "SSW-W11-Unattend.iso"
-    $srvPath = Join-Path $SSWConfig.ISOPath "SSW-WS2025-Unattend.iso"
+    $w11Path = Get-SSWDefaultIsoPath -Config $SSWConfig -TemplateKey 'W11-01'
+    $srvPath = Get-SSWDefaultIsoPath -Config $SSWConfig -TemplateKey 'DC01'
     if (Test-Path $w11Path) { $txtW11ISO.Text = $w11Path }
     if (Test-Path $srvPath) { $txtSrvISO.Text = $srvPath }
     Set-Preset "Minimal"
@@ -222,7 +222,7 @@ function Update-RAMPreview {
 }
 
 function Set-Preset($name) {
-    $keys = $SSWConfig.Presets[$name]
+    $keys = Get-SSWPresetVmKeys -Config $SSWConfig -PresetName $name
     foreach ($k in $checkBoxes.Keys) { $checkBoxes[$k].IsChecked = ($keys -contains $k) }
     Update-RAMPreview
 }
@@ -244,43 +244,6 @@ function Write-Log($msg) {
     $ts = Get-Date -Format "HH:mm:ss"
     $logBox.Text += "[$ts] $msg`n"
     $logBox.ScrollToEnd()
-}
-
-function Set-VMIsoWithRetry {
-  param(
-    $VM,
-    [string]$IsoPath,
-    [int]$MaxAttempts = 4,
-    [int]$DelaySeconds = 2
-  )
-
-  if (-not (Test-Path $IsoPath)) {
-    throw "ISO pad bestaat niet: $IsoPath"
-  }
-
-  $dvd = Get-VMDvdDrive -VM $VM -ErrorAction SilentlyContinue | Select-Object -First 1
-  if (-not $dvd) {
-    Add-VMDvdDrive -VM $VM -ErrorAction Stop | Out-Null
-    $dvd = Get-VMDvdDrive -VM $VM -ErrorAction Stop | Select-Object -First 1
-  }
-
-  $lastError = $null
-  for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
-    try {
-      Set-VMDvdDrive -VMName $VM.Name -ControllerNumber $dvd.ControllerNumber -ControllerLocation $dvd.ControllerLocation -Path $null -ErrorAction SilentlyContinue
-      Start-Sleep -Milliseconds 250
-      Set-VMDvdDrive -VMName $VM.Name -ControllerNumber $dvd.ControllerNumber -ControllerLocation $dvd.ControllerLocation -Path $IsoPath -ErrorAction Stop
-      return (Get-VMDvdDrive -VMName $VM.Name | Where-Object { $_.ControllerNumber -eq $dvd.ControllerNumber -and $_.ControllerLocation -eq $dvd.ControllerLocation } | Select-Object -First 1)
-    } catch {
-      $lastError = $_
-      if ($attempt -lt $MaxAttempts) {
-        Write-Log "Waarschuwing: ISO-koppeling mislukt voor $($VM.Name) (poging $attempt/$MaxAttempts). Nieuwe poging over $DelaySeconds s."
-        Start-Sleep -Seconds $DelaySeconds
-      }
-    }
-  }
-
-  throw "ISO koppelen aan $($VM.Name) is mislukt na $MaxAttempts pogingen. Laatste fout: $($lastError.Exception.Message)"
 }
 
 $btnCreate.Add_Click({
@@ -317,37 +280,24 @@ $btnCreate.Add_Click({
 
         if ($existing) {
             Write-Log "${pre}$vmName bestaat al - overgeslagen."
-          $skippedCount++
+            $skippedCount++
         } else {
             $isoPath = if ($p.OS -eq "Server2025") { $txtSrvISO.Text } else { $txtW11ISO.Text }
             Write-Log "${pre}New-VM '$vmName' ($($p.RAM_GB) GB RAM, $($p.Disk_GB) GB disk, ISO: $(Split-Path $isoPath -Leaf))"
             if (-not $isDry) {
                 try {
-              if (-not $isoPath -or -not (Test-Path $isoPath)) { Write-Log "ISO niet gevonden voor $vmName."; $failedCount++; continue }
-                    $diskPath = Join-Path $vmPath "$vmName.vhdx"
-              if (Test-Path $diskPath) {
-                Write-Log "FOUT $vmName`: Schijfbestand bestaat al op $diskPath. Verwijder of hernoem dit VHDX-bestand en probeer opnieuw."
-                $failedCount++
-                continue
-              }
-                    New-VHD -Path $diskPath -SizeBytes ($p.Disk_GB * 1GB) -Dynamic -ErrorAction Stop | Out-Null
-                    $vm = New-VM -Name $vmName -MemoryStartupBytes ($p.RAM_GB * 1GB) -VHDPath $diskPath `
-                                 -SwitchName $SSWConfig.vSwitchName -Generation 2 -Path $vmPath -ErrorAction Stop
-                    Set-VM -VM $vm -ProcessorCount $p.vCPU -DynamicMemory:$false -AutomaticCheckpointsEnabled:$false
-                    # Windows 11/Server 2025 lab-VMs moeten Secure Boot + vTPM hebben.
-                    Set-VMFirmware -VM $vm -EnableSecureBoot On -SecureBootTemplate MicrosoftWindows -ErrorAction Stop
-                    Set-VMKeyProtector -VMName $vmName -NewLocalKeyProtector -ErrorAction Stop | Out-Null
-                    Enable-VMTPM -VMName $vmName -ErrorAction Stop | Out-Null
-                    $dvd = Set-VMIsoWithRetry -VM $vm -IsoPath $isoPath
-                    Set-VMFirmware -VM $vm -FirstBootDevice $dvd
-                    Write-Log "✔ $vmName aangemaakt (Secure Boot + vTPM actief)."
-                    $createdCount++
-                  } catch {
+                    $result = New-SSWLabVm -VmProfile $p -Config $SSWConfig -IsoPath $isoPath -Log { param($m) Write-Log $m }
+                    if ($result.Status -eq 'SkippedExisting') {
+                        $skippedCount++
+                    } else {
+                        $createdCount++
+                    }
+                } catch {
                     Write-Log "FOUT $vmName`: $_"
                     $failedCount++
-                  }
-                } else {
-                  $createdCount++
+                }
+            } else {
+                $createdCount++
             }
         }
         $done += $step

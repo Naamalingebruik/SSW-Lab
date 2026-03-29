@@ -15,18 +15,11 @@ if ([System.Threading.Thread]::CurrentThread.GetApartmentState() -ne 'STA') {
     exit
 }
 
-. "$PSScriptRoot\..\config.ps1"
+$modulePath = Join-Path $PSScriptRoot '..\modules\SSWLab\SSWLab.psd1'
+Import-Module $modulePath -Force
+$SSWConfig = Import-SSWLabConfig -ConfigPath (Join-Path $PSScriptRoot '..\config.ps1')
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
-
-function Convert-PlainTextToSecureString {
-    param([Parameter(Mandatory)][string]$Value)
-
-    $secureString = New-Object System.Security.SecureString
-    $Value.ToCharArray() | ForEach-Object { $secureString.AppendChar($_) }
-    $secureString.MakeReadOnly()
-    $secureString
-}
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -98,7 +91,7 @@ function Convert-PlainTextToSecureString {
       <StackPanel>
         <TextBlock Text="Selecteer VMs om te joinen (DC01 overgeslagen)" Foreground="#A6ADC8" FontSize="11" Margin="0,0,0,8"/>
         <WrapPanel x:Name="VMPanel"/>
-        <Button x:Name="BtnRefresh" Content="↻  VMs vernieuwen" Width="140" HorizontalAlignment="Left"
+        <Button x:Name="BtnRefresh" Content="VMs vernieuwen" Width="140" HorizontalAlignment="Left"
                 Background="#45475A" Foreground="#CDD6F4" BorderThickness="0" Cursor="Hand"
                 Height="28" FontSize="11" Margin="0,8,0,0"/>
       </StackPanel>
@@ -150,14 +143,14 @@ $dryRunBar     = $reader.FindName("DryRunBar")
 $dryRunTitle   = $reader.FindName("DryRunTitle")
 $dryRunSub     = $reader.FindName("DryRunSub")
 $conv          = [System.Windows.Media.BrushConverter]::new()
-$profiles      = Get-Content $SSWConfig.ProfilePath -Raw | ConvertFrom-Json
+$profiles      = Get-SSWVmProfiles -Config $SSWConfig
 $checkBoxes    = @{}
 
 function Update-DryRunBar {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
-        $dryRunTitle.Text       = "🔒  Dry Run — geen VMs worden gejoined"
+        $dryRunTitle.Text       = "[DRY RUN] geen VMs worden gejoined"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
         $dryRunSub.Text         = "Haal het vinkje weg om daadwerkelijk uit te voeren"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#5A8A6A")
@@ -165,7 +158,7 @@ function Update-DryRunBar {
     } else {
         $dryRunBar.Background   = $conv.ConvertFrom("#2E1A1A")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text       = "⚠  LIVE UITVOERING — VMs worden gejoined en herstarten"
+        $dryRunTitle.Text       = "[LIVE] VMs worden gejoined en herstarten"
         $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text         = "Zet het vinkje terug om naar Dry Run te gaan"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
@@ -237,7 +230,7 @@ $btnJoin.Add_Click({
     $step = [math]::Floor(100 / $sel.Count); $done = 0
 
     foreach ($vmName in $sel) {
-        Add-UiLog "${pre}Add-Computer '$vmName' → $domain (lokaal: $localAdmin, domain admin: $domAdmin)"
+        Add-UiLog "${pre}Add-Computer '$vmName' -> $domain (lokaal: $localAdmin, domain admin: $domAdmin)"
 
         if (-not $isDry) {
             $vm = Get-VM -Name $vmName -ErrorAction SilentlyContinue
@@ -246,11 +239,11 @@ $btnJoin.Add_Click({
 
             $localCred = [PSCredential]::new(
                 "$vmName\$localAdmin",
-                (Convert-PlainTextToSecureString -Value $localPwd)
+                (ConvertTo-SSWSecureString -Value $localPwd)
             )
             $domCred = [PSCredential]::new(
                 "$($SSWConfig.DomainNetBIOS)\$domAdmin",
-                (Convert-PlainTextToSecureString -Value $domainPwd)
+                (ConvertTo-SSWSecureString -Value $domainPwd)
             )
             try {
                 Invoke-Command -VMName $vmName -Credential $localCred -ScriptBlock {
@@ -261,7 +254,7 @@ $btnJoin.Add_Click({
                     }
                     Add-Computer -DomainName $dom -Credential $domainCredential -Restart -Force -ErrorAction Stop
                 } -ArgumentList $domain, $domCred, $vmName
-                Add-UiLog "✔ $vmName wordt hernoemd naar $vmName en herstart en joint $domain"
+                Add-UiLog "$vmName wordt hernoemd naar $vmName, herstart en joint $domain"
             } catch { Add-UiLog "FOUT $vmName`: $_" }
         }
 
@@ -270,7 +263,7 @@ $btnJoin.Add_Click({
     }
 
     $progress.Value = 100
-    Add-UiLog $(if ($isDry) { "✔ Dry Run klaar — niets uitgevoerd." } else { "✔ Domain join voltooid." })
+    Add-UiLog $(if ($isDry) { "Dry Run klaar - niets uitgevoerd." } else { "Domain join voltooid." })
     $btnJoin.IsEnabled = $true
 })
 

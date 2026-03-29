@@ -1,14 +1,10 @@
 #Requires -RunAsAdministrator
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
-$configPath = Join-Path $PSScriptRoot '..\config.ps1'
-$SSWConfig = $null
-. $configPath
-if (-not $SSWConfig) {
-    throw "Configbestand heeft geen `$SSWConfig opgeleverd: $configPath"
-}
-
-$profiles = Get-Content -LiteralPath $SSWConfig.ProfilePath -Raw | ConvertFrom-Json
+$modulePath = Join-Path $PSScriptRoot '..\modules\SSWLab\SSWLab.psd1'
+Import-Module $modulePath -Force
+$SSWConfig = Import-SSWLabConfig -ConfigPath (Join-Path $PSScriptRoot '..\config.ps1')
+$profiles = Get-SSWVmProfiles -Config $SSWConfig
 $templateMap = @{
     Client = @('W11-AUTOPILOT', 'W11-01', 'W11-02', 'MGMT01')
     Server = @('DC01')
@@ -22,7 +18,7 @@ function Get-TemplateProfile {
 function Get-DefaultVmName {
     param([string]$TemplateKey)
 
-    return switch ($TemplateKey) {
+    switch ($TemplateKey) {
         'W11-AUTOPILOT' { 'LAB-W11-AUTOPILOT-02' }
         'W11-01' { 'LAB-W11-03' }
         'W11-02' { 'LAB-W11-04' }
@@ -142,15 +138,15 @@ function Update-TemplateChoices {
 function Update-DefaultsFromTemplate {
     if (-not $templateBox.SelectedItem) { return }
     $templateKey = [string]$templateBox.SelectedItem
-    $profile = Get-TemplateProfile -TemplateKey $templateKey
+    $templateProfile = Get-TemplateProfile -TemplateKey $templateKey
     $vmNameBox.Text = Get-DefaultVmName -TemplateKey $templateKey
-    $memoryBox.Text = [string]$profile.RAM_GB
-    $cpuBox.Text = [string]$profile.vCPU
-    $diskBox.Text = [string]$profile.Disk_GB
-    $summaryText.Text = "{0} | {1} | {2} GB RAM | {3} vCPU | {4} GB disk" -f $templateKey, $profile.OS, $profile.RAM_GB, $profile.vCPU, $profile.Disk_GB
+    $memoryBox.Text = [string]$templateProfile.RAM_GB
+    $cpuBox.Text = [string]$templateProfile.vCPU
+    $diskBox.Text = [string]$templateProfile.Disk_GB
+    $summaryText.Text = "{0} | {1} | {2} GB RAM | {3} vCPU | {4} GB disk" -f $templateKey, $templateProfile.OS, $templateProfile.RAM_GB, $templateProfile.vCPU, $templateProfile.Disk_GB
 }
 
-function Run-Action {
+function Invoke-GuiAction {
     param([switch]$Preview)
 
     $logBox.Clear()
@@ -162,7 +158,7 @@ function Run-Action {
         return
     }
 
-    $args = @(
+    $scriptArguments = @(
         '-NoProfile',
         '-ExecutionPolicy', 'Bypass',
         '-File', (Join-Path $PSScriptRoot 'New-LabExtraVm.ps1'),
@@ -170,16 +166,16 @@ function Run-Action {
         '-VmName', $vmName
     )
 
-    if ($memoryBox.Text.Trim()) { $args += @('-MemoryGB', $memoryBox.Text.Trim()) }
-    if ($cpuBox.Text.Trim()) { $args += @('-CpuCount', $cpuBox.Text.Trim()) }
-    if ($diskBox.Text.Trim()) { $args += @('-DiskGB', $diskBox.Text.Trim()) }
-    if ($startAfterBox.IsChecked) { $args += '-StartAfter' }
-    if ($Preview) { $args += '-WhatIf' }
+    if ($memoryBox.Text.Trim()) { $scriptArguments += @('-MemoryGB', $memoryBox.Text.Trim()) }
+    if ($cpuBox.Text.Trim()) { $scriptArguments += @('-CpuCount', $cpuBox.Text.Trim()) }
+    if ($diskBox.Text.Trim()) { $scriptArguments += @('-DiskGB', $diskBox.Text.Trim()) }
+    if ($startAfterBox.IsChecked) { $scriptArguments += '-StartAfter' }
+    if ($Preview) { $scriptArguments += '-WhatIf' }
 
     $previewBtn.IsEnabled = $false
     $createBtn.IsEnabled = $false
     try {
-        $output = Invoke-ExtraVmScript -Arguments $args
+        $output = Invoke-ExtraVmScript -Arguments $scriptArguments
         foreach ($line in $output) {
             $logBox.AppendText("$line`r`n")
         }
@@ -198,8 +194,8 @@ $templateBox.Add_SelectionChanged({
     Update-DefaultsFromTemplate
 })
 
-$previewBtn.Add_Click({ Run-Action -Preview })
-$createBtn.Add_Click({ Run-Action })
+$previewBtn.Add_Click({ Invoke-GuiAction -Preview })
+$createBtn.Add_Click({ Invoke-GuiAction })
 $closeBtn.Add_Click({ $window.Close() })
 
 Update-TemplateChoices

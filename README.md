@@ -129,18 +129,21 @@ setx SSW_LAB_PASSWORD "GebruikEenSterkLabWachtwoord!123"
 setx SSW_DSRM_PASSWORD "GebruikEenApartDsrmWachtwoord!123"
 ```
 
-`Build-UnattendedIsos.ps1` en `Initialize-DomainController.ps1` gebruiken nu eerst ingevulde GUI-velden, daarna `config.local.ps1`, daarna environment variables en tenslotte `Get-Secret` als dat beschikbaar is.
+`Build-UnattendedIsos.ps1` en `Initialize-DomainController.ps1` gebruiken nu eerst ingevulde GUI-velden, daarna `config.local.ps1`, daarna environment variables, daarna Windows Credential Manager en tenslotte `Get-Secret` als dat beschikbaar is.
 
 ---
 
 ## Herbruikbare logica en tests
 
-Een eerste deel van de pure logica is verplaatst naar `modules/SSWLab/`:
+De module is nu opgesplitst in `modules/SSWLab/Public/` en `modules/SSWLab/Private/`. De GUI-scripts gebruiken die laag voor de belangrijkste pure logica:
 
 - VM-profielen laden en opzoeken
 - RAM-berekening voor preset/selectie
+- preset-resolutie en standaard unattended ISO-routing
 - secret-resolutie en credential-opbouw
 - eenvoudige secret policy-validatie
+- unattended ISO-bouw
+- Hyper-V VM-provisioning voor de standaardflow en extra-VM flow
 
 Basis-tests staan in `tests/SSWLab.Tests.ps1`. Kwaliteitschecks draaien via:
 
@@ -148,7 +151,9 @@ Basis-tests staan in `tests/SSWLab.Tests.ps1`. Kwaliteitschecks draaien via:
 .\build\Invoke-QualityChecks.ps1
 ```
 
-De huidige verificatie gebruikt zowel `Pester` als `PSScriptAnalyzer`. Tests staan groen op `13 passed, 0 failed`; linting draait ook en maakt aanvullende parser- en kwaliteitsbevindingen zichtbaar, waarvan de kern setup-flow al deels is opgeschoond.
+De huidige verificatie gebruikt zowel `Pester` als `PSScriptAnalyzer`. Tests staan nu groen op `17 passed, 0 failed`; de quality runner gate op testresultaten en analyzer-errors voor de onderhouden kernflow.
+
+Voor CI is daarnaast een Windows workflow toegevoegd in `.github/workflows/quality.yml`, zodat dezelfde kwaliteitsrun ook automatisch op `push` en `pull_request` kan draaien.
 
 ---
 

@@ -27,6 +27,41 @@ Describe 'Get-SSWVmSelectionRamTotal' {
     }
 }
 
+Describe 'Config helpers' {
+    It 'leest preset sleutels uit config' {
+        $config = @{
+            Presets = @{
+                Full = @('DC01', 'MGMT01', 'W11-01')
+            }
+        }
+
+        $result = Get-SSWPresetVmKeys -Config $config -PresetName 'Full'
+
+        $result | Should -Be @('DC01', 'MGMT01', 'W11-01')
+    }
+
+    It 'leidt het standaard unattended ISO pad af uit het VM-profiel' {
+        $tempRoot = Join-Path $TestDrive 'config-helpers'
+        New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+
+        $profilesPath = Join-Path $tempRoot 'vm-profiles.json'
+        @'
+{
+  "DC01": { "Name": "DC01", "OS": "Server2025", "RAM_GB": 4, "Disk_GB": 80, "vCPU": 2 },
+  "W11-01": { "Name": "W11-01", "OS": "W11", "RAM_GB": 6, "Disk_GB": 80, "vCPU": 2 }
+}
+'@ | Set-Content -Path $profilesPath -Encoding utf8
+
+        $config = @{
+            ProfilePath = $profilesPath
+            ISOPath     = 'D:\SSW-Lab\isos'
+        }
+
+        (Get-SSWDefaultIsoPath -Config $config -TemplateKey 'W11-01') | Should -Be 'D:\SSW-Lab\isos\SSW-W11-Unattend.iso'
+        (Get-SSWDefaultIsoPath -Config $config -TemplateKey 'DC01') | Should -Be 'D:\SSW-Lab\isos\SSW-WS2025-Unattend.iso'
+    }
+}
+
 Describe 'Test-SSWSecretPolicy' {
     It 'keurt een sterk secret goed' {
         $result = Test-SSWSecretPolicy -Secret 'SterkWachtwoord!123'
@@ -58,6 +93,19 @@ Describe 'Get-SSWSecret' {
         $result = Get-SSWSecret -Name 'SSWLab-Onbekend' -AsPlainText
 
         $result | Should -Be $null
+    }
+
+    It 'leest een secret uit environment variables wanneer config leeg is' {
+        $previousValue = [Environment]::GetEnvironmentVariable('SSW_LAB_TEST_SECRET', 'Process')
+        try {
+            [Environment]::SetEnvironmentVariable('SSW_LAB_TEST_SECRET', 'EnvSecret!123', 'Process')
+
+            $result = Get-SSWSecret -Name 'SSWLab-TestSecret' -EnvironmentVariableName 'SSW_LAB_TEST_SECRET' -AsPlainText
+
+            $result | Should -Be 'EnvSecret!123'
+        } finally {
+            [Environment]::SetEnvironmentVariable('SSW_LAB_TEST_SECRET', $previousValue, 'Process')
+        }
     }
 }
 

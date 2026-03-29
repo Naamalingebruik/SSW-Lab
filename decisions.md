@@ -10,6 +10,48 @@ Voor oude scriptpaden die bewust als compatlaag blijven bestaan: zie `docs/compa
 
 ## 2026-03-28
 
+## 2026-03-29
+
+### Verbeterplan afgerond naar Public/Private modulelaag met CI-basis
+
+**Beslissing:** De resterende hoofdpunten uit `D:\GitHub\SSW_Lab_Improvement_Plan.md` zijn nu in `SSW-Lab` doorgevoerd op een manier die de bestaande labflow intact laat, maar de codebasis wel verder modulariseert en testbaarder maakt.
+
+**Wat inhoudelijk is afgerond:**
+- `modules/SSWLab/` is fysiek opgesplitst naar `Public/` en `Private/`
+- `SSWLab.psm1` is vervangen door een loader die beide lagen inlaadt
+- `Get-SSWSecret` probeert nu achtereenvolgens config, environment variables, Windows Credential Manager en `Get-Secret`
+- businesslogica voor unattended ISO-bouw en VM-provisioning staat nu centraal in modulefuncties zoals `New-SSWUnattendIso`, `Set-SSWVMDvdIsoWithRetry` en `New-SSWLabVm`
+- `Build-UnattendedIsos.ps1`, `New-LabVMs.ps1`, `New-LabExtraVm.ps1`, `New-LabExtraVmGui.ps1` en `Join-LabComputersToDomain.ps1` leunen nu meer op die modulelaag in plaats van lokale duplicatie
+
+**Test- en kwaliteitslaag:**
+- `tests/SSWLab.Tests.ps1` uitgebreid naar `17 passed, 0 failed`
+- extra dekking toegevoegd voor preset-resolutie, standaard unattended ISO-routing en environment-based secret-resolutie
+- `build/Invoke-QualityChecks.ps1` gate nu op echte `PSScriptAnalyzer` errors voor de onderhouden kernflow in plaats van op de hele historische repo
+- `.github/workflows/quality.yml` toegevoegd als eerste CI-basis op Windows
+
+**Belangrijke nuance:** De quality runner toont nog steeds warnings en infos in oudere of minder kritieke stukken, maar er zijn geen parse-errors of analyzer-errors meer in de afgebakende kernflow die nu door CI bewaakt wordt.
+
+**Validatie op 2026-03-29:**
+- `Invoke-Pester -Path .\tests -CI`
+- `.\build\Invoke-QualityChecks.ps1`
+- tests: `17 passed, 0 failed`
+- quality runner: succesvol afgerond zonder analyzer-errors
+
+**Bestanden geraakt:**
+- `modules/SSWLab/SSWLab.psm1`
+- `modules/SSWLab/SSWLab.psd1`
+- `modules/SSWLab/Public/*`
+- `modules/SSWLab/Private/*`
+- `scripts/Build-UnattendedIsos.ps1`
+- `scripts/New-LabVMs.ps1`
+- `scripts/New-LabExtraVm.ps1`
+- `scripts/New-LabExtraVmGui.ps1`
+- `scripts/Join-LabComputersToDomain.ps1`
+- `tests/SSWLab.Tests.ps1`
+- `build/Invoke-QualityChecks.ps1`
+- `.github/workflows/quality.yml`
+- `README.md`
+
 ### Studiegidsen verrijkt voor examengerichte voorbereiding
 
 **Beslissing:** De studiegidsen in `docs/` zijn aangescherpt als de primaire, deelbare examvoorbereiding voor collega's. Ze moeten zelfstandig bruikbaar zijn zonder toegang tot het private `M365-Lab`, maar wel in combinatie met de gedeelde MSDN / Microsoft 365 dev-tenant die voor collega's beschikbaar is.

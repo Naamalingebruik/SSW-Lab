@@ -11,36 +11,6 @@ $SSWConfig = Import-SSWLabConfig -ConfigPath (Join-Path $PSScriptRoot '..\config
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
 
-function Build-UnattendISO {
-    param([string]$SourceISO, [string]$OutputISO, [string]$UnattendXml, [scriptblock]$Log)
-
-    $tmpWork = Join-Path $env:TEMP "SSW-ISO-Work-$(Get-Random)"
-    try {
-        & $Log "Unblock-File op $SourceISO..."
-        Unblock-File -Path $SourceISO -ErrorAction SilentlyContinue
-        & $Log "ISO koppelen..."
-        $mount = Mount-DiskImage -ImagePath $SourceISO -PassThru -ErrorAction Stop
-        $driveLetter = ($mount | Get-Volume).DriveLetter
-        if (-not $driveLetter) { throw "Geen driveletter toegewezen." }
-        $srcDrive = "${driveLetter}:\"
-        & $Log "Inhoud kopieren..."
-        New-Item -ItemType Directory -Path $tmpWork -Force | Out-Null
-        robocopy $srcDrive $tmpWork /E /NP /NFL /NDL /NJH /NJS | Out-Null
-        & $Log "unattend.xml injecteren..."
-        $UnattendXml | Set-Content -Path (Join-Path $tmpWork "autounattend.xml") -Encoding UTF8 -Force
-        & $Log "ISO bouwen met oscdimg..."
-        $oscdimg = "${env:ProgramFiles(x86)}\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe"
-        if (-not (Test-Path $oscdimg)) { throw "oscdimg.exe niet gevonden. Installeer Windows ADK (Deployment Tools)." }
-        $bootData = '2#p0,e,b"{0}\boot\etfsboot.com"#pEF,e,b"{0}\efi\microsoft\boot\efisys.bin"' -f $tmpWork
-        & $oscdimg -m -o -u2 -udfver102 "-bootdata:$bootData" $tmpWork $OutputISO 2>&1 | Out-Null
-        if (-not (Test-Path $OutputISO)) { throw "oscdimg heeft geen ISO aangemaakt." }
-        & $Log "ISO aangemaakt: $OutputISO"
-    } finally {
-        Dismount-DiskImage -ImagePath $SourceISO -ErrorAction SilentlyContinue
-        if (Test-Path $tmpWork) { Remove-Item $tmpWork -Recurse -Force -ErrorAction SilentlyContinue }
-    }
-}
-
 # ── GUI ───────────────────────────────────────────────────────
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -301,7 +271,7 @@ $btnBuild.Add_Click({
             Add-UiLog "${pre}WS2025 ISO bouwen: $src -> $dst"
         }
         if (-not $isDry) {
-            try { Build-UnattendISO -SourceISO $src -OutputISO $dst -UnattendXml $xml -Log { param($m) Add-UiLog $m } }
+            try { New-SSWUnattendIso -SourceIso $src -OutputIso $dst -UnattendXml $xml -Log { param($m) Add-UiLog $m } }
             catch { Add-UiLog "FOUT bij $job`: $_" }
         }
         $done += $step
