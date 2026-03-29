@@ -44,7 +44,11 @@ $logFile = Join-Path $repoRoot 'Start-LabVMs.log'
 function Write-Log([string]$msg) {
     $line = "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] $msg"
     Write-Host $line
-    try { Add-Content -Path $logFile -Value $line -ErrorAction SilentlyContinue } catch {}
+    try {
+        Add-Content -Path $logFile -Value $line -ErrorAction SilentlyContinue
+    } catch {
+        Write-Verbose "Schrijven naar logbestand mislukte: $($_.Exception.Message)"
+    }
 }
 
 # ── Hulpfunctie: lab-credential ──────────────────────────────
@@ -60,7 +64,7 @@ function Get-LabCred([string]$user) {
 function Get-AutopilotCred {
     $apPw = if ($SSWConfig.AutopilotPassword) { $SSWConfig.AutopilotPassword } else { $SSWConfig.LabPassword }
     if (-not $apPw) { return $null }
-    New-SSWCredential -UserName 'autopilot' -Password (ConvertTo-SecureString $apPw -AsPlainText -Force)
+    New-SSWCredential -UserName 'autopilot' -Password (ConvertTo-SSWSecureString -Value $apPw)
 }
 
 Write-Log "======================================================"
@@ -147,7 +151,9 @@ if ($domCred) {
                 (Get-Service 'NTDS' -ErrorAction SilentlyContinue).Status
             }
             if ($svc -eq 'Running') { $dcOnline = $true }
-        } catch {}
+        } catch {
+            Write-Verbose "DC nog niet klaar voor NTDS-check: $($_.Exception.Message)"
+        }
     }
     if ($dcOnline) { Write-Log "  DC online - AD actief." }
     else           { Write-Log "  WAARSCHUWING: DC niet bereikbaar binnen $DcWaitMinutes min - doorgaan zonder AD-check." }

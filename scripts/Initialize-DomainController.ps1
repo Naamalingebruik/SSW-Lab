@@ -235,7 +235,7 @@ $btnSetup.Add_Click({
         Start-Sleep -Seconds 60
     }
 
-    $cred = New-SSWCredential -UserName "$vmName\$localUser" -Password (ConvertTo-SecureString $adminPwd -AsPlainText -Force)
+    $cred = New-SSWCredential -UserName "$vmName\$localUser" -Password (ConvertTo-SSWSecureString -Value $adminPwd)
 
     try {
         Write-Log "Verbinding via PowerShell Direct..."
@@ -269,14 +269,18 @@ $btnSetup.Add_Click({
         Write-Log "Forest '$domain' aanmaken..."
         Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
             param($dom, $nb, $dsrm)
-            $secDSRM = ConvertTo-SecureString $dsrm -AsPlainText -Force
+            $secDSRM = New-Object System.Security.SecureString
+            foreach ($character in $dsrm.ToCharArray()) {
+                $secDSRM.AppendChar($character)
+            }
+            $secDSRM.MakeReadOnly()
             Install-ADDSForest -DomainName $dom -DomainNetbiosName $nb `
                 -SafeModeAdministratorPassword $secDSRM -InstallDns:$true `
                 -NoRebootOnCompletion:$false -Force -ErrorAction Stop | Out-Null
         } -ArgumentList $domain, $netbios, $dsrmPwd
         $progress.Value = 90
         Write-Log "Forest aangemaakt. DC herstart - wachten tot DC weer online is..."
-        $domCred = New-SSWCredential -UserName "$domain\Administrator" -Password (ConvertTo-SecureString $adminPwd -AsPlainText -Force)
+        $domCred = New-SSWCredential -UserName "$domain\Administrator" -Password (ConvertTo-SSWSecureString -Value $adminPwd)
         $online = $false
         $deadline = (Get-Date).AddMinutes(5)
         while (-not $online -and (Get-Date) -lt $deadline) {
@@ -285,18 +289,24 @@ $btnSetup.Add_Click({
                 Invoke-Command -VMName $vmName -Credential $domCred `
                     -ScriptBlock { $env:COMPUTERNAME } -ErrorAction Stop | Out-Null
                 $online = $true
-            } catch { }
+            } catch {
+                Write-Verbose "DC nog niet bereikbaar via PS Direct: $($_.Exception.Message)"
+            }
         }
         if (-not $online) { throw "DC is na 5 minuten nog niet bereikbaar." }
 
         Write-Log "Extra domain admin '$domainAdmin' aanmaken in AD..."
         Invoke-Command -VMName $vmName -Credential $domCred -ScriptBlock {
-            param($user, $pwd, $nb)
-            $sec = ConvertTo-SecureString $pwd -AsPlainText -Force
+            param($user, $passwordText)
+            $sec = New-Object System.Security.SecureString
+            foreach ($character in $passwordText.ToCharArray()) {
+                $sec.AppendChar($character)
+            }
+            $sec.MakeReadOnly()
             New-ADUser -Name $user -SamAccountName $user -AccountPassword $sec `
                 -Enabled $true -PasswordNeverExpires $true -ErrorAction Stop
             Add-ADGroupMember -Identity "Domain Admins" -Members $user -ErrorAction Stop
-        } -ArgumentList $domainAdmin, $adminPwd, $netbios
+        } -ArgumentList $domainAdmin, $adminPwd
         Write-Log "'$domainAdmin' aangemaakt en toegevoegd aan Domain Admins."
 
         # ── DHCP-server + Autopilot IP-reservering ──────────────────────────────

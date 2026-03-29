@@ -8,6 +8,7 @@
     Description       = 'Herbruikbare logica voor SSW-Lab scripts.'
     PowerShellVersion = '5.1'
     FunctionsToExport = @(
+        'ConvertTo-SSWSecureString',
         'ConvertTo-SSWXmlSafeValue',
         'Import-SSWLabConfig',
         'Get-SSWVmProfiles',

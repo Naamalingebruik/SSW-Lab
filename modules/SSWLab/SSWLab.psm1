@@ -144,6 +144,7 @@ function Get-SSWSecret {
                     $plainTextValue = [string]$secret
                 }
             } catch {
+                Write-Verbose "Get-Secret voor '$Name' gaf geen bruikbaar resultaat: $($_.Exception.Message)"
             }
         }
     }
@@ -156,7 +157,27 @@ function Get-SSWSecret {
         return $plainTextValue
     }
 
-    return ConvertTo-SecureString -String $plainTextValue -AsPlainText -Force
+    return ConvertTo-SSWSecureString -Value $plainTextValue
+}
+
+function ConvertTo-SSWSecureString {
+    [CmdletBinding()]
+    param(
+        [AllowNull()]
+        [string]$Value
+    )
+
+    if ($null -eq $Value) {
+        return $null
+    }
+
+    $secureString = New-Object System.Security.SecureString
+    foreach ($character in $Value.ToCharArray()) {
+        $secureString.AppendChar($character)
+    }
+
+    $secureString.MakeReadOnly()
+    return $secureString
 }
 
 function New-SSWCredential {
@@ -668,6 +689,7 @@ function Get-SSWTrackProgress {
 }
 
 Export-ModuleMember -Function @(
+    'ConvertTo-SSWSecureString',
     'ConvertTo-SSWXmlSafeValue',
     'Import-SSWLabConfig',
     'Get-SSWVmProfiles',
