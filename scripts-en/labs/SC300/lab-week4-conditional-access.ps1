@@ -1,7 +1,7 @@
 #Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/SC300/lab-week4-conditional-access.ps1
-# SC-300 Week 4 — Conditional Access: beleid, What-If, Named Locations
+# SC-300 Week 4 — Conditional Access: policy, What-If, Named Locations
 # Cloud: Entra ID – Conditional Access via Microsoft Graph
 # ============================================================
 
@@ -39,14 +39,14 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="SC-300 | Week 4 — Conditional Access" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="CA beleid aanmaken · Named Locations · What-If · Sign-in logs" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="Create CA policy · Named Locations · What-If · Sign-in logs" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. Bestaande CA-beleidsregels ophalen via Graph"/>
-        <LineBreak/><Run Text="2. MFA-vereiste CA-policy aanmaken (report-only mode)"/>
-        <LineBreak/><Run Text="3. Named Location aanmaken (Nederland)"/>
+        <Run Text="1. Bestaande CA-policysregels ophalen via Graph"/>
+        <LineBreak/><Run Text="2. MFA-vereiste CA-policy create (report-only mode)"/>
+        <LineBreak/><Run Text="3. Named Location create (Nederland)"/>
         <LineBreak/><Run Text="4. CA What-If tool gebruiken (manueel - portal)"/>
         <LineBreak/><Run Text="5. Sign-in logging analyseren in Entra portal"/>
       </TextBlock>
@@ -94,8 +94,8 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#A6E3A1")
     } else {
         $dryRunBar.Background = $conv.ConvertFrom("#2E1A1A"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text = "LIVE — CA beleid aanmaken (report-only, geen blokkade)"; $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
-        $dryRunSub.Text = "Schakel nooit CA policies in op alle gebruikers zonder MFA setup"; $dryRunSub.Foreground = $conv.ConvertFrom("#8A5A5A")
+        $dryRunTitle.Text = "LIVE — CA policy create (report-only, geen blokkade)"; $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
+        $dryRunSub.Text = "Schakel nooit CA policies in op alle users zonder MFA setup"; $dryRunSub.Foreground = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
@@ -122,8 +122,8 @@ $btnRun.Add_Click({
         } catch { Write-Log "  Error: $_"; $btnRun.IsEnabled = $true; return }
     }
 
-    # ── Stap 2: MFA CA policy aanmaken (report-only) ─────────
-    Write-Log "${pre}Stap 2: CA policy aanmaken — MFA vereist (report-only)"
+    # ── Stap 2: MFA CA policy create (report-only) ─────────
+    Write-Log "${pre}Stap 2: CA policy create — MFA vereist (report-only)"
     $progress.Value = 32
     if ($isDry) {
         Write-Log "${pre}  `$conditions = @{"
@@ -159,7 +159,7 @@ $btnRun.Add_Click({
     }
 
     # ── Stap 3: Named Location voor Nederland ────────────────
-    Write-Log "${pre}Stap 3: Named Location aanmaken (Nederland)"
+    Write-Log "${pre}Stap 3: Named Location create (Nederland)"
     $progress.Value = 50
     if ($isDry) {
         Write-Log "${pre}  `$location = @{ '@odata.type' = '#microsoft.graph.countryNamedLocation'; displayName = 'Nederland'; countriesAndRegions = @('NL'); includeUnknownCountriesAndRegions = `$false }"
@@ -192,7 +192,7 @@ $btnRun.Add_Click({
     Write-Log "    IP: 87.212.76.1 (NL - een willekeurig NL IP)"
     Write-Log "    Device platform: Windows"
     Write-Log "  Klik 'What If' en bekijk welke policies van toepassing zijn"
-    Write-Log "  Verifieer: 'SSW - Require MFA for All Users' staat in de lijst"
+    Write-Log "  Verify: 'SSW - Require MFA for All Users' staat in de lijst"
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show("Entra portal - CA What-If tool openen?", "SSW-Lab", "YesNo", "Question")
         if ($open -eq "Yes") { Start-Process "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ConditionalAccessBlade/~/WhatIf" }
@@ -212,10 +212,10 @@ $btnRun.Add_Click({
             $signIns | ForEach-Object {
                 Write-Log "  $($_.UserPrincipalName) → $($_.AppDisplayName) [$($_.ConditionalAccessStatus)]"
             }
-        } catch { Write-Log "  Fout (Entra P1 vereist voor sign-in logs): $_" }
+        } catch { Write-Log "  Error (Entra P1 required for sign-in logs): $_" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 4 lab afgerond."; Write-Log ""
+    $progress.Value = 100; Write-Log ""; Write-Log "Week 4 lab completed."; Write-Log ""
     Write-Log "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-Log "1. Wat is het verschil tussen 'Report-only' en 'Enabled' CA policies?"
     Write-Log "2. Hoe werkt Continuous Access Evaluation (CAE) in combinatie met CA?"
@@ -232,6 +232,8 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 
 
 

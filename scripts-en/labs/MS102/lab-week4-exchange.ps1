@@ -38,14 +38,14 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="MS-102 | Week 4 — Exchange Online beheer" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="Mailboxen · Distribution lists · Mail flow rules · Anti-spam · DKIM" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="Mailboxes · Distribution lists · Mail flow rules · Anti-spam · DKIM" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
         <Run Text="1. Exchange Online PowerShell verbinden en mailboxen opvragen"/>
-        <LineBreak/><Run Text="2. Shared mailbox aanmaken via PowerShell"/>
-        <LineBreak/><Run Text="3. Distribution group aanmaken"/>
+        <LineBreak/><Run Text="2. Shared mailbox create via PowerShell"/>
+        <LineBreak/><Run Text="3. Distribution group create"/>
         <LineBreak/><Run Text="4. Mail flow rule: voeg disclaimer toe aan uitgaande mail"/>
         <LineBreak/><Run Text="5. Message trace uitvoeren"/>
         <LineBreak/><Run Text="6. Manual: DKIM en DMARC controleren"/>
@@ -117,7 +117,7 @@ $btnRun.Add_Click({
         Write-LabLog "${pre}  Get-Mailbox | Select-Object DisplayName, PrimarySmtpAddress, MailboxType | Sort-Object DisplayName"
     } else {
         if (-not $exoInstalled) {
-            Write-LabLog "  ExchangeOnlineManagement module niet gevonden"
+            Write-LabLog "  ExchangeOnlineManagement module not found"
             $install = [System.Windows.MessageBox]::Show(
                 "ExchangeOnlineManagement module installeren?", "SSW-Lab", "YesNo", "Question")
             if ($install -eq "Yes") {
@@ -132,8 +132,8 @@ $btnRun.Add_Click({
         } catch { Write-LabLog "  Verbinding mislukt: $_"; $btnRun.IsEnabled = $true; return }
     }
 
-    # ── Stap 2: Mailboxen opvragen ───────────────────────────
-    Write-LabLog "${pre}Stap 2: Mailboxen opvragen"
+    # ── Stap 2: Mailboxes opvragen ───────────────────────────
+    Write-LabLog "${pre}Stap 2: Mailboxes opvragen"
     $progress.Value = 28
     if ($isDry) {
         Write-LabLog "${pre}  Get-Mailbox | Select-Object DisplayName, MailboxType | Sort-Object DisplayName | Select-Object -First 10"
@@ -144,8 +144,8 @@ $btnRun.Add_Click({
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    # ── Stap 3: Shared mailbox aanmaken ─────────────────────
-    Write-LabLog "${pre}Stap 3: Shared mailbox aanmaken (ssw-helpdesk)"
+    # ── Stap 3: Shared mailbox create ─────────────────────
+    Write-LabLog "${pre}Stap 3: Shared mailbox create (ssw-helpdesk)"
     $progress.Value = 42
     if ($isDry) {
         Write-LabLog "${pre}  New-Mailbox -Shared -Name 'SSW Helpdesk' -Alias 'ssw-helpdesk'"
@@ -163,7 +163,7 @@ $btnRun.Add_Click({
     }
 
     # ── Stap 4: Distribution group ──────────────────────────
-    Write-LabLog "${pre}Stap 4: Distribution group aanmaken (LAB-IT-DL)"
+    Write-LabLog "${pre}Stap 4: Distribution group create (LAB-IT-DL)"
     $progress.Value = 55
     if ($isDry) {
         Write-LabLog "${pre}  New-DistributionGroup -Name 'LAB IT Distribution' -Alias 'lab-it-dl' -Type Distribution"
@@ -220,7 +220,7 @@ $btnRun.Add_Click({
     }
 
     $progress.Value = 100
-    Write-LabLog ""; Write-LabLog "Week 4 lab afgerond."; Write-LabLog ""
+    Write-LabLog ""; Write-LabLog "Week 4 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen een shared mailbox en een room mailbox?"
     Write-LabLog "2. Hoe werkt message trace en wanneer gebruik je het?"
@@ -237,4 +237,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

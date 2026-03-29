@@ -17,3 +17,5 @@ $r += "Reservering $apIP voor MAC $mac aangemaakt."
 $r
 Get-DhcpServerv4Reservation -ScopeId '10.50.10.0' | Select-Object IPAddress, ClientId, Description
 
+
+

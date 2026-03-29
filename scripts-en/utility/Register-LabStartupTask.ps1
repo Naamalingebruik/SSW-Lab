@@ -4,7 +4,7 @@
     Registreert Start-LabVMs.ps1 als Windows Scheduled Task.
 .DESCRIPTION
     Maakt taak 'SSW-Lab-Startup' aan in Task Scheduler.
-    Trigger  : bij systeemstart (vóór gebruikerslogin)
+    Trigger  : bij systeemstart (before user logon)
     Account  : SYSTEM (zodat netwerk + Hyper-V altijd beschikbaar zijn)
     Effect   : na elke host-reboot wordt automatisch:
                - het interne netwerk (vSwitch / NAT / gateway-IP) hersteld
@@ -19,7 +19,7 @@ $taskName   = 'SSW-Lab-Startup'
 $taskDesc   = 'SSW-Lab: netwerk herstellen en VMs starten bij systeemstart (Configure-HostNetwork + volgorde DC→clients)'
 
 if (-not (Test-Path $scriptPath)) {
-    Write-Error "Script niet gevonden: $scriptPath"
+    Write-Error "Script not found: $scriptPath"
     exit 1
 }
 
@@ -51,7 +51,7 @@ $settings = New-ScheduledTaskSettingsSet `
     -MultipleInstances    IgnoreNew `
     -RunOnlyIfIdle:$false
 
-# Principal: SYSTEM — draait voor gebruikerslogin, heeft altijd toegang tot Hyper-V
+# Principal: SYSTEM — draait voor userslogin, heeft altijd access tot Hyper-V
 $principal = New-ScheduledTaskPrincipal `
     -UserId    'SYSTEM' `
     -LogonType ServiceAccount `
@@ -71,7 +71,7 @@ if ($task) {
     Write-Host "Taak '$taskName' geregistreerd." -ForegroundColor Green
     Write-Host "  Script  : $scriptPath" -ForegroundColor Cyan
     Write-Host "  Trigger : bij systeemstart (30 sec vertraging)"
-    Write-Host "  Account : SYSTEM (vóór gebruikerslogin)"
+    Write-Host "  Account : SYSTEM (before user logon)"
     Write-Host "  Log     : $(Resolve-Path (Join-Path $PSScriptRoot '..\..\Start-LabVMs.log') -ErrorAction SilentlyContinue)"
     Write-Host ''
 
@@ -92,4 +92,6 @@ if ($task) {
 } else {
     Write-Error 'Registratie mislukt.'
 }
+
+
 

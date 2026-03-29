@@ -232,7 +232,7 @@ function Build-UnattendISO {
         $driveLetter = ($mount | Get-Volume).DriveLetter
         if (-not $driveLetter) { throw "Geen driveletter toegewezen." }
         $srcDrive = "${driveLetter}:\"
-        & $Log "Inhoud kopiëren…"
+        & $Log "Copying content…"
         New-Item -ItemType Directory -Path $tmpWork -Force | Out-Null
         robocopy $srcDrive $tmpWork /E /NP /NFL /NDL /NJH /NJS | Out-Null
         & $Log "unattend.xml injecteren…"
@@ -334,7 +334,7 @@ function Build-UnattendISO {
       <TextBox   Grid.Row="5" Grid.Column="0" x:Name="TxtOutDir" Style="{StaticResource Fld}"/>
       <Button    Grid.Row="5" Grid.Column="2" x:Name="BtnOutDir" Content="Bladeren" Style="{StaticResource Btn}" Background="#45475A" Foreground="#CDD6F4"/>
 
-      <TextBlock Grid.Row="6" Grid.ColumnSpan="3" Text="Wachtwoord (Administrator en LabAdmin krijgen beide dit wachtwoord)" Style="{StaticResource Lbl}"/>
+      <TextBlock Grid.Row="6" Grid.ColumnSpan="3" Text="Wachtwoord (Administrator en LabAdmin krijgen beide dit password)" Style="{StaticResource Lbl}"/>
       <PasswordBox Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" x:Name="PwdAdmin"
                    Background="#313244" Foreground="#CDD6F4" BorderBrush="#45475A"
                    BorderThickness="1" Padding="8,6" FontSize="12" Height="32"/>
@@ -467,7 +467,7 @@ $btnBuild.Add_Click({
     $adminPass = $pwdAdmin.Password
     $pre       = if ($isDry) { "[DRY RUN] " } else { "" }
 
-    if (-not $adminPass) { [System.Windows.MessageBox]::Show("Vul een admin wachtwoord in.", "SSW-Lab"); $btnBuild.IsEnabled = $true; return }
+    if (-not $adminPass) { [System.Windows.MessageBox]::Show("Vul een admin password in.", "SSW-Lab"); $btnBuild.IsEnabled = $true; return }
 
     if (-not $isDry) {
         if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir -Force | Out-Null }
@@ -502,7 +502,7 @@ $btnBuild.Add_Click({
     }
 
     $progress.Value = 100
-    Write-Log $(if ($isDry) { "✔ Dry Run klaar — niets aangemaakt." } else { "✔ Klaar." })
+    Write-Log $(if ($isDry) { "✔ Dry Run done — niets aangemaakt." } else { "✔ Done." })
     $btnNext.IsEnabled = $true
     $btnBuild.IsEnabled = $true
 })
@@ -514,6 +514,8 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 
 
 

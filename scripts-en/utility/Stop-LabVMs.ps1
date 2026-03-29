@@ -30,7 +30,7 @@ $script:ShutdownTimeout = $Timeout
 # ── Config laden ──────────────────────────────────────────────
 $repoRoot   = Join-Path $PSScriptRoot '..\..'
 $configPath = Join-Path $repoRoot 'config.ps1'
-if (-not (Test-Path $configPath)) { Write-Error "config.ps1 niet gevonden: $configPath"; exit 1 }
+if (-not (Test-Path $configPath)) { Write-Error "config.ps1 not found: $configPath"; exit 1 }
 . $configPath
 $localConfig = Join-Path $repoRoot 'config.local.ps1'
 if (Test-Path $localConfig) { . $localConfig }
@@ -51,7 +51,7 @@ function Add-StopLog([string]$msg) {
 function Stop-LabVM([string]$vmName) {
     $vm = Get-VM -Name $vmName -ErrorAction SilentlyContinue
     if (-not $vm) {
-        Add-StopLog "  '$vmName' niet gevonden in Hyper-V — overgeslagen."
+        Add-StopLog "  '$vmName' not found in Hyper-V — skipped."
         return
     }
     if ($vm.State -eq 'Off') {
@@ -98,11 +98,13 @@ $profiles = Get-Content $SSWConfig.ProfilePath -Raw | ConvertFrom-Json
 $stopOrder = @('W11-AUTOPILOT', 'W11-02', 'W11-01', 'MGMT01', 'DC01')
 foreach ($key in $stopOrder) {
     $vmProfile = $profiles.$key
-    if (-not $vmProfile) { Add-StopLog "  Profiel '$key' niet gevonden — overgeslagen."; continue }
+    if (-not $vmProfile) { Add-StopLog "  Profile '$key' not found — skipped."; continue }
     Stop-LabVM -vmName $vmProfile.Name
 }
 
 Add-StopLog "======================================================"
 Add-StopLog "  SSW-Lab Stop voltooid."
 Add-StopLog "======================================================"
+
+
 

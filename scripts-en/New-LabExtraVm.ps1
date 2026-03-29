@@ -61,7 +61,7 @@ if (Test-Path -LiteralPath $diskPath) {
 
 if (-not (Test-Path -LiteralPath $IsoPath)) {
     if ($WhatIfPreference) {
-        Write-ExtraVmLog "Warning: ISO niet gevonden voor preview: $IsoPath"
+        Write-ExtraVmLog "Warning: ISO not found voor preview: $IsoPath"
     } else {
         throw "ISO not found: $IsoPath"
     }
@@ -70,7 +70,7 @@ if (-not (Test-Path -LiteralPath $IsoPath)) {
 $switch = Get-VMSwitch -Name $SSWConfig.vSwitchName -ErrorAction SilentlyContinue
 if (-not $switch) {
     if ($WhatIfPreference) {
-        Write-ExtraVmLog "Warning: vSwitch '$($SSWConfig.vSwitchName)' niet gevonden voor preview."
+        Write-ExtraVmLog "Warning: vSwitch '$($SSWConfig.vSwitchName)' not found voor preview."
     } else {
         throw "vSwitch '$($SSWConfig.vSwitchName)' not found. Run eerst Configure-HostNetwork.ps1."
     }
@@ -84,7 +84,7 @@ Write-ExtraVmLog "CPU/RAM   : $resolvedCpuCount vCPU / $resolvedMemoryGB GB"
 Write-ExtraVmLog "Disk      : $resolvedDiskGB GB"
 Write-ExtraVmLog "ISO       : $IsoPath"
 
-if (-not $PSCmdlet.ShouldProcess($VmName, "Extra SSW-lab VM aanmaken")) {
+if (-not $PSCmdlet.ShouldProcess($VmName, "Extra SSW-lab VM create")) {
     return
 }
 
@@ -118,4 +118,6 @@ if ($StartAfter) {
 }
 
 Write-ExtraVmLog "VM '$VmName' successfully created."
+
+
 

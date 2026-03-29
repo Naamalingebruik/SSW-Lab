@@ -7,7 +7,7 @@ $taskName   = 'SSW-Lab-TrackProgress'
 $taskDesc   = 'Actief certificeringstraject van SSW-Lab bijhouden (genereert status.md en next-steps.md)'
 
 if (-not (Test-Path $scriptPath)) {
-    throw "Script niet gevonden: $scriptPath"
+    throw "Script not found: $scriptPath"
 }
 
 $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
@@ -48,4 +48,6 @@ if (-not $task) {
 Write-Host "Taak '$taskName' geregistreerd." -ForegroundColor Green
 Write-Host "Script: $scriptPath"
 Write-Host "Output: status.md en next-steps.md in de repo-root"
+
+
 

@@ -39,14 +39,14 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="SC-300 | Week 2 — Externe identiteiten" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="B2B-uitnodigingen · Cross-tenant toegang · Identity Protection · Risk beleid" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="B2B-invitations · Cross-tenant access · Identity Protection · Risk policy" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. B2B-gastgebruiker uitnodigen via Graph (New-MgInvitation)"/>
-        <LineBreak/><Run Text="2. Cross-tenant toegangsinstellingen bekijken"/>
-        <LineBreak/><Run Text="3. Identity Protection — risicobeleid instellen"/>
+        <Run Text="1. B2B-gastuser uitnodigen via Graph (New-MgInvitation)"/>
+        <LineBreak/><Run Text="2. Cross-tenant accesssinstellingen bekijken"/>
+        <LineBreak/><Run Text="3. Identity Protection — risicopolicy instellen"/>
         <LineBreak/><Run Text="4. Risky users en risky sign-ins bekijken"/>
         <LineBreak/><Run Text="5. Entra ID Protection simulatie (Tor-browser scenario)"/>
       </TextBlock>
@@ -89,7 +89,7 @@ $conv = [System.Windows.Media.BrushConverter]::new()
 function Update-DryRunBar {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
-        $dryRunTitle.Text = "Dry Run — geen uitnodigingen worden verstuurd"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
+        $dryRunTitle.Text = "Dry Run — geen invitations worden verstuurd"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
         $dryRunSub.Text = "Haal het vinkje weg om LIVE uit te voeren"; $dryRunSub.Foreground = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground = $conv.ConvertFrom("#A6E3A1")
     } else {
@@ -107,12 +107,12 @@ $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
     $isDry = $chkDryRun.IsChecked; $pre = if ($isDry) { "[DRY RUN] " } else { "" }
 
-    # ── Stap 1: B2B gastgebruiker uitnodigen ────────────────
+    # ── Stap 1: B2B gastuser uitnodigen ────────────────
     Write-Log "${pre}Stap 1: B2B uitnodiging versturen via Microsoft Graph"
     $progress.Value = 16
     if ($isDry) {
         Write-Log "${pre}  Connect-MgGraph -Scopes 'User.Invite.All','User.ReadWrite.All'"
-        Write-Log "${pre}  `$invite = New-MgInvitation -InvitedUserEmailAddress 'gastgebruiker@extern.com' -InviteRedirectUrl 'https://myapps.microsoft.com' -SendInvitationMessage:`$true -InvitedUserDisplayName 'SSW Gast Demo'"
+        Write-Log "${pre}  `$invite = New-MgInvitation -InvitedUserEmailAddress 'gastuser@extern.com' -InviteRedirectUrl 'https://myapps.microsoft.com' -SendInvitationMessage:`$true -InvitedUserDisplayName 'SSW Gast Demo'"
         Write-Log "${pre}  `$invite.InvitedUser.Id  # Guest user object ID"
         Write-Log "${pre}  `$invite.InviteRedeemUrl  # Uitnodigings-URL voor acceptatie"
     } else {
@@ -125,12 +125,12 @@ $btnRun.Add_Click({
                 Write-Log "  Uitnodiging verstuurd naar: $guestEmail"
                 Write-Log "  Guest user ID: $($invite.InvitedUser.Id)"
                 Write-Log "  Status: $($invite.Status)"
-            } else { Write-Log "  Geen geldig e-mailadres ingevoerd — stap overgeslagen" }
+            } else { Write-Log "  Geen geldig e-mailadres ingevoerd — stap skipped" }
         } catch { Write-Log "  Error: $_" }
     }
 
-    # ── Stap 2: Cross-tenant toegang ────────────────────────
-    Write-Log "${pre}Stap 2: Cross-tenant toegangsinstellingen (manueel)"
+    # ── Stap 2: Cross-tenant access ────────────────────────
+    Write-Log "${pre}Stap 2: Cross-tenant accesssinstellingen (manueel)"
     $progress.Value = 32
     Write-Log "  Entra portal > External Identities > Cross-tenant access settings"
     Write-Log "  Default settings tab: bekijk inkomende/uitgaande B2B sync instellingen"
@@ -138,8 +138,8 @@ $btnRun.Add_Click({
     Write-Log "  TIP: schakel 'Trust MFA from external tenants' in voor partners"
     Write-Log "  URL: https://entra.microsoft.com/#view/Microsoft_AAD_IAM/CompanyRelationshipsMenuBlade"
 
-    # ── Stap 3: Identity Protection risicobeleid ─────────────
-    Write-Log "${pre}Stap 3: Identity Protection — risicobeleid configureren"
+    # ── Stap 3: Identity Protection risicopolicy ─────────────
+    Write-Log "${pre}Stap 3: Identity Protection — risicopolicy configureren"
     $progress.Value = 50
     if ($isDry) {
         Write-Log "${pre}  Connect-MgGraph -Scopes 'Policy.ReadWrite.ConditionalAccess'"
@@ -168,17 +168,17 @@ $btnRun.Add_Click({
             Connect-MgGraph -Scopes "IdentityRiskyUser.Read.All", "AuditLog.Read.All" -ErrorAction Stop | Out-Null
             $riskyUsers = Get-MgRiskyUser -Filter "riskState eq 'atRisk'" -ErrorAction SilentlyContinue
             if ($riskyUsers) {
-                Write-Log "  Gebruikers met risiconiveau:"
+                Write-Log "  Users met risiconiveau:"
                 $riskyUsers | ForEach-Object { Write-Log "  $($_.UserPrincipalName) — Risico: $($_.RiskLevel) [$($_.RiskState)]" }
-            } else { Write-Log "  Geen risicogebruikers gevonden (normaal in schone tenant)" }
-        } catch { Write-Log "  Fout (Entra P2 vereist): $_" }
+            } else { Write-Log "  Geen risicousers gevonden (normaal in schone tenant)" }
+        } catch { Write-Log "  Error (Entra P2 required): $_" }
     }
 
     # ── Stap 5: Simulatie / portal ───────────────────────────
     Write-Log "${pre}Stap 5: Manual — Identity Protection simulatie"
     $progress.Value = 84
     Write-Log "  Entra portal > Protection > Identity Protection > Risky users"
-    Write-Log "  Klik op een gebruiker > Confirm user compromised (test)"
+    Write-Log "  Klik op een user > Confirm user compromised (test)"
     Write-Log "  Bekijk hoe de risk state verandert naar 'Confirmed compromised'"
     Write-Log "  Daarna: Dismiss user risk (reset)"
     Write-Log "  Risky sign-ins bekijken: Identity Protection > Risky sign-ins"
@@ -186,7 +186,7 @@ $btnRun.Add_Click({
 
     $progress.Value = 100; Write-Log ""; Write-Log "Week 2 lab completed."; Write-Log ""
     Write-Log "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen een B2B gastgebruiker en een B2C gebruiker?"
+    Write-Log "1. Wat is het verschil tussen een B2B gastuser en een B2C user?"
     Write-Log "2. Welke Entra ID licentie is vereist voor Identity Protection?"
     Write-Log "3. Hoe werkt de 'Confirm user compromised' actie in Identity Protection?"
     Write-Log "4. Wat is het verschil tussen User risk en Sign-in risk?"
@@ -201,6 +201,8 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 
 
 

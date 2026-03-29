@@ -47,7 +47,7 @@ if ([string]::IsNullOrWhiteSpace($entraUPN)) {
 
 Write-InstallMessage ""
 Write-InstallMessage "SSW-Lab | Entra Connect installeren op $vmName"
-Write-InstallMessage "  Domein  : $domain"
+Write-InstallMessage "  Domain  : $domain"
 Write-InstallMessage "  EntraUPN: $entraUPN"
 Write-InstallMessage ""
 
@@ -72,7 +72,7 @@ Write-InstallMessage "VM '$vmName' is Running."
 
 if (-not (Test-Path $msiHost)) {
     Write-InstallMessage ""
-    Write-InstallMessage "MSI niet gevonden op: $msiHost" -Level Error
+    Write-InstallMessage "MSI not found at: $msiHost" -Level Error
     Write-InstallMessage "Download eerst met:" -Level Warning
     Write-InstallMessage "  Invoke-WebRequest -Uri 'https://aka.ms/aadconnect' -OutFile '$msiHost'"
     Write-InstallMessage ""
@@ -128,7 +128,7 @@ Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
     $forest   = Get-ADForest -ErrorAction Stop
     $suffixes = $forest.UPNSuffixes
     if ($suffixes -contains $upn) {
-        Write-Output "  UPN-suffix '$upn' bestaat al - overgeslagen."
+        Write-Output "  UPN-suffix '$upn' bestaat al - skipped."
     } else {
         Set-ADForest -Identity $forest.Name -UPNSuffixes @{Add = $upn} -ErrorAction Stop
         Write-Output "  UPN-suffix '$upn' toegevoegd."
@@ -137,7 +137,7 @@ Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
 
 Write-InstallMessage "Stap 1 klaar."
 
-# ── Stap 2: MSI kopiëren naar VM ─────────────────────────────────────────────
+# ── Stap 2: MSI copy naar VM ─────────────────────────────────────────────
 
 Write-InstallMessage ""
 Write-InstallMessage "Stap 2/3 - MSI kopieren naar $vmName (via PS Direct, chunked base64)..."
@@ -177,7 +177,7 @@ for ($i = 0; $i -lt $totalChunks; $i++) {
     Write-InstallMessage "  Chunk $($i+1)/$totalChunks klaar"
 }
 
-Write-InstallMessage "MSI gekopieerd naar $msiDest."
+Write-InstallMessage "MSI copied naar $msiDest."
 
 # ── Stap 3: Installeren ───────────────────────────────────────────────────────
 
@@ -186,10 +186,10 @@ Write-InstallMessage "Stap 3/3 - Entra Connect installeren (dit duurt ~2 minuten
 
 $exitCode = Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
     param($dest)
-    # Verwijder eventuele bestaande installatie
+    # Verwijder eventuele bestaande installation
     $existing = Get-Package -Name "Microsoft Entra Connect*","Microsoft Azure AD Connect*" -ErrorAction SilentlyContinue
     if ($existing) {
-        Write-Output "  Bestaande installatie verwijderen..."
+        Write-Output "  Bestaande installation verwijderen..."
         $existing | Uninstall-Package -Force -ErrorAction SilentlyContinue
     }
     $proc = Start-Process -FilePath "msiexec.exe" `
@@ -219,7 +219,7 @@ Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
     param($domain)
     $feature = Get-ADOptionalFeature -Filter { Name -eq "Recycle Bin Feature" } -ErrorAction Stop
     if ($feature.EnabledScopes.Count -gt 0) {
-        Write-Output "  AD Recycle Bin is al ingeschakeld - overgeslagen."
+        Write-Output "  AD Recycle Bin is al ingeschakeld - skipped."
     } else {
         Enable-ADOptionalFeature -Identity "Recycle Bin Feature" `
             -Scope ForestOrConfigurationSet -Target $domain -Confirm:$false -ErrorAction Stop
@@ -238,5 +238,7 @@ Write-InstallMessage "  4. Log in met je Global Admin van de dev-tenant"
 Write-InstallMessage "  5. AD-credentials: $($env:USERDOMAIN)\Administrator"
 Write-InstallMessage "  6. Verifieer sync: Start-ADSyncSyncCycle -PolicyType Initial"
 Write-InstallMessage ""
+
+
 
 

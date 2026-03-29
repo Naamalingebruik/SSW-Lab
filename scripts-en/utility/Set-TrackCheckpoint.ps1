@@ -104,8 +104,10 @@ $payload | ConvertTo-Json -Depth 6 | Set-Content -Path $statePath -Encoding utf8
 if ($Reset) {
     Write-Host "Checkpoint '$CheckpointId' teruggezet voor traject $($definition.id)." -ForegroundColor Yellow
 } else {
-    Write-Host "Checkpoint '$CheckpointId' gemarkeerd als afgerond voor traject $($definition.id)." -ForegroundColor Green
+    Write-Host "Checkpoint '$CheckpointId' gemarkeerd als completed voor traject $($definition.id)." -ForegroundColor Green
 }
 
 Write-Host "Statebestand: $statePath"
+
+
 

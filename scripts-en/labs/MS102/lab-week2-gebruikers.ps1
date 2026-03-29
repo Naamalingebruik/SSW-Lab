@@ -1,7 +1,7 @@
 #Requires -RunAsAdministrator
 # ============================================================
-# SSW-Lab | labs/MS102/lab-week2-gebruikers.ps1
-# MS-102 Week 2 — Gebruikers- en Groepsbeheer
+# SSW-Lab | labs/MS102/lab-week2-users.ps1
+# MS-102 Week 2 — User and Group Management
 # VMs:  LAB-DC01, LAB-MGMT01, LAB-W11-01
 # Cloud: M365 admin center, Entra admin center
 # ============================================================
@@ -22,7 +22,7 @@ function Convert-PlainTextToSecureString {
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MS-102 | Week 2 — Gebruikers- en Groepsbeheer" Height="720" Width="700"
+        Title="MS-102 | Week 2 — User and Group Management" Height="720" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
   <Window.Resources>
@@ -48,15 +48,15 @@ function Convert-PlainTextToSecureString {
     </Grid.RowDefinitions>
 
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
-      <TextBlock Text="MS-102 | Week 2 — Gebruikers- en Groepsbeheer" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="OU-structuur · Bulk users · Beheerderrollen · Dynamische groepen · SSPR" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="MS-102 | Week 2 — User and Group Management" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
+      <TextBlock Text="OU structure · Bulk users · Admin roles · Dynamic groups · SSPR" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
 
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. DC01: maak OU-structuur aan (LAB > IT, HR, Finance)"/>
-        <LineBreak/><Run Text="2. DC01: maak bulk testgebruikers aan via CSV"/>
+        <Run Text="1. DC01: maak OU structure aan (LAB > IT, HR, Finance)"/>
+        <LineBreak/><Run Text="2. DC01: maak bulk testusers aan via CSV"/>
         <LineBreak/><Run Text="3. DC01: start delta sync naar Entra ID"/>
         <LineBreak/><Run Text="4. Manual: wijs Helpdesk Administrator rol toe in M365"/>
         <LineBreak/><Run Text="5. Manual: maak dynamische groep aan in Entra ID"/>
@@ -126,7 +126,7 @@ $chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-Dr
 
 function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
-# Bulk gebruikers CSV (aangemaakt in geheugen)
+# Bulk users CSV (aangemaakt in geheugen)
 $csvUsers = @"
 SamAccountName,GivenName,Surname,Department,Title
 testuser01,Test,User01,IT,Engineer
@@ -143,8 +143,8 @@ $btnRun.Add_Click({
     $profiles = Get-Content $SSWConfig.ProfilePath -Raw | ConvertFrom-Json
     $dcVM  = $profiles.DC01.Name
     $domain = $SSWConfig.DomainName
-    # ── Stap 1: OU-structuur aanmaken ───────────────────────
-    Write-LabLog "${pre}Stap 1: DC01 — OU-structuur aanmaken"
+    # ── Stap 1: OU structure create ───────────────────────
+    Write-LabLog "${pre}Stap 1: DC01 — OU structure create"
     $progress.Value = 14
     if ($isDry) {
         Write-LabLog "${pre}  New-ADOrganizationalUnit -Name 'LAB' -Path 'DC=ssw,DC=lab'"
@@ -174,12 +174,12 @@ $btnRun.Add_Click({
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    # ── Stap 2: Bulk gebruikers aanmaken ────────────────────
-    Write-LabLog "${pre}Stap 2: DC01 — bulk testgebruikers aanmaken"
+    # ── Stap 2: Bulk users create ────────────────────
+    Write-LabLog "${pre}Stap 2: DC01 — bulk testusers create"
     $progress.Value = 30
     if ($isDry) {
         Write-LabLog "${pre}  Import-Csv users.csv | ForEach-Object { New-ADUser -Name ... }"
-        Write-LabLog "${pre}  Gebruikers: testuser01 t/m testuser05 (IT, HR, Finance)"
+        Write-LabLog "${pre}  Users: testuser01 t/m testuser05 (IT, HR, Finance)"
         Write-LabLog "${pre}  Wachtwoord: SSWLab@2024 (uitsluitend voor labtesting)"
     } else {
         try {
@@ -190,7 +190,7 @@ $btnRun.Add_Click({
                 param($dom)
                 $base    = "DC=" + ($dom -replace "\.",",.DC=")
                 $csvPath = "C:\Temp\ssw-users.csv"
-                if (-not (Test-Path $csvPath)) { Write-Warning "CSV niet gevonden op $csvPath"; return }
+                if (-not (Test-Path $csvPath)) { Write-Warning "CSV not found at $csvPath"; return }
                 $users   = Import-Csv $csvPath
                 foreach ($u in $users) {
                     $ouPath = "OU=$($u.Department),OU=LAB,$base"
@@ -234,15 +234,15 @@ $btnRun.Add_Click({
     $progress.Value = 62
     Write-LabLog "  M365 admin center > Roles > Role assignments > Helpdesk Administrator"
     Write-LabLog "  Voeg testuser01 toe als Helpdesk Administrator"
-    Write-LabLog "  Verifieer: testuser01 kan wachtwoorden resetten maar geen Global Admin-taken"
+    Write-LabLog "  Verify: testuser01 kan passworden resetten maar geen Global Admin-taken"
 
     # ── Stap 5: Manual — Dynamische groep ──────────────────
-    Write-LabLog "${pre}Stap 5: Manual — Dynamische groep aanmaken"
+    Write-LabLog "${pre}Stap 5: Manual — Dynamische groep create"
     $progress.Value = 74
     Write-LabLog "  Entra admin center > Groups > New group"
     Write-LabLog "  Type: Security | Membership: Dynamic User"
     Write-LabLog "  Regel: (user.department -eq ""IT"")"
-    Write-LabLog "  Testgebruikers met Department=IT worden automatisch lid"
+    Write-LabLog "  Testusers met Department=IT worden automatisch lid"
 
     # ── Stap 6: Manual — SSPR activeren ────────────────────
     Write-LabLog "${pre}Stap 6: Manual — Self-Service Password Reset activeren"
@@ -281,4 +281,6 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 

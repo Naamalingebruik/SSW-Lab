@@ -32,7 +32,7 @@ $VmStartDelay        = 5               # seconden pauze tussen VM-starts
 # ── Config laden ─────────────────────────────────────────────
 $repoRoot   = Join-Path $PSScriptRoot '..\..'
 $configPath = Join-Path $repoRoot 'config.ps1'
-if (-not (Test-Path $configPath)) { Write-Error "config.ps1 niet gevonden: $configPath"; exit 1 }
+if (-not (Test-Path $configPath)) { Write-Error "config.ps1 not found: $configPath"; exit 1 }
 $modulePath = Join-Path $repoRoot 'modules\SSWLab\SSWLab.psd1'
 Import-Module $modulePath -Force
 $SSWConfig = Import-SSWLabConfig -ConfigPath $configPath
@@ -54,13 +54,13 @@ function Add-StartLog([string]$msg) {
 # ── Hulpfunctie: lab-credential ──────────────────────────────
 function Get-LabCred([string]$user) {
     if (-not $SSWConfig.LabPassword) {
-        Add-StartLog "  LET OP: LabPassword niet ingesteld in config.local.ps1 - PS Direct-stappen overgeslagen."
+        Add-StartLog "  LET OP: LabPassword niet ingesteld in config.local.ps1 - PS Direct-stappen skipped."
         return $null
     }
     New-SSWCredential -UserName $user -SecretName 'SSWLab-LabPassword' -Config $SSWConfig -ConfigValueName 'LabPassword' -EnvironmentVariableName 'SSW_LAB_PASSWORD'
 }
 
-# Autopilot VM heeft een eigen lokaal account met apart wachtwoord
+# Autopilot VM heeft een eigen lokaal account met apart password
 function Get-AutopilotCred {
     $apPw = if ($SSWConfig.AutopilotPassword) { $SSWConfig.AutopilotPassword } else { $SSWConfig.LabPassword }
     if (-not $apPw) { return $null }
@@ -127,7 +127,7 @@ $dcVMName = (Get-SSWVmProfile -Profiles $profiles -Name 'DC01').Name
 
 $dcVM = Get-VM -Name $dcVMName -ErrorAction SilentlyContinue
 if (-not $dcVM) {
-    Add-StartLog "  VM '$dcVMName' niet gevonden in Hyper-V - VMs nog niet aangemaakt? Startup gestopt."
+    Add-StartLog "  VM '$dcVMName' not found in Hyper-V - VMs nog niet aangemaakt? Startup gestopt."
     exit 0
 }
 
@@ -156,7 +156,7 @@ if ($domCred) {
         }
     }
     if ($dcOnline) { Add-StartLog "  DC online - AD actief." }
-    else           { Add-StartLog "  WAARSCHUWING: DC niet bereikbaar binnen $DcWaitMinutes min - doorgaan zonder AD-check." }
+    else           { Add-StartLog "  WARNING: DC niet bereikbaar binnen $DcWaitMinutes min - doorgaan zonder AD-check." }
 }
 
 # ── 2b. DHCP op DC01: scope + vaste reservering voor Autopilot-VM ────────
@@ -170,7 +170,7 @@ if ($dcOnline -and $domCred) {
         # Hyper-V levert '001234ABCDEF' -> DHCP verwacht '00-12-34-AB-CD-EF'
         ($apAdapter.MacAddress -replace '[:\-]', '') -replace '(..)(..)(..)(..)(..)(..)', '$1-$2-$3-$4-$5-$6'
     } else {
-        Add-StartLog "  WAARSCHUWING: MAC-adres van '$apVMName' niet gevonden - DHCP-reservering overgeslagen."
+        Add-StartLog "  WARNING: MAC-adres van '$apVMName' not found - DHCP-reservering skipped."
         $null
     }
 
@@ -192,9 +192,9 @@ if ($dcOnline -and $domCred) {
                 # Post-install configuratie-melding onderdrukken
                 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\ServerManager\Roles\12' `
                     -Name 'ConfigurationState' -Value 2 -ErrorAction SilentlyContinue
-                $out.Add("DHCP-server geïnstalleerd.")
+                $out.Add("DHCP server installed.")
             }
-            # Autorisatie altijd controleren (los van installatie) - vereist FQDN, niet NetBIOS naam
+            # Autorisatie altijd controleren (los van installation) - vereist FQDN, niet NetBIOS naam
             $authorized = Get-DhcpServerInDC -ErrorAction SilentlyContinue | Where-Object { $_.DnsName -ieq $fqdn }
             if (-not $authorized) {
                 try {
@@ -202,13 +202,13 @@ if ($dcOnline -and $domCred) {
                     Restart-Service DHCPServer -ErrorAction SilentlyContinue
                     $out.Add("DHCP-server geautoriseerd in AD ($fqdn) en service herstart.")
                 } catch {
-                    $out.Add("WAARSCHUWING: DHCP-autorisatie mislukt: $_")
+                    $out.Add("WARNING: DHCP-autorisatie mislukt: $_")
                 }
             } else {
                 $out.Add("DHCP-server was al geautoriseerd in AD.")
             }
 
-            # DHCP-scope aanmaken als die er nog niet is
+            # DHCP-scope create als die er nog niet is
             if (-not (Get-DhcpServerv4Scope -ScopeId $scopeID -ErrorAction SilentlyContinue)) {
                 Add-DhcpServerv4Scope -Name 'SSW-Lab' `
                     -StartRange $scopeStart -EndRange $scopeEnd `
@@ -249,7 +249,7 @@ if ($dcOnline -and $domCred) {
 
         foreach ($line in $dhcpLog) { Add-StartLog "  $line" }
     } catch {
-        Add-StartLog "  WAARSCHUWING DHCP-setup: $_"
+        Add-StartLog "  WARNING DHCP-setup: $_"
     }
 }
 
@@ -292,18 +292,18 @@ foreach ($key in $clientW11) {
 # ══════════════════════════════════════════════════════════════
 # STAP 3 — Overige VMs starten in volgorde
 # (MGMT01 → W11-01 → W11-02 → W11-AUTOPILOT)
-# VMs die niet bestaan worden overgeslagen (geen fout).
+# VMs die niet bestaan worden skipped (geen fout).
 # ══════════════════════════════════════════════════════════════
 Add-StartLog "[3/3] Overige VMs starten..."
 
 $startOrder = @('MGMT01', 'W11-01', 'W11-02', 'W11-AUTOPILOT')
 foreach ($key in $startOrder) {
     $vmProfile = $profiles.$key
-    if (-not $vmProfile) { Add-StartLog "  Profiel '$key' niet gevonden - overgeslagen."; continue }
+    if (-not $vmProfile) { Add-StartLog "  Profile '$key' not found - skipped."; continue }
 
     $vmName = $vmProfile.Name
     $vm     = Get-VM -Name $vmName -ErrorAction SilentlyContinue
-    if (-not $vm)                  { Add-StartLog "  '$vmName' niet gevonden in Hyper-V - overgeslagen."; continue }
+    if (-not $vm)                  { Add-StartLog "  '$vmName' not found in Hyper-V - skipped."; continue }
     if ($vm.State -eq 'Running')   { Add-StartLog "  '$vmName' draait al."; continue }
 
     try {
@@ -319,4 +319,6 @@ Add-StartLog "[3/3] Alle aanwezige VMs gestart."
 Add-StartLog "======================================================"
 Add-StartLog "  SSW-Lab Startup voltooid."
 Add-StartLog "======================================================"
+
+
 

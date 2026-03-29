@@ -49,9 +49,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <Run Text="1. MGMT01: controleer IntuneWin32ContentPrep Tool aanwezigheid"/>
         <LineBreak/><Run Text="2. W11-01: analyseer IntuneManagementExtension.log"/>
         <LineBreak/><Run Text="3. W11-01: controleer geinstalleerde applicaties"/>
-        <LineBreak/><Run Text="4. W11-02: controleer Office installatie via registry"/>
+        <LineBreak/><Run Text="4. W11-02: controleer Office installation via registry"/>
         <LineBreak/><Run Text="5. Manual: open Intune Apps portal (intune.microsoft.com)"/>
-        <LineBreak/><Run Text="6. Kennischeckvragen weergeven"/>
+        <LineBreak/><Run Text="6. Knowledge check questions weergeven"/>
       </TextBlock>
     </StackPanel>
 
@@ -177,7 +177,7 @@ $btnRun.Add_Click({
                     $lines = Get-Content $logPath | Select-Object -Last 15
                     $lines
                 } else {
-                    "IME log niet gevonden — is het device enrolled in Intune?"
+                    "IME log not found — is het device enrolled in Intune?"
                 }
             }
             $imeLog | ForEach-Object { Write-LabLog "  $_" }
@@ -202,8 +202,8 @@ $btnRun.Add_Click({
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    # ── Stap 4: W11-02 — Office installatie ─────────────────
-    Write-LabLog "${pre}Stap 4: W11-02 — Microsoft 365 Apps installatie verifiëren"
+    # ── Stap 4: W11-02 — Office installation ─────────────────
+    Write-LabLog "${pre}Step 4: W11-02 - Verify Microsoft 365 Apps installation"
     $progress.Value = 68
     if ($isDry) {
         Write-LabLog "${pre}  Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration"
@@ -218,7 +218,7 @@ $btnRun.Add_Click({
                 if ($reg) {
                     "Office versie: $($reg.VersionToReport) | Word aanwezig: $word | Kanaal: $($reg.CDNBaseUrl)"
                 } else {
-                    "Microsoft 365 Apps niet geinstalleerd (nog geen Intune assignment?)"
+                    "Microsoft 365 Apps not installed (nog geen Intune assignment?)"
                 }
             }
             Write-LabLog "  $officeStatus"
@@ -244,7 +244,7 @@ $btnRun.Add_Click({
 
     $progress.Value = 100
     Write-LabLog ""
-    Write-LabLog "Week 4 lab afgerond."
+    Write-LabLog "Week 4 lab completed."
     Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen een Required en Available app-assignment?"
@@ -265,4 +265,6 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 

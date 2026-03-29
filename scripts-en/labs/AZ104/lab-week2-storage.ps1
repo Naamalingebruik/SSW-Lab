@@ -40,10 +40,10 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. Storage account aanmaken (LRS, StorageV2)"/>
-        <LineBreak/><Run Text="2. Blob container aanmaken en bestand uploaden"/>
-        <LineBreak/><Run Text="3. SAS-token genereren voor container-toegang"/>
-        <LineBreak/><Run Text="4. Azure File Share aanmaken en koppelen"/>
+        <Run Text="1. Storage account create (LRS, StorageV2)"/>
+        <LineBreak/><Run Text="2. Blob container create en bestand uploaden"/>
+        <LineBreak/><Run Text="3. SAS-token genereren voor container-access"/>
+        <LineBreak/><Run Text="4. Azure File Share create en koppelen"/>
         <LineBreak/><Run Text="5. Lifecycle management policy instellen"/>
       </TextBlock>
     </StackPanel>
@@ -110,7 +110,7 @@ $btnRun.Add_Click({
     $shareName    = "labshare"
 
     # ── Stap 1: Storage account ──────────────────────────────
-    Write-LabLog "${pre}Stap 1: Storage account aanmaken"
+    Write-LabLog "${pre}Stap 1: Storage account create"
     $progress.Value = 16
     if ($isDry) {
         Write-LabLog "${pre}  `$saName = 'sswlab<random>'"
@@ -121,7 +121,7 @@ $btnRun.Add_Click({
             if (-not (Get-AzContext)) { Connect-AzAccount -ErrorAction Stop | Out-Null }
             $sa = Get-AzStorageAccount -ResourceGroupName $rgName | Where-Object { $_.StorageAccountName -like "sswlab*" } | Select-Object -First 1
             if (-not $sa) {
-                Write-LabLog "  Aanmaken: $saName (Standard_LRS, StorageV2)"
+                Write-LabLog "  Create: $saName (Standard_LRS, StorageV2)"
                 $sa = New-AzStorageAccount -ResourceGroupName $rgName -Name $saName -Location $location -SkuName "Standard_LRS" -Kind "StorageV2"
             } else {
                 Write-LabLog "  Bestaand storage account gevonden: $($sa.StorageAccountName)"
@@ -132,7 +132,7 @@ $btnRun.Add_Click({
     }
 
     # ── Stap 2: Blob container + upload ─────────────────────
-    Write-LabLog "${pre}Stap 2: Blob container aanmaken en bestand uploaden"
+    Write-LabLog "${pre}Stap 2: Blob container create en bestand uploaden"
     $progress.Value = 32
     if ($isDry) {
         Write-LabLog "${pre}  `$ctx = (Get-AzStorageAccount -Name `$saName -ResourceGroupName '$rgName').Context"
@@ -150,7 +150,7 @@ $btnRun.Add_Click({
             $localFile = Join-Path $env:TEMP "labfile.txt"
             "Hello SSW-Lab $(Get-Date)" | Set-Content -Path $localFile
             Set-AzStorageBlobContent -File $localFile -Container $containerName -Blob "labfile.txt" -Context $ctx -Force | Out-Null
-            Write-LabLog "  Bestand geüpload: labfile.txt"
+            Write-LabLog "  File uploaded: labfile.txt"
         } catch { Write-LabLog "  Error: $_" }
     }
 
@@ -173,7 +173,7 @@ $btnRun.Add_Click({
     }
 
     # ── Stap 4: Azure File Share ─────────────────────────────
-    Write-LabLog "${pre}Stap 4: Azure File Share aanmaken"
+    Write-LabLog "${pre}Stap 4: Azure File Share create"
     $progress.Value = 68
     if ($isDry) {
         Write-LabLog "${pre}  New-AzStorageShare -Name '$shareName' -Context `$ctx"
@@ -220,7 +220,7 @@ $btnRun.Add_Click({
             }
             Set-AzStorageManagementPolicy -ResourceGroupName $rgName -StorageAccountName $saName -Rule $rule -ErrorAction Stop | Out-Null
             Write-LabLog "  Lifecycle policy toegepast: Cool (30d) / Archive (90d) / Delete (365d)"
-        } catch { Write-LabLog "  Fout (portal alternatief): $_ " }
+        } catch { Write-LabLog "  Error (portal fallback): $_ " }
     }
 
     $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 2 lab completed."; Write-LabLog ""
@@ -240,4 +240,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

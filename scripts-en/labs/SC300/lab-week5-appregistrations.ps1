@@ -2,7 +2,7 @@
 # ============================================================
 # SSW-Lab | labs/SC300/lab-week5-appregistrations.ps1
 # SC-300 Week 5 — App Registrations, App Proxy, OAuth2, Managed Identity
-# Cloud: Entra ID — app registraties, API-machtigingen, enterprise apps
+# Cloud: Entra ID — app registrations, API-machtigingen, enterprise apps
 # ============================================================
 
 . "$PSScriptRoot\..\..\..\config.ps1"
@@ -39,14 +39,14 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="SC-300 | Week 5 — App Registrations en App Proxy" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="App registratie · API-rechten · Client secret · App Proxy · Managed Identity" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="App registration · API permissions · Client secret · App Proxy · Managed Identity" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. App registratie aanmaken via Graph"/>
+        <Run Text="1. App registration create via Graph"/>
         <LineBreak/><Run Text="2. API-machtigingen toevoegen (Graph + Exchange)"/>
-        <LineBreak/><Run Text="3. Client secret aanmaken en testen met token-aanvraag"/>
+        <LineBreak/><Run Text="3. Client secret create en testen met token-aanvraag"/>
         <LineBreak/><Run Text="4. Enterprise app en consent bekijken"/>
         <LineBreak/><Run Text="5. App Proxy connector info (manueel portal)"/>
       </TextBlock>
@@ -89,12 +89,12 @@ $conv = [System.Windows.Media.BrushConverter]::new()
 function Update-DryRunBar {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
-        $dryRunTitle.Text = "Dry Run — geen app-registratie wordt aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
+        $dryRunTitle.Text = "Dry Run — geen app-registration wordt aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
         $dryRunSub.Text = "Haal het vinkje weg om LIVE te registreren"; $dryRunSub.Foreground = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground = $conv.ConvertFrom("#A6E3A1")
     } else {
         $dryRunBar.Background = $conv.ConvertFrom("#2E1A1A"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text = "LIVE — app-registratie en client secret worden aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
+        $dryRunTitle.Text = "LIVE — app-registration en client secret worden aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text = "Sla client secret veilig op — eenmalig zichtbaar!"; $dryRunSub.Foreground = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
@@ -107,8 +107,8 @@ $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
     $isDry = $chkDryRun.IsChecked; $pre = if ($isDry) { "[DRY RUN] " } else { "" }
 
-    # ── Stap 1: App registratie aanmaken ─────────────────────
-    Write-Log "${pre}Stap 1: App registratie aanmaken (SSW-Lab-App)"
+    # ── Stap 1: App registration create ─────────────────────
+    Write-Log "${pre}Stap 1: App registration create (SSW-Lab-App)"
     $progress.Value = 16
     if ($isDry) {
         Write-Log "${pre}  Connect-MgGraph -Scopes 'Application.ReadWrite.All'"
@@ -155,12 +155,12 @@ $btnRun.Add_Click({
             }
             Update-MgApplication -ApplicationId $script:appObjectId -RequiredResourceAccess @($requiredAccess)
             Write-Log "  API-machtigingen toegevoegd: User.Read + Mail.Read (delegated)"
-            Write-Log "  Admin consent vereist in Entra portal voor tenant-brede toegang"
+            Write-Log "  Admin consent vereist in Entra portal voor tenant-brede access"
         } catch { Write-Log "  Error: $_" }
     }
 
-    # ── Stap 3: Client secret aanmaken ───────────────────────
-    Write-Log "${pre}Stap 3: Client secret aanmaken (geldigheid 1 jaar)"
+    # ── Stap 3: Client secret create ───────────────────────
+    Write-Log "${pre}Stap 3: Client secret create (geldigheid 1 jaar)"
     $progress.Value = 50
     if ($isDry) {
         Write-Log "${pre}  `$secretParam = @{ displayName = 'LabSecret'; endDateTime = (Get-Date).AddYears(1) }"
@@ -186,7 +186,7 @@ $btnRun.Add_Click({
     Write-Log "  Entra portal > Applications > Enterprise applications > SSW-Lab-App"
     Write-Log "  Permissions tab > Grant admin consent for <tenant>"
     Write-Log "  Bekijk de verleende machtigingen (consent)"
-    Write-Log "  Users and groups tab: wijs een testgebruiker toe aan de app"
+    Write-Log "  Users and groups tab: wijs een testuser toe aan de app"
     Write-Log "  Single sign-on tab: bekijk de configuratie-opties (SAML, OIDC)"
 
     # ── Stap 5: App Proxy ────────────────────────────────────
@@ -196,7 +196,7 @@ $btnRun.Add_Click({
     Write-Log "  Vereiste: Entra Application Proxy Connector op MGMT01 installeren"
     Write-Log "  Download: https://aka.ms/aadappproxy"
     Write-Log "  Connector installeert als Windows service: WAPCSvc"
-    Write-Log "  Na installatie: nieuwe connector verschijnt in portal"
+    Write-Log "  Na installation: nieuwe connector verschijnt in portal"
     Write-Log "  + Configure an app: stel intern ULR en externe URL in"
     Write-Log "  Intern URL: http://mgmt01.ssw.lab/intranet"
     Write-Log "  Extern URL: https://sswlab-intranet.<tenant>.msappproxy.net"
@@ -205,7 +205,7 @@ $btnRun.Add_Click({
         if ($open -eq "Yes") { Start-Process "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppProxy" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 5 lab afgerond."; Write-Log ""
+    $progress.Value = 100; Write-Log ""; Write-Log "Week 5 lab completed."; Write-Log ""
     Write-Log "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-Log "1. Wat is het verschil tussen Delegated permissions en Application permissions?"
     Write-Log "2. Wanneer is Admin consent vereist voor API-machtigingen?"
@@ -222,6 +222,8 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 
 
 

@@ -35,12 +35,12 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="AZ-104 | Week 3 — Azure Compute" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="VM aanmaken · Schijven en snapshots · Availability set · Azure Backup" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="Create VM · Disks and snapshots · Availability set · Azure Backup" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. Azure VM aanmaken (Windows Server 2022, B2s)"/>
+        <Run Text="1. Azure VM create (Windows Server 2022, B2s)"/>
         <LineBreak/><Run Text="2. Data disk toevoegen en snapshot maken"/>
         <LineBreak/><Run Text="3. VM-grootte aanpassen (resize)"/>
         <LineBreak/><Run Text="4. Azure Backup configureren (Recovery Services Vault)"/>
@@ -90,7 +90,7 @@ function Show-DryRunState {
         $chkDryRun.Foreground = $conv.ConvertFrom("#A6E3A1")
     } else {
         $dryRunBar.Background = $conv.ConvertFrom("#2E1A1A"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#F38BA8")
-        $dryRunTitle.Text = "LIVE — VM aanmaken genereert Azure kosten"; $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
+        $dryRunTitle.Text = "LIVE — VM create genereert Azure kosten"; $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
         $dryRunSub.Text = "Stop en verwijder VM na het lab om kosten te beperken"; $dryRunSub.Foreground = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
@@ -107,11 +107,11 @@ $btnRun.Add_Click({
     $vmName  = "ssw-lab-vm01"
     $vaultName = "ssw-lab-vault"
 
-    # ── Stap 1: Azure VM aanmaken ────────────────────────────
-    Write-LabLog "${pre}Stap 1: Azure VM aanmaken ($vmName, B2s, WinServer 2022)"
+    # ── Stap 1: Azure VM create ────────────────────────────
+    Write-LabLog "${pre}Stap 1: Azure VM create ($vmName, B2s, WinServer 2022)"
     $progress.Value = 16
     if ($isDry) {
-        Write-LabLog "${pre}  `$cred = Get-Credential -Message 'Local admin wachtwoord voor VM'"
+        Write-LabLog "${pre}  `$cred = Get-Credential -Message 'Local admin password voor VM'"
         Write-LabLog "${pre}  `$vmConfig = New-AzVMConfig -VMName '$vmName' -VMSize 'Standard_B2s'"
         Write-LabLog "${pre}  `$vmConfig = Set-AzVMOperatingSystem -VM `$vmConfig -Windows -ComputerName '$vmName' -Credential `$cred"
         Write-LabLog "${pre}  `$vmConfig = Set-AzVMSourceImage -VM `$vmConfig -PublisherName 'MicrosoftWindowsServer' -Offer 'WindowsServer' -Skus '2022-datacenter' -Version 'latest'"
@@ -124,7 +124,7 @@ $btnRun.Add_Click({
             if ($existing) {
                 Write-LabLog "  VM bestaat al: $vmName [$($existing.ProvisioningState)]"
             } else {
-                Write-LabLog "  Aanmaken VM — dit duurt enkele minuten..."
+                Write-LabLog "  Create VM — dit duurt enkele minuten..."
                 $vmCred   = Get-Credential -Message "Lokale admin voor $vmName (min. 12 tekens)"
                 $vmConfig = New-AzVMConfig -VMName $vmName -VMSize "Standard_B2s"
                 $vmConfig = Set-AzVMOperatingSystem -VM $vmConfig -Windows -ComputerName $vmName -Credential $vmCred
@@ -174,12 +174,12 @@ $btnRun.Add_Click({
         Write-LabLog "${pre}  Update-AzVM -VM `$vm -ResourceGroupName '$rgName'"
         Write-LabLog "${pre}  Start-AzVM -ResourceGroupName '$rgName' -Name '$vmName'"
     } else {
-        Write-LabLog "  VM resize vereist stopzetting — wordt overgeslagen in dit lab (doe manueel)"
+        Write-LabLog "  VM resize vereist stopzetting — wordt skipped in dit lab (doe manueel)"
         Write-LabLog "  Commando's: Stop-AzVM > vm.HardwareProfile.VmSize = '...' > Update-AzVM > Start-AzVM"
     }
 
     # ── Stap 4: Azure Backup ─────────────────────────────────
-    Write-LabLog "${pre}Stap 4: Azure Backup — Recovery Services Vault aanmaken"
+    Write-LabLog "${pre}Stap 4: Azure Backup — Recovery Services Vault create"
     $progress.Value = 70
     if ($isDry) {
         Write-LabLog "${pre}  New-AzRecoveryServicesVault -Name '$vaultName' -ResourceGroupName '$rgName' -Location '$location'"
@@ -198,7 +198,7 @@ $btnRun.Add_Click({
             if ($policy) {
                 Enable-AzRecoveryServicesBackupProtection -ResourceGroupName $rgName -Name $vmName -Policy $policy -ErrorAction Stop | Out-Null
                 Write-LabLog "  Backup ingeschakeld voor $vmName (DefaultPolicy)"
-            } else { Write-LabLog "  DefaultPolicy niet gevonden — backup via portal configureren" }
+            } else { Write-LabLog "  DefaultPolicy not found — backup via portal configureren" }
         } catch { Write-LabLog "  Error: $_" }
     }
 
@@ -214,11 +214,11 @@ $btnRun.Add_Click({
             try {
                 Stop-AzVM -ResourceGroupName $rgName -Name $vmName -Force | Out-Null
                 Write-LabLog "  VM gestopt: $vmName"
-            } catch { Write-LabLog "  Fout bij stoppen: $_" }
+            } catch { Write-LabLog "  Error while stopping: $_" }
         } else { Write-LabLog "  VM blijft draaien — vergeet hem niet te stoppen!" }
     }
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 3 lab afgerond."; Write-LabLog ""
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 3 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen Stop-AzVM en Deallocate?"
     Write-LabLog "2. Welke VM-groottereeks is goedkoopst voor lichte workloads?"
@@ -235,4 +235,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

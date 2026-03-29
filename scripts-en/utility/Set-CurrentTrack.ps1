@@ -12,3 +12,5 @@ $result = Set-SSWCurrentTrack -TrackId $TrackId
 Write-Host "Actief traject ingesteld op $($result.TrackId) - $($result.TrackName)" -ForegroundColor Green
 Write-Host "Statebestand: $($result.StatePath)"
 
+
+

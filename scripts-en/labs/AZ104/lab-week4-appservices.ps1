@@ -40,9 +40,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. App Service Plan aanmaken (B1)"/>
+        <Run Text="1. App Service Plan create (B1)"/>
         <LineBreak/><Run Text="2. Web App deployen (HTML met az CLI-simulatie)"/>
-        <LineBreak/><Run Text="3. Deployment slot (staging) aanmaken en swappen"/>
+        <LineBreak/><Run Text="3. Deployment slot (staging) create en swappen"/>
         <LineBreak/><Run Text="4. Azure Container Instance deployen (nginx)"/>
         <LineBreak/><Run Text="5. Autoscale-regel configureren"/>
       </TextBlock>
@@ -109,7 +109,7 @@ $btnRun.Add_Click({
     $location = "westeurope"
 
     # ── Stap 1: App Service Plan ─────────────────────────────
-    Write-LabLog "${pre}Stap 1: App Service Plan aanmaken ($planName, B1, Linux)"
+    Write-LabLog "${pre}Stap 1: App Service Plan create ($planName, B1, Linux)"
     $progress.Value = 16
     if ($isDry) {
         Write-LabLog "${pre}  New-AzAppServicePlan -Name '$planName' -ResourceGroupName '$rgName' -Location '$location' -Tier 'Basic' -NumberofWorkers 1 -WorkerSize 'Small' -Linux"
@@ -125,7 +125,7 @@ $btnRun.Add_Click({
     }
 
     # ── Stap 2: Web App deployen ─────────────────────────────
-    Write-LabLog "${pre}Stap 2: Web App aanmaken ($appName)"
+    Write-LabLog "${pre}Stap 2: Web App create ($appName)"
     $progress.Value = 32
     if ($isDry) {
         Write-LabLog "${pre}  New-AzWebApp -Name '$appName' -ResourceGroupName '$rgName' -AppServicePlan '$planName'"
@@ -143,7 +143,7 @@ $btnRun.Add_Click({
     }
 
     # ── Stap 3: Deployment slot ──────────────────────────────
-    Write-LabLog "${pre}Stap 3: Deployment slot — staging aanmaken en swappen"
+    Write-LabLog "${pre}Stap 3: Deployment slot — staging create en swappen"
     $progress.Value = 50
     if ($isDry) {
         Write-LabLog "${pre}  New-AzWebAppSlot -ResourceGroupName '$rgName' -Name '$appName' -Slot 'staging'"
@@ -160,7 +160,7 @@ $btnRun.Add_Click({
             } else { Write-LabLog "  Staging slot bestaat al" }
             Write-LabLog "  Staging URL: https://$appName-staging.azurewebsites.net"
             Write-LabLog "  Swap via: Switch-AzWebAppSlot -Swap (na deployen naar staging)"
-        } catch { Write-LabLog "  Fout (B1 supports slots niet): $_" }
+        } catch { Write-LabLog "  Error (B1 does not support slots): $_" }
     }
 
     # ── Stap 4: Azure Container Instance ────────────────────
@@ -194,7 +194,7 @@ $btnRun.Add_Click({
         if ($open -eq "Yes") { Start-Process "https://portal.azure.com/#resource/subscriptions//resourceGroups/$rgName/providers/Microsoft.Web/serverFarms/$planName/scaleSettings" }
     }
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 4 lab afgerond."; Write-LabLog ""
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 4 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen App Service Plan tiers (Free, Basic, Standard, Premium)?"
     Write-LabLog "2. Waarom gebruik je deployment slots voor blue/green deploys?"
@@ -211,4 +211,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

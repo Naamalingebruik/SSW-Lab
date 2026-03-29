@@ -40,11 +40,11 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. VNet aanmaken met meerdere subnets"/>
-        <LineBreak/><Run Text="2. NSG aanmaken met inbound RDP-regel"/>
+        <Run Text="1. VNet create met meerdere subnets"/>
+        <LineBreak/><Run Text="2. NSG create met inbound RDP-regel"/>
         <LineBreak/><Run Text="3. VNet Peering instellen (Hub-Spoke)"/>
-        <LineBreak/><Run Text="4. Private DNS Zone aanmaken en koppelen"/>
-        <LineBreak/><Run Text="5. VPN Gateway aanmaken (manueel — portal)"/>
+        <LineBreak/><Run Text="4. Private DNS Zone create en koppelen"/>
+        <LineBreak/><Run Text="5. VPN Gateway create (manueel — portal)"/>
       </TextBlock>
     </StackPanel>
     <Border Grid.Row="2" Background="#181825" CornerRadius="6" Padding="10">
@@ -91,7 +91,7 @@ function Show-DryRunState {
     } else {
         $dryRunBar.Background = $conv.ConvertFrom("#2E1A1A"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#F38BA8")
         $dryRunTitle.Text = "LIVE — Azure netwerk-resources worden aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#F38BA8")
-        $dryRunSub.Text = "VPN Gateway aanmaken kost ~€80/maand — verwijder na lab"; $dryRunSub.Foreground = $conv.ConvertFrom("#8A5A5A")
+        $dryRunSub.Text = "VPN Gateway create kost ~€80/maand — verwijder na lab"; $dryRunSub.Foreground = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
@@ -110,7 +110,7 @@ $btnRun.Add_Click({
     $dnsZone  = "ssw.internal"
 
     # ── Stap 1: VNet met subnets ─────────────────────────────
-    Write-LabLog "${pre}Stap 1: VNet aanmaken met Web en App subnets"
+    Write-LabLog "${pre}Stap 1: VNet create met Web en App subnets"
     $progress.Value = 16
     if ($isDry) {
         Write-LabLog "${pre}  `$webSubnet = New-AzVirtualNetworkSubnetConfig -Name 'WebSubnet' -AddressPrefix '10.1.1.0/24'"
@@ -138,7 +138,7 @@ $btnRun.Add_Click({
     }
 
     # ── Stap 2: NSG ──────────────────────────────────────────
-    Write-LabLog "${pre}Stap 2: NSG aanmaken met RDP inbound-regel"
+    Write-LabLog "${pre}Stap 2: NSG create met RDP inbound-regel"
     $progress.Value = 32
     if ($isDry) {
         Write-LabLog "${pre}  `$rdpRule = New-AzNetworkSecurityRuleConfig -Name 'Allow-RDP' -Protocol Tcp -Direction Inbound -Priority 1000 -SourceAddressPrefix '*' -SourcePortRange '*' -DestinationAddressPrefix '*' -DestinationPortRange 3389 -Access Allow"
@@ -195,7 +195,7 @@ $btnRun.Add_Click({
             $link = Get-AzPrivateDnsVirtualNetworkLink -ZoneName $dnsZone -ResourceGroupName $rgName -Name "hub-link" -ErrorAction SilentlyContinue
             if (-not $link) {
                 New-AzPrivateDnsVirtualNetworkLink -ZoneName $dnsZone -ResourceGroupName $rgName -Name "hub-link" -VirtualNetworkId $hubVnet.Id -EnableRegistration | Out-Null
-                Write-LabLog "  VNet link aangemaakt: hub-link (auto-registratie aan)"
+                Write-LabLog "  VNet link aangemaakt: hub-link (auto-registration aan)"
             } else { Write-LabLog "  VNet link bestaat al" }
             $recSet = Get-AzPrivateDnsRecordSet -ZoneName $dnsZone -ResourceGroupName $rgName -Name "testhost" -RecordType A -ErrorAction SilentlyContinue
             if (-not $recSet) {
@@ -221,7 +221,7 @@ $btnRun.Add_Click({
         if ($open -eq "Yes") { Start-Process "https://portal.azure.com/#create/Microsoft.VirtualNetworkGateway" }
     }
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 5 lab afgerond."; Write-LabLog ""
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 5 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen VNet Peering en VPN Gateway?"
     Write-LabLog "2. Hoe werken NSG-regels — wat is de evaluatievolgorde?"
@@ -238,4 +238,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

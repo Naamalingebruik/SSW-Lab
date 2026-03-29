@@ -38,7 +38,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="MS-102 | Week 5 — SharePoint Online en Teams" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="Sitecollecties · Externe deling · Teams policies · Usage reports" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="Site collections · External sharing · Teams policies · Usage reports" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
@@ -117,7 +117,7 @@ $btnRun.Add_Click({
         Write-LabLog "${pre}  Get-SPOSite | Select-Object Url, StorageUsageCurrent, SharingCapability"
     } else {
         if (-not $spoInstalled) {
-            Write-LabLog "  SPO module niet gevonden — installeer met:"
+            Write-LabLog "  SPO module not found — installeer met:"
             Write-LabLog "  Install-Module Microsoft.Online.SharePoint.PowerShell -Scope CurrentUser"
         } else {
             try {
@@ -125,21 +125,21 @@ $btnRun.Add_Click({
                 $tenantUrl = Read-Host "Voer je SharePoint tenant URL in (bijv. https://contoso-admin.sharepoint.com)"
                 Connect-SPOService -Url $tenantUrl -ErrorAction Stop
                 $sites = Get-SPOSite | Select-Object Url, StorageUsageCurrent | Select-Object -First 8
-                Write-LabLog "  Sitecollecties (top 8):"
+                Write-LabLog "  Site collections (top 8):"
                 $sites | ForEach-Object { Write-LabLog "    $($_.Url) ($($_.StorageUsageCurrent) MB)" }
             } catch { Write-LabLog "  Error: $_" }
         }
     }
 
-    # ── Stap 2: Team site aanmaken (manueel) ─────────────────
-    Write-LabLog "${pre}Stap 2: Manual — Team site aanmaken"
+    # ── Stap 2: Team site create (manueel) ─────────────────
+    Write-LabLog "${pre}Stap 2: Manual — Team site create"
     $progress.Value = 28
     Write-LabLog "  SharePoint admin center: https://admin.microsoft.com > SharePoint"
     Write-LabLog "  Sites > Active sites > + Create > Team site"
     Write-LabLog "  Naam: SSW Lab Site | Eigenaar: testuser01@<tenant>"
     Write-LabLog "  Voeg testuser02 toe als site-lid"
 
-    # ── Stap 3: Externe deling ───────────────────────────────
+    # ── Stap 3: External sharing ───────────────────────────────
     Write-LabLog "${pre}Stap 3: Manual — externe delingsinstellingen"
     $progress.Value = 40
     Write-LabLog "  SharePoint admin center > Policies > Sharing"
@@ -158,7 +158,7 @@ $btnRun.Add_Click({
         Write-LabLog "${pre}  New-Team -DisplayName 'SSW Lab Team' -Visibility Private"
     } else {
         if (-not $teamsInstalled) {
-            Write-LabLog "  MicrosoftTeams module niet gevonden — installeer met:"
+            Write-LabLog "  MicrosoftTeams module not found — installeer met:"
             Write-LabLog "  Install-Module MicrosoftTeams -Scope CurrentUser"
         } else {
             try {
@@ -177,7 +177,7 @@ $btnRun.Add_Click({
     Write-LabLog "  Teams admin center: https://admin.teams.microsoft.com"
     Write-LabLog "  Meetings > Meeting policies > Global (Org-wide default)"
     Write-LabLog "  Wijzig: Allow cloud recording = Off voor gasten"
-    Write-LabLog "  Of: maak een custom policy voor externe gebruikers"
+    Write-LabLog "  Of: maak een custom policy voor externe users"
 
     # ── Stap 6: Usage reports ────────────────────────────────
     Write-LabLog "${pre}Stap 6: Manual — Usage reports bekijken"
@@ -192,10 +192,10 @@ $btnRun.Add_Click({
         if ($open -eq "Yes") { Start-Process "https://admin.microsoft.com/AdminPortal/Home#/reportsUsage/TeamsUserActivity" }
     }
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 5 lab afgerond."; Write-LabLog ""
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 5 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen een Group site, Communication site en Hub site?"
-    Write-LabLog "2. Hoe beheer je externe toegang in Teams op channel-niveau versus team-niveau?"
+    Write-LabLog "2. Hoe beheer je externe access in Teams op channel-niveau versus team-niveau?"
     Write-LabLog "3. Wat zijn sensitivity labels en hoe pas je ze toe op Teams en SharePoint?"
     Write-LabLog "4. Hoe gebruik je PowerShell (PnP / Teams module) voor bulk-beheer?"
     Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -209,4 +209,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

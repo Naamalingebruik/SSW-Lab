@@ -49,7 +49,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <Run Text="1. W11-01: controleer Microsoft Defender status (Get-MpComputerStatus)"/>
         <LineBreak/><Run Text="2. W11-01: voer een Quick Scan uit (Start-MpScan)"/>
         <LineBreak/><Run Text="3. W11-01: controleer Windows Update status"/>
-        <LineBreak/><Run Text="4. W11-02: simuleer EICAR detectie en verifieer alert"/>
+        <LineBreak/><Run Text="4. W11-02: simuleer EICAR detection en verifieer alert"/>
         <LineBreak/><Run Text="5. Manual: Intune Update ring en Endpoint Security portal"/>
       </TextBlock>
     </StackPanel>
@@ -206,7 +206,7 @@ $btnRun.Add_Click({
     }
 
     # ── Stap 4: EICAR testbestand ────────────────────────────
-    Write-LabLog "${pre}Stap 4: W11-02 — EICAR detectietest"
+    Write-LabLog "${pre}Stap 4: W11-02 — EICAR detectiontest"
     $progress.Value = 62
     Write-LabLog "  EICAR is een standaard testbestand dat Defender als gevaarlijk markeert"
     Write-LabLog "  Let op: gebruik NOOIT echt malware in een lab — EICAR is veilig"
@@ -278,9 +278,11 @@ $btnRun.Add_Click({
 $btnNext.Add_Click({
     $nextScript = Join-Path $PSScriptRoot "..\MS102\lab-week1-tenant.ps1"
     if (Test-Path $nextScript) { Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$nextScript`"" }
-    else { [System.Windows.MessageBox]::Show("MS-102 labs niet gevonden in ..\MS102\", "SSW-Lab") }
+    else { [System.Windows.MessageBox]::Show("MS-102 labs not found in ..\MS102\", "SSW-Lab") }
     $reader.Close()
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 

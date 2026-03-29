@@ -43,11 +43,11 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. Access package aanmaken via MS Graph (Entitlement Management)"/>
-        <LineBreak/><Run Text="2. Access review aanmaken voor groepsleden"/>
+        <Run Text="1. Access package create via MS Graph (Entitlement Management)"/>
+        <LineBreak/><Run Text="2. Access review create voor groepsleden"/>
         <LineBreak/><Run Text="3. PIM — eligible assignment voor Global Administrator"/>
         <LineBreak/><Run Text="4. PIM — JIT-activering simuleren en audit trail"/>
-        <LineBreak/><Run Text="5. Kennischeck en eindpunt SC-300 leerpad"/>
+        <LineBreak/><Run Text="5. Knowledge check en eindpunt SC-300 leerpad"/>
       </TextBlock>
     </StackPanel>
     <Border Grid.Row="2" Background="#181825" CornerRadius="6" Padding="10">
@@ -106,8 +106,8 @@ $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
     $isDry = $chkDryRun.IsChecked; $pre = if ($isDry) { "[DRY RUN] " } else { "" }
 
-    # ── Stap 1: Access package aanmaken (Entitlement Management) ─────────────
-    Write-LabLog "${pre}Stap 1: Access package aanmaken via MS Graph"
+    # ── Stap 1: Access package create (Entitlement Management) ─────────────
+    Write-LabLog "${pre}Stap 1: Access package create via MS Graph"
     $progress.Value = 12
     Write-LabLog "  Entra portal > Identity Governance > Entitlement management > Catalogs"
     Write-LabLog "  Maak catalog aan: 'LAB Resources'"
@@ -115,11 +115,11 @@ $btnRun.Add_Click({
     Write-LabLog ""
     if ($isDry) {
         Write-LabLog "${pre}  Connect-MgGraph -Scopes 'EntitlementManagement.ReadWrite.All'"
-        Write-LabLog "${pre}  # Catalog aanmaken"
+        Write-LabLog "${pre}  # Catalog create"
         Write-LabLog "${pre}  `$catalog = New-MgEntitlementManagementAccessPackageCatalog -DisplayName 'LAB Resources' -IsExternallyVisible:`$false"
-        Write-LabLog "${pre}  # Access package aanmaken"
+        Write-LabLog "${pre}  # Access package create"
         Write-LabLog "${pre}  `$pkg = New-MgEntitlementManagementAccessPackage -DisplayName 'LAB Toegang' -Description 'Toegang voor LAB-oefeningen' -CatalogId `$catalog.Id"
-        Write-LabLog "${pre}  # Beleid toevoegen: interne gebruikers kunnen aanvragen, manager keurt goed"
+        Write-LabLog "${pre}  # Beleid toevoegen: interne users kunnen aanvragen, manager keurt goed"
         Write-LabLog "${pre}  `$policy = @{"
         Write-LabLog "${pre}    DisplayName = 'LAB Request Policy'"
         Write-LabLog "${pre}    RequestorSettings = @{ ScopeType = 'AllExistingDirectoryMemberUsers'; AcceptRequests = `$true }"
@@ -157,9 +157,9 @@ $btnRun.Add_Click({
         } catch { Write-LabLog "  Error: $_"; $btnRun.IsEnabled = $true; return }
     }
 
-    # ── Stap 2: Access review aanmaken ──────────────────────────────────────
+    # ── Stap 2: Access review create ──────────────────────────────────────
     Write-LabLog ""
-    Write-LabLog "${pre}Stap 2: Access review aanmaken voor groepsleden"
+    Write-LabLog "${pre}Stap 2: Access review create voor groepsleden"
     $progress.Value = 28
     if ($isDry) {
         Write-LabLog "${pre}  Connect-MgGraph -Scopes 'AccessReview.ReadWrite.All', 'Group.Read.All'"
@@ -179,15 +179,15 @@ $btnRun.Add_Click({
             Write-LabLog "  Entra portal > Identity Governance > Access reviews > + New access review"
             Write-LabLog "  Selecteer: Review type = Groups and teams"
             Write-LabLog "  Scope: Alle leden van LAB-LabUsers"
-            Write-LabLog "  Reviewers: Geselecteerde gebruikers (Admin of manager)"
+            Write-LabLog "  Reviewers: Geselecteerde users (Admin of manager)"
             Write-LabLog "  Herhaling: Kwartaal | Duur: 14 dagen"
             Write-LabLog "  Einde: Beschikking automatisch toepassen"
-            Write-LabLog "  Default beslissing als reviewer niet reageert: Deny (toegang intrekken)"
+            Write-LabLog "  Default beslissing als reviewer niet reageert: Deny (access intrekken)"
             Start-Process "https://entra.microsoft.com/#view/Microsoft_AAD_ERM/DashboardBlade/~/Controls"
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    # ── Stap 3: PIM — eligible assignment aanmaken ──────────────────────────
+    # ── Stap 3: PIM — eligible assignment create ──────────────────────────
     Write-LabLog ""
     Write-LabLog "${pre}Stap 3: PIM — eligible assignment voor Global Administrator"
     $progress.Value = 48
@@ -195,7 +195,7 @@ $btnRun.Add_Click({
         Write-LabLog "${pre}  Connect-MgGraph -Scopes 'PrivilegedEligibilitySchedule.ReadWrite.AzureADGroup', 'RoleEligibilitySchedule.ReadWrite.Directory'"
         Write-LabLog "${pre}  # Global Admin rol-definitie ophalen"
         Write-LabLog "${pre}  `$role = Get-MgRoleManagementDirectoryRoleDefinition -Filter `"displayName eq 'Global Administrator'`""
-        Write-LabLog "${pre}  # Eligible assignment aanmaken voor TestUser01"
+        Write-LabLog "${pre}  # Eligible assignment create voor TestUser01"
         Write-LabLog "${pre}  `$user = Get-MgUser -Filter `"displayName eq 'TestUser01'`""
         Write-LabLog "${pre}  `$scheduleReq = @{"
         Write-LabLog "${pre}    PrincipalId = `$user.Id"
@@ -274,13 +274,13 @@ $btnRun.Add_Click({
             $active   = Get-MgRoleManagementDirectoryRoleAssignmentSchedule -All -ErrorAction SilentlyContinue
             Write-LabLog "  Actieve role assignments: $($active.Count)"
             Write-LabLog ""
-            Write-LabLog "  Eligible  = JIT — gebruiker moet zelf activeren, MFA + reden vereist"
+            Write-LabLog "  Eligible  = JIT — user moet zelf activeren, MFA + reden vereist"
             Write-LabLog "  Active    = Altijd actief gedurende ingestelde periode"
             Write-LabLog "  Permanent = Geen vervaldatum (vermijd dit voor beheerdersrollen)"
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 6 lab afgerond."; Write-LabLog ""
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 6 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen entitlement management en access reviews?"
     Write-LabLog "2. Hoe werkt PIM Just-in-Time access en waarom is het veiliger dan permanente rollentoewijzing?"
@@ -290,7 +290,7 @@ $btnRun.Add_Click({
     Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog ""
     Write-LabLog "════════════════════════════════════════════════════════"
-    Write-LabLog "  SC-300 LEERPAD VOLTOOID — alle 6 weken afgerond"
+    Write-LabLog "  SC-300 TRACK COMPLETED — alle 6 weken completed"
     Write-LabLog "  Volgend stap: Practice assessment op MS Learn"
     Write-LabLog "  https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications"
     Write-LabLog "════════════════════════════════════════════════════════"
@@ -300,7 +300,7 @@ $btnRun.Add_Click({
 $btnNext.Add_Click({
     $open = [System.Windows.MessageBox]::Show(
         "SC-300 leerpad voltooid!`n`nPractice assessment openen op MS Learn?",
-        "SSW-Lab — SC-300 afgerond",
+        "SSW-Lab — SC-300 completed",
         "YesNo",
         "Information"
     )
@@ -310,4 +310,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

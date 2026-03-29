@@ -40,7 +40,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="MD-102 | Week 5 — Windows Autopilot" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="Hardware hash ophalen · Autopilot registratie · Deployment profile · OOBE" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="Retrieve hardware hash · Autopilot registration · Deployment profile · OOBE" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
 
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
@@ -136,13 +136,13 @@ $btnRun.Add_Click({
     $apVM       = $profiles."W11-AUTOPILOT".Name
     $hashCsvHost = Join-Path $SSWConfig.VMPath "autopilot-hash.csv"
 
-    # ── Stap 1: Module installatie/check ────────────────────
+    # ── Stap 1: Module installation/check ────────────────────
     Write-LabLog "${pre}Stap 1: W11-AUTOPILOT — Get-WindowsAutoPilotInfo module"
     $progress.Value = 12
     if ($isDry) {
         Write-LabLog "${pre}  Find-Module -Name Get-WindowsAutoPilotInfo"
         Write-LabLog "${pre}  Install-Script -Name Get-WindowsAutoPilotInfo -Force"
-        Write-LabLog "${pre}  Vereist: NuGet provider en PSGallery toegang vanuit VM"
+        Write-LabLog "${pre}  Vereist: NuGet provider en PSGallery access vanuit VM"
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $apVM" -UserName "$apVM\$($SSWConfig.AdminUser)"
@@ -163,7 +163,7 @@ $btnRun.Add_Click({
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    # ── Stap 2: Hardware hash ophalen ───────────────────────
+    # ── Stap 2: Retrieve hardware hash ───────────────────────
     Write-LabLog "${pre}Stap 2: W11-AUTOPILOT — hardware hash ophalen"
     $progress.Value = 35
     if ($isDry) {
@@ -187,8 +187,8 @@ $btnRun.Add_Click({
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    # ── Stap 3: CSV kopiëren naar host ──────────────────────
-    Write-LabLog "${pre}Stap 3: Hash CSV kopiëren van VM naar host"
+    # ── Stap 3: Copy CSV naar host ──────────────────────
+    Write-LabLog "${pre}Stap 3: Hash Copy CSV van VM naar host"
     $progress.Value = 55
     if ($isDry) {
         Write-LabLog "${pre}  Copy-VMFile -SourcePath 'C:\hash.csv' -DestinationPath '$hashCsvHost'"
@@ -198,7 +198,7 @@ $btnRun.Add_Click({
             Copy-VMFile -VMName $apVM -SourcePath "C:\hash.csv" `
                         -DestinationPath $hashCsvHost `
                         -FileSource Guest -ErrorAction Stop
-            Write-LabLog "  CSV gekopieerd naar: $hashCsvHost"
+            Write-LabLog "  CSV copied naar: $hashCsvHost"
             $csvContent = Import-Csv $hashCsvHost
             Write-LabLog "  SerialNumber: $($csvContent.SerialNumber)"
         } catch { Write-LabLog "  Error: $_ (probeer handmatig via VM console)" }
@@ -212,7 +212,7 @@ $btnRun.Add_Click({
     Write-LabLog "  Wacht op verwerking (kan 5-15 minuten duren)"
 
     # ── Stap 5: Manual — Deployment profile ────────────────
-    Write-LabLog "${pre}Stap 5: Manual — Deployment profile aanmaken"
+    Write-LabLog "${pre}Stap 5: Manual — Deployment profile create"
     $progress.Value = 80
     Write-LabLog "  Intune > Devices > Windows > Enrollment > Deployment profiles > + Create"
     Write-LabLog "  Instellingen:"
@@ -228,7 +228,7 @@ $btnRun.Add_Click({
     Write-LabLog "  Op W11-AUTOPILOT VM:"
     Write-LabLog "    Instellingen > Systeem > Herstel > Reset deze pc > Alles verwijderen"
     Write-LabLog "    OF: Hyper-V > Checkpoint terugzetten naar 'pre-enrollment'"
-    Write-LabLog "  Doorloop OOBE en verifieer automatische enrollment + profiel-toepassing"
+    Write-LabLog "  Doorloop OOBE en verifieer automatische enrollment + profile-toepassing"
 
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show(
@@ -240,12 +240,12 @@ $btnRun.Add_Click({
 
     $progress.Value = 100
     Write-LabLog ""
-    Write-LabLog "Week 5 lab afgerond."
+    Write-LabLog "Week 5 lab completed."
     Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen User-driven en Self-deploying Autopilot mode?"
     Write-LabLog "2. Waarvoor dient de Enrollment Status Page en hoe configureer je die?"
-    Write-LabLog "3. Hoe reset je een Autopilot-profieltoewijzing als een device al geregistreerd is?"
+    Write-LabLog "3. Hoe reset je een Autopilot-profiletoewijzing als een device al geregistreerd is?"
     Write-LabLog "4. Wat is Windows Autopilot Reset en wanneer gebruik je het?"
     Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
@@ -261,4 +261,6 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 

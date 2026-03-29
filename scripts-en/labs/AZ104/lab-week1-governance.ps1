@@ -36,14 +36,14 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="AZ-104 | Week 1 — Identiteiten en governance" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="Entra ID gebruikers · Groepen · RBAC · Azure Policy · Management groups" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="Entra ID users · Groups · RBAC · Azure Policy · Management groups" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. Connect-AzAccount en subscription veriëren"/>
-        <LineBreak/><Run Text="2. Resource group aanmaken (ssw-lab-rg)"/>
-        <LineBreak/><Run Text="3. Entra ID gebruiker en groep aanmaken via Graph"/>
+        <Run Text="1. Connect-AzAccount en subscription verify"/>
+        <LineBreak/><Run Text="2. Resource group create (ssw-lab-rg)"/>
+        <LineBreak/><Run Text="3. Entra ID user en groep create via Graph"/>
         <LineBreak/><Run Text="4. RBAC-rol toewijzen (Contributor op resource group)"/>
         <LineBreak/><Run Text="5. Azure Policy toewijzen: toegestane regio's"/>
       </TextBlock>
@@ -142,8 +142,8 @@ $btnRun.Add_Click({
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    # ── Stap 3: Entra ID gebruiker + groep ──────────────────
-    Write-LabLog "${pre}Stap 3: Entra ID — gebruiker en groep via Graph"
+    # ── Stap 3: Entra ID user + groep ──────────────────
+    Write-LabLog "${pre}Stap 3: Entra ID — user en groep via Graph"
     $progress.Value = 48
     if ($isDry) {
         Write-LabLog "${pre}  Connect-MgGraph -Scopes 'User.ReadWrite.All','Group.ReadWrite.All'"
@@ -214,14 +214,14 @@ $btnRun.Add_Click({
                     New-AzPolicyAssignment -Name "ssw-allowed-regions" -Scope $rg.ResourceId -PolicyDefinition $def -PolicyParameterObject $params -ErrorAction Stop | Out-Null
                     Write-LabLog "  Policy toegewezen: West Europe + North Europe toegestaan"
                 } else { Write-LabLog "  Policy al toegewezen op $rgName" }
-            } else { Write-LabLog "  'Allowed locations' policy definitie niet gevonden" }
+            } else { Write-LabLog "  'Allowed locations' policy definitie not found" }
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 1 lab afgerond."; Write-LabLog ""
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 1 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen Entra ID Role en Azure RBAC Role?"
-    Write-LabLog "2. Welke RBAC-scope-hiërarchie bestaat er in Azure?"
+    Write-LabLog "2. Welke RBAC scope hierarchy bestaat er in Azure?"
     Write-LabLog "3. Wat doet een Azure Policy vs. een RBAC Deny assignment?"
     Write-LabLog "4. Wanneer gebruik je Management Groups in plaats van Subscriptions?"
     Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -235,4 +235,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

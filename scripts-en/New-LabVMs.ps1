@@ -21,7 +21,7 @@ function Get-TotalRAM($vmKeys) {
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SSW-Lab | VM's aanmaken" Height="700" Width="720"
+        Title="SSW-Lab | VM's create" Height="700" Width="720"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="#1E1E2E" FontFamily="Segoe UI">
   <Window.Resources>
@@ -55,7 +55,7 @@ function Get-TotalRAM($vmKeys) {
     </Grid.RowDefinitions>
 
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
-      <TextBlock Text="VM's aanmaken" Foreground="#CDD6F4" FontSize="20" FontWeight="SemiBold"/>
+      <TextBlock Text="VM's create" Foreground="#CDD6F4" FontSize="20" FontWeight="SemiBold"/>
       <TextBlock Text="Choose a preset or configure manually" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
 
@@ -141,7 +141,7 @@ function Get-TotalRAM($vmKeys) {
     </Border>
 
     <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-      <Button x:Name="BtnCreate" Content="VM's aanmaken" Style="{StaticResource Btn}" Margin="0,0,10,0" Width="150"/>
+      <Button x:Name="BtnCreate" Content="VM's create" Style="{StaticResource Btn}" Margin="0,0,10,0" Width="150"/>
       <Button x:Name="BtnNext"   Content="Continue to Initialize-DomainController →" Style="{StaticResource Btn}"
               Background="#A6E3A1" IsEnabled="False" Width="220"/>
     </StackPanel>
@@ -187,7 +187,7 @@ function Update-DryRunBar {
         $dryRunSub.Text         = "Check the box again to return to Dry Run"
         $dryRunSub.Foreground   = $conv.ConvertFrom("#8A5A5A")
         $chkDryRun.Foreground   = $conv.ConvertFrom("#F38BA8")
-        $btnCreate.Content      = "LIVE VM's aanmaken"
+        $btnCreate.Content      = "LIVE VM's create"
         $btnCreate.Background   = $conv.ConvertFrom("#F38BA8")
         $btnCreate.Foreground   = $conv.ConvertFrom("#1E1E2E")
     }
@@ -380,6 +380,8 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 
 
 

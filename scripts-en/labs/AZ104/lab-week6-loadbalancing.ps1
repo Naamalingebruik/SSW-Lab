@@ -40,11 +40,11 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. Public Load Balancer aanmaken met backend pool"/>
+        <Run Text="1. Public Load Balancer create met backend pool"/>
         <LineBreak/><Run Text="2. Health probe en load balancing rule configureren"/>
-        <LineBreak/><Run Text="3. Application Gateway aanmaken (WAF mode manueel)"/>
+        <LineBreak/><Run Text="3. Application Gateway create (WAF mode manueel)"/>
         <LineBreak/><Run Text="4. Network Watcher — IP-flow verify en NSG flow logs"/>
-        <LineBreak/><Run Text="5. Traffic Manager profiel instellen (priority routing)"/>
+        <LineBreak/><Run Text="5. Traffic Manager profile instellen (priority routing)"/>
       </TextBlock>
     </StackPanel>
     <Border Grid.Row="2" Background="#181825" CornerRadius="6" Padding="10">
@@ -107,8 +107,8 @@ $btnRun.Add_Click({
     $lbName   = "ssw-lab-lb"
     $lbPipName = "ssw-lb-pip"
 
-    # ── Stap 1: Public Load Balancer aanmaken ────────────────
-    Write-LabLog "${pre}Stap 1: Public Load Balancer aanmaken"
+    # ── Stap 1: Public Load Balancer create ────────────────
+    Write-LabLog "${pre}Stap 1: Public Load Balancer create"
     $progress.Value = 16
     if ($isDry) {
         Write-LabLog "${pre}  `$pip = New-AzPublicIpAddress -Name '$lbPipName' -ResourceGroupName '$rgName' -Location '$location' -AllocationMethod Static -Sku Standard"
@@ -152,7 +152,7 @@ $btnRun.Add_Click({
     Write-LabLog "  Routing rule: listener (http:80) → backend pool"
     Write-LabLog "  Deploytijd: 5-10 minuten"
     if (-not $isDry) {
-        $open = [System.Windows.MessageBox]::Show("Application Gateway aanmaken via portal?", "SSW-Lab", "YesNo", "Question")
+        $open = [System.Windows.MessageBox]::Show("Application Gateway create via portal?", "SSW-Lab", "YesNo", "Question")
         if ($open -eq "Yes") { Start-Process "https://portal.azure.com/#create/Microsoft.ApplicationGateway" }
     }
 
@@ -172,13 +172,13 @@ $btnRun.Add_Click({
                 Write-LabLog "  IP-flow verify: portal > Network Watcher > IP flow verify"
                 Write-LabLog "  NSG flow logs: portal > Network Watcher > NSG flow logs"
             } else {
-                Write-LabLog "  Network Watcher niet gevonden voor $location — wordt automatisch aangemaakt met VNet"
+                Write-LabLog "  Network Watcher not found voor $location — wordt automatisch aangemaakt met VNet"
             }
         } catch { Write-LabLog "  Error: $_" }
     }
 
     # ── Stap 5: Traffic Manager ──────────────────────────────
-    Write-LabLog "${pre}Stap 5: Traffic Manager profiel aanmaken (priority routing)"
+    Write-LabLog "${pre}Stap 5: Traffic Manager profile create (priority routing)"
     $progress.Value = 84
     if ($isDry) {
         Write-LabLog "${pre}  New-AzTrafficManagerProfile -Name 'ssw-trafficmgr' -ResourceGroupName '$rgName' -TrafficRoutingMethod Priority -RelativeDnsName 'sswlabtraffic' -Ttl 30 -MonitorProtocol Http -MonitorPort 80 -MonitorPath '/'"
@@ -194,7 +194,7 @@ $btnRun.Add_Click({
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 6 lab afgerond."; Write-LabLog ""
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 6 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen een Standard en Basic SKU Load Balancer?"
     Write-LabLog "2. Wanneer gebruik je een Application Gateway vs. Azure Load Balancer?"
@@ -211,4 +211,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

@@ -51,7 +51,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <LineBreak/><Run Text="3. W11-02: controleer MDM-enrollment status"/>
         <LineBreak/><Run Text="4. MGMT01: open Intune-portal in Edge (handmatig)"/>
         <LineBreak/><Run Text="5. Toon instructies voor Configuration profile en compliance policy"/>
-        <LineBreak/><Run Text="6. Kennischeckvragen"/>
+        <LineBreak/><Run Text="6. Knowledge check questions"/>
       </TextBlock>
     </StackPanel>
 
@@ -241,4 +241,6 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 

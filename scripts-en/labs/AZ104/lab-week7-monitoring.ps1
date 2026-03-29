@@ -40,10 +40,10 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
-        <Run Text="1. Log Analytics Workspace aanmaken"/>
+        <Run Text="1. Log Analytics Workspace create"/>
         <LineBreak/><Run Text="2. VM Insights inschakelen op ssw-lab-vm01"/>
         <LineBreak/><Run Text="3. KQL-query uitvoeren op hartslag en performance"/>
-        <LineBreak/><Run Text="4. Alert-regel aanmaken (CPU > 80%)"/>
+        <LineBreak/><Run Text="4. Alert-regel create (CPU > 80%)"/>
         <LineBreak/><Run Text="5. Azure Monitor Workbook bekijken"/>
       </TextBlock>
     </StackPanel>
@@ -108,7 +108,7 @@ $btnRun.Add_Click({
     $vmName   = "ssw-lab-vm01"
 
     # ── Stap 1: Log Analytics Workspace ─────────────────────
-    Write-LabLog "${pre}Stap 1: Log Analytics Workspace aanmaken ($lawName)"
+    Write-LabLog "${pre}Stap 1: Log Analytics Workspace create ($lawName)"
     $progress.Value = 16
     if ($isDry) {
         Write-LabLog "${pre}  New-AzOperationalInsightsWorkspace -ResourceGroupName '$rgName' -Name '$lawName' -Location '$location' -Sku PerGB2018"
@@ -159,7 +159,7 @@ $btnRun.Add_Click({
     Write-LabLog "  Event | where EventLevelName == 'Error' | project TimeGenerated, Computer, Source, RenderedDescription | take 20"
 
     # ── Stap 4: Alert-regel ──────────────────────────────────
-    Write-LabLog "${pre}Stap 4: Alert-regel aanmaken (CPU > 80%)"
+    Write-LabLog "${pre}Stap 4: Alert-regel create (CPU > 80%)"
     $progress.Value = 68
     if ($isDry) {
         Write-LabLog "${pre}  # Via Azure portal: Monitor > Alerts > Create alert rule"
@@ -170,7 +170,7 @@ $btnRun.Add_Click({
     } else {
         try {
             $law = Get-AzOperationalInsightsWorkspace -ResourceGroupName $rgName -Name $lawName -ErrorAction Stop
-            Write-LabLog "  Alert aanmaken via Azure portal:"
+            Write-LabLog "  Alert create via Azure portal:"
             Write-LabLog "  Monitor > Alerts > + Create > Alert rule"
             Write-LabLog "  Scope: $vmName | Condition: CPU percentage > 80%"
             Write-LabLog "  Action Group: maak een nieuwe aan met e-mail melding"
@@ -189,7 +189,7 @@ $btnRun.Add_Click({
     Write-LabLog "  Maak een eigen werkmap: + New | voeg KQL-tile toe"
     Write-LabLog "  Sla op als 'SSW-Lab Monitoring'"
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 7 lab afgerond — AZ-104 track volledig!"; Write-LabLog ""
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 7 lab completed — AZ-104 track volledig!"; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen Azure Monitor Metrics en Logs?"
     Write-LabLog "2. Welke drie soorten alerts bestaan er in Azure Monitor?"
@@ -206,4 +206,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

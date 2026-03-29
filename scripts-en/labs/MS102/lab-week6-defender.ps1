@@ -39,13 +39,13 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="MS-102 | Week 6 — Microsoft 365 Defender" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="Defender onboarding · EICAR detectie · Attack simulation · Secure Score" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="Defender onboarding · EICAR detection · Attack simulation · Secure Score" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
         <Run Text="1. W11-01: controleer Defender for Endpoint onboarding status"/>
-        <LineBreak/><Run Text="2. W11-01: EICAR testbestand downloaden en detectie verifiëren"/>
+        <LineBreak/><Run Text="2. W11-01: Download EICAR test file and verify detection"/>
         <LineBreak/><Run Text="3. Manual: analyseer het incident in Defender portal"/>
         <LineBreak/><Run Text="4. Manual: voer Attack Simulation Training uit"/>
         <LineBreak/><Run Text="5. Manual: analyseer Microsoft Secure Score"/>
@@ -137,8 +137,8 @@ $btnRun.Add_Click({
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    # ── Stap 2: EICAR detectie ───────────────────────────────
-    Write-LabLog "${pre}Stap 2: W11-01 — EICAR detectietest"
+    # ── Stap 2: EICAR detection ───────────────────────────────
+    Write-LabLog "${pre}Stap 2: W11-01 — EICAR detectiontest"
     $progress.Value = 32
     Write-LabLog "  Let op: EICAR is een veilig standaard testbestand — GEEN echte malware"
     if ($isDry) {
@@ -169,7 +169,7 @@ $btnRun.Add_Click({
     $progress.Value = 50
     Write-LabLog "  URL: https://security.microsoft.com"
     Write-LabLog "  Navigeer naar: Incidents & alerts > Incidents"
-    Write-LabLog "  Zoek de EICAR detectie-alert van W11-01"
+    Write-LabLog "  Zoek de EICAR detection-alert van W11-01"
     Write-LabLog "  Bekijk: Attack story graph, Entities, Evidence"
     Write-LabLog "  Sla het incident op als 'Opgelost' na verificatie"
 
@@ -196,7 +196,7 @@ $btnRun.Add_Click({
         if ($open -eq "Yes") { Start-Process "https://security.microsoft.com" }
     }
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 6 lab afgerond."; Write-LabLog ""
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 6 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen Defender for Office 365 Plan 1 en Plan 2?"
     Write-LabLog "2. Hoe werkt Automated Investigation and Response (AIR) in Defender?"
@@ -213,4 +213,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

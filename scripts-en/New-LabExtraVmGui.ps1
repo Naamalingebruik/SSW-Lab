@@ -54,7 +54,7 @@ function Invoke-ExtraVmScript {
     </Grid.RowDefinitions>
 
     <StackPanel Grid.Row="0" Margin="0,0,0,14">
-      <TextBlock Text="Extra VM aanmaken" Foreground="#CDD6F4" FontSize="20" FontWeight="SemiBold"/>
+      <TextBlock Text="Extra VM create" Foreground="#CDD6F4" FontSize="20" FontWeight="SemiBold"/>
       <TextBlock Text="Client = Windows 11 Enterprise unattended. Server = Windows Server Standard Desktop Experience unattended."
                  Foreground="#A6ADC8" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"/>
     </StackPanel>
@@ -79,7 +79,7 @@ function Invoke-ExtraVmScript {
         <TextBlock Text="VM-naam" Foreground="#A6ADC8" Margin="0,10,0,4"/>
         <TextBox x:Name="VmNameBox" Height="32"/>
 
-        <CheckBox x:Name="StartAfterBox" Content="Start na aanmaken" Foreground="#CDD6F4" Margin="0,10,0,0"/>
+        <CheckBox x:Name="StartAfterBox" Content="Start na create" Foreground="#CDD6F4" Margin="0,10,0,0"/>
       </StackPanel>
 
       <StackPanel Grid.Column="2">
@@ -105,7 +105,7 @@ function Invoke-ExtraVmScript {
 
     <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
       <Button x:Name="PreviewBtn" Content="Preview" Width="110" Height="34" Margin="0,0,10,0"/>
-      <Button x:Name="CreateBtn" Content="Aanmaken" Width="120" Height="34" Margin="0,0,10,0"/>
+      <Button x:Name="CreateBtn" Content="Create" Width="120" Height="34" Margin="0,0,10,0"/>
       <Button x:Name="CloseBtn" Content="Sluiten" Width="100" Height="34"/>
     </StackPanel>
   </Grid>
@@ -202,4 +202,6 @@ Update-TemplateChoices
 Update-DefaultsFromTemplate
 
 $window.ShowDialog() | Out-Null
+
+
 

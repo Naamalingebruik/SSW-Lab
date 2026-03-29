@@ -40,7 +40,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="MS-102 | Week 1 — Microsoft 365 Tenant inrichten" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="Azure AD Connect · Tenant config · Licenties · Entra verificatie" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="Azure AD Connect · Tenant config · Licenses · Entra verification" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
 
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
@@ -49,9 +49,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <Run Text="1. DC01: controleer Azure AD Connect service en sync status"/>
         <LineBreak/><Run Text="2. DC01: voer een delta-sync uit naar Entra ID"/>
         <LineBreak/><Run Text="3. Manual: open M365 admin center en verifieer tenant"/>
-        <LineBreak/><Run Text="4. Manual: controleer gesynchroniseerde gebruikers in Entra"/>
-        <LineBreak/><Run Text="5. Manual: activeer M365 E5 licenties voor gebruikers"/>
-        <LineBreak/><Run Text="6. Kennischeckvragen weergeven"/>
+        <LineBreak/><Run Text="4. Manual: controleer synchronized users in Entra"/>
+        <LineBreak/><Run Text="5. Manual: activeer M365 E5 licenties voor users"/>
+        <LineBreak/><Run Text="6. Knowledge check questions weergeven"/>
       </TextBlock>
     </StackPanel>
 
@@ -175,11 +175,11 @@ $btnRun.Add_Click({
             }
             Write-LabLog "  Delta sync gestart"
             Write-LabLog "  Wacht ca. 30-60 seconden voor verwerking..."
-        } catch { Write-LabLog "  Fout (is Azure AD Connect geinstalleerd?): $_" }
+        } catch { Write-LabLog "  Error (is Azure AD Connect installed?): $_" }
     }
 
-    # ── Stap 3: Microsoft Graph — gebruikers verifiëren ──────
-    Write-LabLog "${pre}Stap 3: Microsoft Graph — gesynchroniseerde gebruikers ophalen"
+    # ── Step 3: Microsoft Graph - verify users ──────
+    Write-LabLog "${pre}Stap 3: Microsoft Graph — synchronized users ophalen"
     $progress.Value = 50
     if ($isDry) {
         Write-LabLog "${pre}  Connect-MgGraph -Scopes 'User.Read.All'"
@@ -189,7 +189,7 @@ $btnRun.Add_Click({
     } else {
         $mgInstalled = Get-Module -ListAvailable -Name Microsoft.Graph.Users -ErrorAction SilentlyContinue
         if (-not $mgInstalled) {
-            Write-LabLog "  Microsoft.Graph module niet gevonden"
+            Write-LabLog "  Microsoft.Graph module not found"
             Write-LabLog "  Installeer met: Install-Module Microsoft.Graph -Scope CurrentUser"
         } else {
             try {
@@ -197,7 +197,7 @@ $btnRun.Add_Click({
                 Connect-MgGraph -Scopes "User.Read.All" -NoWelcome -ErrorAction Stop
                 $syncedUsers = Get-MgUser -Filter "onPremisesSyncEnabled eq true" -Top 10 |
                                Select-Object DisplayName, UserPrincipalName
-                Write-LabLog "  Gesynchroniseerde gebruikers (max 10):"
+                Write-LabLog "  Gesynchroniseerde users (max 10):"
                 $syncedUsers | ForEach-Object { Write-LabLog "    $($_.DisplayName)  <$($_.UserPrincipalName)>" }
             } catch { Write-LabLog "  Error: $_" }
         }
@@ -216,9 +216,9 @@ $btnRun.Add_Click({
     Write-LabLog "${pre}Stap 5: Manual — M365 E5 licenties activeren"
     $progress.Value = 82
     Write-LabLog "  M365 admin center > Users > Active users"
-    Write-LabLog "  Selecteer een gesynchroniseerde gebruiker > Licenses and apps"
+    Write-LabLog "  Selecteer een synchronized user > Licenses and apps"
     Write-LabLog "  Wijs toe: Microsoft 365 E5 Developer"
-    Write-LabLog "  Herhaal voor alle testgebruikers die Intune/Defender nodig hebben"
+    Write-LabLog "  Herhaal voor alle testusers die Intune/Defender nodig hebben"
 
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show(
@@ -228,7 +228,7 @@ $btnRun.Add_Click({
 
     $progress.Value = 100
     Write-LabLog ""
-    Write-LabLog "Week 1 lab afgerond."
+    Write-LabLog "Week 1 lab completed."
     Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen een managed domain en een federated domain?"
@@ -242,11 +242,13 @@ $btnRun.Add_Click({
 })
 
 $btnNext.Add_Click({
-    $nextScript = Join-Path $PSScriptRoot "lab-week2-gebruikers.ps1"
+    $nextScript = Join-Path $PSScriptRoot "lab-week2-users.ps1"
     if (Test-Path $nextScript) { Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$nextScript`"" }
-    else { [System.Windows.MessageBox]::Show("lab-week2-gebruikers.ps1 not found.", "SSW-Lab") }
+    else { [System.Windows.MessageBox]::Show("lab-week2-users.ps1 not found.", "SSW-Lab") }
     $reader.Close()
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 

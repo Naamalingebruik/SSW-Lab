@@ -46,9 +46,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
         <Run Text="1. Graph: Authentication Methods Policy ophalen"/>
         <LineBreak/><Run Text="2. SSPR configureren en testen"/>
-        <LineBreak/><Run Text="3. FIDO2 inschakelen in authenticatiemethoden beleid"/>
+        <LineBreak/><Run Text="3. FIDO2 inschakelen in authenticatiemethoden policy"/>
         <LineBreak/><Run Text="4. Windows Hello for Business status controleren op W11-01"/>
-        <LineBreak/><Run Text="5. Authentication Strength aanmaken (Phishing-resistant MFA)"/>
+        <LineBreak/><Run Text="5. Authentication Strength create (Phishing-resistant MFA)"/>
       </TextBlock>
     </StackPanel>
     <Border Grid.Row="2" Background="#181825" CornerRadius="6" Padding="10">
@@ -89,7 +89,7 @@ $conv = [System.Windows.Media.BrushConverter]::new()
 function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
-        $dryRunTitle.Text = "Dry Run — geen beleid wordt aangepast"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
+        $dryRunTitle.Text = "Dry Run — geen policy wordt aangepast"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
         $dryRunSub.Text = "Haal het vinkje weg om uit te voeren"; $dryRunSub.Foreground = $conv.ConvertFrom("#5A8A6A")
         $chkDryRun.Foreground = $conv.ConvertFrom("#A6E3A1")
     } else {
@@ -155,8 +155,8 @@ $btnRun.Add_Click({
                 includeTargets = @(@{ targetType = "group"; id = "all_users"; isRegistrationRequired = $false })
             }
             Invoke-MgGraphRequest -Method PATCH -Uri "https://graph.microsoft.com/beta/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/Fido2" -Body ($body | ConvertTo-Json -Depth 5) -ContentType "application/json" | Out-Null
-            Write-LabLog "  FIDO2 ingeschakeld voor alle gebruikers"
-        } catch { Write-LabLog "  Fout (of al ingeschakeld): $_" }
+            Write-LabLog "  FIDO2 ingeschakeld voor alle users"
+        } catch { Write-LabLog "  Error (or already enabled): $_" }
     }
 
     # ── Stap 4: Windows Hello for Business op W11-01 ─────────
@@ -164,7 +164,7 @@ $btnRun.Add_Click({
     $progress.Value = 68
     if ($isDry) {
         Write-LabLog "${pre}  Get-MgUserAuthenticationWindowsHelloForBusinessMethod -UserId 'testuser01@<tenant>'"
-        Write-LabLog "${pre}  # Op W11-01 als gebruiker: certutil -store -user 'MY' | findstr 'Smart Card'"
+        Write-LabLog "${pre}  # Op W11-01 als user: certutil -store -user 'MY' | findstr 'Smart Card'"
         Write-LabLog "${pre}  dsregcmd /status | Select-String 'WindowsHelloForBusiness'"
     } else {
         try {
@@ -197,10 +197,10 @@ $btnRun.Add_Click({
         if ($open -eq "Yes") { Start-Process "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/~/AuthStrengths" }
     }
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 3 lab afgerond."; Write-LabLog ""
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 3 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat onderscheidt FIDO2 van een TOTP authenticator-app?"
-    Write-LabLog "2. Hoe werkt de verificatieregistratiestroom voor SSPR?"
+    Write-LabLog "2. Hoe werkt de verificatieregistrationstroom voor SSPR?"
     Write-LabLog "3. Wat is Temporary Access Pass (TAP) en wanneer gebruik je het?"
     Write-LabLog "4. Hoe werkt Windows Hello for Business met Entra ID Join (Cloud Trust)?"
     Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -214,4 +214,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

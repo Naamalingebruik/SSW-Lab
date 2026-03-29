@@ -40,7 +40,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="MS-102 | Week 3 — Hybride identiteit en MFA" Foreground="#CDD6F4" FontSize="18" FontWeight="SemiBold"/>
-      <TextBlock Text="ADSync scheduler · MFA registratie · Sign-in logs · B2B guest · Cross-tenant" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="ADSync scheduler · MFA registration · Sign-in logs · B2B guest · Cross-tenant" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
 
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
@@ -49,9 +49,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <Run Text="1. DC01: controleer ADSync scheduler en voer delta sync uit"/>
         <LineBreak/><Run Text="2. DC01: controleer Password Writeback configuratie"/>
         <LineBreak/><Run Text="3. Manual: configureer MFA via Entra admin center"/>
-        <LineBreak/><Run Text="4. W11-01: registreer MFA-methode als testgebruiker"/>
+        <LineBreak/><Run Text="4. W11-01: registreer MFA-methode als testuser"/>
         <LineBreak/><Run Text="5. Manual: analyseer Sign-in logs in Entra ID"/>
-        <LineBreak/><Run Text="6. Manual: nodig een B2B guest-gebruiker uit"/>
+        <LineBreak/><Run Text="6. Manual: nodig een B2B guest-user uit"/>
       </TextBlock>
     </StackPanel>
 
@@ -154,7 +154,7 @@ $btnRun.Add_Click({
                     Import-Module ADSync -ErrorAction Stop
                     $cfg = Get-ADSyncAADPasswordWritebackConfiguration -ErrorAction SilentlyContinue
                     if ($cfg) { "Password Writeback: Enabled=$($cfg.Enabled)" }
-                    else { "Password Writeback configuratie niet gevonden — controleer Azure AD Connect installatie" }
+                    else { "Password Writeback configuratie not found — controleer Azure AD Connect installation" }
                 } catch { "ADSync module niet beschikbaar: $_" }
             }
             Write-LabLog "  $pwbResult"
@@ -167,10 +167,10 @@ $btnRun.Add_Click({
     Write-LabLog "  URL: https://entra.microsoft.com"
     Write-LabLog "  Navigeer naar: Security > Multifactor authentication"
     Write-LabLog "  Aanbevolen: gebruik Authentication methods policy (niet per-user MFA)"
-    Write-LabLog "  Schakel in: Microsoft Authenticator voor alle gebruikers"
+    Write-LabLog "  Schakel in: Microsoft Authenticator voor alle users"
     Write-LabLog "  Gebruik Conditional Access voor MFA-afdwinging (week 3 exam-onderwerp)"
 
-    # ── Stap 4: MFA registratie ──────────────────────────────
+    # ── Stap 4: MFA registration ──────────────────────────────
     Write-LabLog "${pre}Stap 4: Manual — MFA registreren als testuser01"
     $progress.Value = 58
     Write-LabLog "  Op W11-01, open Edge en ga naar: https://aka.ms/mfasetup"
@@ -187,7 +187,7 @@ $btnRun.Add_Click({
     Write-LabLog "  Exporteer indien nodig naar CSV voor verdere analyse"
 
     # ── Stap 6: B2B guest uitnodigen ─────────────────────────
-    Write-LabLog "${pre}Stap 6: Manual — B2B guest-gebruiker uitnodigen"
+    Write-LabLog "${pre}Stap 6: Manual — B2B guest-user uitnodigen"
     $progress.Value = 86
     Write-LabLog "  Entra admin center > Users > All users > + Invite external user"
     Write-LabLog "  Email: gebruik een persoonlijk account of een tweede MSDN tenant"
@@ -201,9 +201,9 @@ $btnRun.Add_Click({
     }
 
     $progress.Value = 100
-    Write-LabLog ""; Write-LabLog "Week 3 lab afgerond."; Write-LabLog ""
+    Write-LabLog ""; Write-LabLog "Week 3 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-LabLog "1. Wat is het verschil tussen MFA per gebruiker en Security Defaults?"
+    Write-LabLog "1. Wat is het verschil tussen MFA per user en Security Defaults?"
     Write-LabLog "2. Hoe werkt Seamless Single Sign-On (SSO) met Azure AD Connect?"
     Write-LabLog "3. Wat is Azure AD B2B en wanneer gebruik je B2B versus B2C?"
     Write-LabLog "4. Hoe troubleshoot je een sync-fout in Azure AD Connect?"
@@ -219,4 +219,6 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 

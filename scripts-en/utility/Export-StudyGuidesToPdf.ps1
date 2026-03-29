@@ -18,7 +18,7 @@ function Resolve-BrowserPath {
 
   if ($PreferredPath) {
     if (Test-Path $PreferredPath) { return (Resolve-Path $PreferredPath).Path }
-    throw "Browser niet gevonden op opgegeven pad: $PreferredPath"
+    throw "Browser not found at opgegeven pad: $PreferredPath"
   }
 
   $candidates = @(
@@ -177,7 +177,7 @@ try {
   foreach ($guide in $guides) {
     $sourcePath = Join-Path $repoRoot $guide.Source
     if (-not (Test-Path $sourcePath)) {
-      throw "Bronbestand niet gevonden: $sourcePath"
+      throw "Bronbestand not found: $sourcePath"
     }
 
     $markdown = Get-Content $sourcePath -Raw -Encoding UTF8
@@ -210,4 +210,6 @@ finally {
     Remove-Item $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
   }
 }
+
+
 

@@ -39,7 +39,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
     <StackPanel Grid.Row="0" Margin="0,0,0,16">
       <TextBlock Text="MD-102 | Week 3 — Compliance en Conditional Access" Foreground="#CDD6F4" FontSize="17" FontWeight="SemiBold"/>
-      <TextBlock Text="AD-gebruikers, Azure AD Connect sync, CA-policy, compliance policy" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
+      <TextBlock Text="AD-users, Azure AD Connect sync, CA-policy, compliance policy" Foreground="#A6ADC8" FontSize="12" Margin="0,2,0,0"/>
     </StackPanel>
 
     <StackPanel Grid.Row="1" Margin="0,0,0,8">
@@ -49,7 +49,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <LineBreak/><Run Text="3. MGMT01: instructies CA-policy (MFA buiten netwerk)"/>
         <LineBreak/><Run Text="4. MGMT01: instructies compliance policy (Defender + BitLocker + min. W11 22H2)"/>
         <LineBreak/><Run Text="5. W11-02: controleer niet-compliant status"/>
-        <LineBreak/><Run Text="6. Kennischeckvragen"/>
+        <LineBreak/><Run Text="6. Knowledge check questions"/>
       </TextBlock>
     </StackPanel>
 
@@ -134,8 +134,8 @@ $btnRun.Add_Click({
     $w11bVM   = $profiles."W11-02".Name
     $domain   = $SSWConfig.DomainName
 
-    # ── Stap 1: DC01 — Maak testgebruikers aan ───────────────
-    Write-LabLog "${pre}Stap 1: DC01 — TestUser01 en TestUser02 aanmaken"
+    # ── Stap 1: DC01 — Maak testusers aan ───────────────
+    Write-LabLog "${pre}Stap 1: DC01 — TestUser01 en TestUser02 create"
     $progress.Value = 15
     if ($isDry) {
         Write-LabLog "${pre}  New-ADUser -Name 'TestUser01' -SamAccountName testuser01 -UserPrincipalName testuser01@$domain"
@@ -158,7 +158,7 @@ $btnRun.Add_Click({
                     } else { Write-Host "Bestaat al: $u" }
                 }
             } -ArgumentList $domain, $testUserPassword
-            Write-LabLog "  ✔ Testgebruikers aangemaakt/geverifieerd"
+            Write-LabLog "  ✔ Testusers aangemaakt/geverifieerd"
         } catch { Write-LabLog "  ✖ Error: $_" }
     }
 
@@ -176,13 +176,13 @@ $btnRun.Add_Click({
                     Import-Module ADSync
                     Start-ADSyncSyncCycle -PolicyType Delta
                     "Sync gestart: $(Get-Date)"
-                } else { "Azure AD Connect niet geinstalleerd op DC01 — installeer eerst via Initialize-DomainController.ps1" }
+                } else { "Azure AD Connect not installed op DC01 — installeer eerst via Initialize-DomainController.ps1" }
             } | ForEach-Object { Write-LabLog "  $_" }
         } catch { Write-LabLog "  ✖ Error: $_" }
     }
 
     # ── Stap 3: MGMT01 — CA-policy instructies ───────────────
-    Write-LabLog "${pre}Stap 3: MGMT01 — Conditional Access policy aanmaken (handmatig)"
+    Write-LabLog "${pre}Stap 3: MGMT01 — Conditional Access policy create (handmatig)"
     $progress.Value = 55
     Write-LabLog "  → Ga naar: entra.microsoft.com → Protection → Conditional Access → New policy"
     Write-LabLog "  → Naam: 'MD102-Lab-MFA-Outside-CorpNetwork'"
@@ -193,7 +193,7 @@ $btnRun.Add_Click({
     Write-LabLog "  → Enable policy: Report-only (tests eerst) → daarna On"
 
     # ── Stap 4: MGMT01 — Compliance policy instructies ───────
-    Write-LabLog "${pre}Stap 4: MGMT01 — Compliance policy aanmaken (handmatig)"
+    Write-LabLog "${pre}Stap 4: MGMT01 — Compliance policy create (handmatig)"
     $progress.Value = 72
     Write-LabLog "  → Ga naar: intune.microsoft.com → Devices → Compliance → Create policy → Windows 10 and later"
     Write-LabLog "  → Naam: 'MD102-Lab-Compliance-Baseline'"
@@ -222,7 +222,7 @@ $btnRun.Add_Click({
 
     $progress.Value = 100
     Write-LabLog ""
-    Write-LabLog "✔ Week 3 lab afgerond."
+    Write-LabLog "✔ Week 3 lab completed."
     Write-KennisCheck
     $btnNext.IsEnabled = $true
     $btnRun.IsEnabled  = $true
@@ -236,5 +236,7 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 
 

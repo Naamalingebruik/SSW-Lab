@@ -45,9 +45,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
       <TextBlock Style="{StaticResource Lbl}" Text="Steps in this lab:"/>
       <TextBlock Foreground="#CDD6F4" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0">
         <Run Text="1. MGMT01: Verbinding met Microsoft Information Protection PowerShell"/>
-        <LineBreak/><Run Text="2. Manual: Sensitivity label aanmaken in Purview portal"/>
-        <LineBreak/><Run Text="3. Manual: DLP-beleid instellen voor BSN in e-mail"/>
-        <LineBreak/><Run Text="4. Manual: eDiscovery Core zoekopdracht aanmaken"/>
+        <LineBreak/><Run Text="2. Manual: Sensitivity label create in Purview portal"/>
+        <LineBreak/><Run Text="3. Manual: DLP-policy instellen voor BSN in e-mail"/>
+        <LineBreak/><Run Text="4. Manual: eDiscovery Core zoekopdracht create"/>
         <LineBreak/><Run Text="5. Manual: Compliance Manager bekijken"/>
       </TextBlock>
     </StackPanel>
@@ -122,18 +122,18 @@ $btnRun.Add_Click({
             $labelCheck = Invoke-Command -VMName $mgmtVM -Credential $cred -ScriptBlock {
                 $mod = Get-Module ExchangeOnlineManagement -ListAvailable
                 [PSCustomObject]@{
-                    ModuleVersie = if ($mod) { ($mod | Sort-Object Version -Descending | Select-Object -First 1).Version.ToString() } else { "Niet geïnstalleerd" }
+                    ModuleVersie = if ($mod) { ($mod | Sort-Object Version -Descending | Select-Object -First 1).Version.ToString() } else { "Not installed" }
                 }
             }
             Write-LabLog "  ExchangeOnlineManagement: $($labelCheck.ModuleVersie)"
-            if ($labelCheck.ModuleVersie -eq "Niet geïnstalleerd") {
+            if ($labelCheck.ModuleVersie -eq "Not installed") {
                 Write-LabLog "  Installatie: Install-Module ExchangeOnlineManagement -Force"
             }
         } catch { Write-LabLog "  Error: $_" }
     }
 
     # ── Stap 2: Sensitivity label ────────────────────────────
-    Write-LabLog "${pre}Stap 2: Manual — Sensitivity label aanmaken"
+    Write-LabLog "${pre}Stap 2: Manual — Sensitivity label create"
     $progress.Value = 28
     Write-LabLog "  URL: https://compliance.microsoft.com"
     Write-LabLog "  Navigeer naar: Information protection > Labels"
@@ -144,14 +144,14 @@ $btnRun.Add_Click({
     Write-LabLog "  Scope: Files and emails"
     Write-LabLog "  Publiceer het label via Label policies"
 
-    # ── Stap 3: DLP-beleid ────────────────────────────────────
-    Write-LabLog "${pre}Stap 3: Manual — DLP-beleid voor BSN-nummers"
+    # ── Stap 3: DLP-policy ────────────────────────────────────
+    Write-LabLog "${pre}Stap 3: Manual — DLP-policy voor BSN-nummers"
     $progress.Value = 42
     Write-LabLog "  Compliance portal > Data Loss Prevention > Policies"
     Write-LabLog "  + Create a DLP policy"
     Write-LabLog "  Template: Privacy > Netherlands > Dutch Citizen Card Number"
     Write-LabLog "  Scope: Exchange Online e-mail"
-    Write-LabLog "  Actie: Block + stuur melding aan gebruiker en admin"
+    Write-LabLog "  Actie: Block + stuur melding aan user en admin"
     Write-LabLog "  Test: stuur mail met BSN-patroon (bijv. 123456789) → DLP alert"
     Write-LabLog "  Monitor alerts via: Data loss prevention > Alerts"
 
@@ -179,10 +179,10 @@ $btnRun.Add_Click({
         if ($open -eq "Yes") { Start-Process "https://compliance.microsoft.com" }
     }
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 7 lab afgerond — MS-102 track volledig!"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 7 lab completed — MS-102 track volledig!"
     Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-LabLog "1. Wat is het onderscheid tussen MIP labels en DLP-beleid?"
+    Write-LabLog "1. Wat is het onderscheid tussen MIP labels en DLP-policy?"
     Write-LabLog "2. In welk scenario gebruik je eDiscovery versus Content Search?"
     Write-LabLog "3. Welke licentie is vereist voor eDiscovery Premium (vroeger: AeD)?"
     Write-LabLog "4. Wat is de rol van Compliance Manager versus Compliance Score?"
@@ -197,4 +197,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

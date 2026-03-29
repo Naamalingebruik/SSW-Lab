@@ -72,24 +72,24 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
       <StackPanel Grid.Column="0">
-        <TextBlock Text="Domein (FQDN)" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Domain (FQDN)" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtDomain" Style="{StaticResource Fld}"/>
-        <TextBlock Text="Domain admin gebruikersnaam" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Domain admin usersnaam" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtDomainAdmin" Style="{StaticResource Fld}"/>
-        <TextBlock Text="Domain admin wachtwoord" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Domain admin password" Style="{StaticResource Lbl}"/>
         <PasswordBox x:Name="PwdDomain" Style="{StaticResource PwdFld}"/>
       </StackPanel>
       <StackPanel Grid.Column="2">
-        <TextBlock Text="Lokale admin gebruikersnaam (VMs)" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Lokale admin usersnaam (VMs)" Style="{StaticResource Lbl}"/>
         <TextBox x:Name="TxtLocalAdmin" Style="{StaticResource Fld}"/>
-        <TextBlock Text="Lokaal admin wachtwoord (VMs)" Style="{StaticResource Lbl}"/>
+        <TextBlock Text="Local admin password (VMs)" Style="{StaticResource Lbl}"/>
         <PasswordBox x:Name="PwdLocal" Style="{StaticResource PwdFld}"/>
       </StackPanel>
     </Grid>
 
     <Border Grid.Row="2" Background="#313244" CornerRadius="6" Padding="16,12" Margin="0,12,0,0">
       <StackPanel>
-        <TextBlock Text="Selecteer VMs om te joinen (DC01 overgeslagen)" Foreground="#A6ADC8" FontSize="11" Margin="0,0,0,8"/>
+        <TextBlock Text="Selecteer VMs om te joinen (DC01 skipped)" Foreground="#A6ADC8" FontSize="11" Margin="0,0,0,8"/>
         <WrapPanel x:Name="VMPanel"/>
         <Button x:Name="BtnRefresh" Content="VMs vernieuwen" Width="140" HorizontalAlignment="Left"
                 Background="#45475A" Foreground="#CDD6F4" BorderThickness="0" Cursor="Hand"
@@ -221,8 +221,8 @@ $btnJoin.Add_Click({
     $domainPwd  = $pwdDomain.Password
     $pre        = if ($isDry) { "[DRY RUN] " } else { "" }
 
-    if (-not $localAdmin) { [System.Windows.MessageBox]::Show("Vul een lokale admin gebruikersnaam in.", "SSW-Lab"); $btnJoin.IsEnabled = $true; return }
-    if (-not $localPwd -or -not $domainPwd) { [System.Windows.MessageBox]::Show("Vul beide wachtwoorden in.", "SSW-Lab"); $btnJoin.IsEnabled = $true; return }
+    if (-not $localAdmin) { [System.Windows.MessageBox]::Show("Vul een lokale admin usersnaam in.", "SSW-Lab"); $btnJoin.IsEnabled = $true; return }
+    if (-not $localPwd -or -not $domainPwd) { [System.Windows.MessageBox]::Show("Enter both passwords.", "SSW-Lab"); $btnJoin.IsEnabled = $true; return }
 
     $sel = $checkBoxes.GetEnumerator() | Where-Object { $_.Value.IsChecked } | ForEach-Object { $_.Key }
     if ($sel.Count -eq 0) { Add-UiLog "Geen VMs geselecteerd."; $btnJoin.IsEnabled = $true; return }
@@ -263,10 +263,12 @@ $btnJoin.Add_Click({
     }
 
     $progress.Value = 100
-    Add-UiLog $(if ($isDry) { "Dry Run klaar - niets uitgevoerd." } else { "Domain join voltooid." })
+    Add-UiLog $(if ($isDry) { "Dry Run done - niets uitgevoerd." } else { "Domain join voltooid." })
     $btnJoin.IsEnabled = $true
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 
 

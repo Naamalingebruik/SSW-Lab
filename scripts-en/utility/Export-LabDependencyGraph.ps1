@@ -74,7 +74,7 @@ foreach ($step in $setupSteps) {
 }
 
 $content.Add('')
-$content.Add('## Trajecten')
+$content.Add('## Tracks')
 $content.Add('')
 foreach ($track in $tracks) {
     $content.Add(('### {0}' -f $track.name))
@@ -99,5 +99,7 @@ $content.Add('.\scripts\utility\Export-LabDependencyGraph.ps1')
 $content.Add('```')
 
 $content -join [Environment]::NewLine | Set-Content -Path $resolvedOutputPath -Encoding utf8
-Write-Output "Dependency graph bijgewerkt: $resolvedOutputPath"
+Write-Output "Dependency graph updated: $resolvedOutputPath"
+
+
 

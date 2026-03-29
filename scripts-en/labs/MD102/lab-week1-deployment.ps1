@@ -1,7 +1,7 @@
 #Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | MD-102 | Week 1 — Windows client deployment
-# Doel: Verifieer deploy-readiness, Windows 11 build, ADK-installatie
+# Doel: Verifieer deploy-readiness, Windows 11 build, ADK-installation
 #       en demonstreer unattended/SIM-concepten.
 # VMs:  LAB-DC01, LAB-MGMT01, LAB-W11-01
 # ============================================================
@@ -50,7 +50,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <LineBreak/><Run Text="2. MGMT01: controleer of Windows ADK aanwezig is"/>
         <LineBreak/><Run Text="3. W11-01: haal Windows 11 build-nummer op"/>
         <LineBreak/><Run Text="4. W11-01: analyseer Windows Update log"/>
-        <LineBreak/><Run Text="5. Kennischeckvragen weergeven"/>
+        <LineBreak/><Run Text="5. Knowledge check questions weergeven"/>
       </TextBlock>
     </StackPanel>
 
@@ -226,7 +226,7 @@ $btnRun.Add_Click({
 
     $progress.Value = 100
     Write-LabLog ""
-    Write-LabLog "✔ Week 1 lab afgerond."
+    Write-LabLog "✔ Week 1 lab completed."
     Write-KennisCheck
     $btnNext.IsEnabled = $true
     $btnRun.IsEnabled  = $true
@@ -240,4 +240,6 @@ $btnNext.Add_Click({
 })
 
 $reader.ShowDialog() | Out-Null
+
+
 

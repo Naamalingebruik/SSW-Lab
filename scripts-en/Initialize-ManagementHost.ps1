@@ -60,7 +60,7 @@ $catalog = @(
       <Setter Property="Foreground" Value="#A6ADC8"/><Setter Property="FontSize" Value="12"/>
       <Setter Property="Margin" Value="0,2,0,0"/>
     </Style>
-    <Style TargetType="RadioButton" x:Key="TrajectBtn">
+    <Style TargetType="RadioButton" x:Key="TrackBtn">
       <Setter Property="Foreground" Value="#CDD6F4"/><Setter Property="FontSize" Value="13"/>
       <Setter Property="Margin" Value="0,0,12,0"/><Setter Property="Cursor" Value="Hand"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -104,11 +104,11 @@ $catalog = @(
       <StackPanel>
         <TextBlock Text="Certification track" Foreground="#A6ADC8" FontSize="11" Margin="0,0,0,10"/>
         <WrapPanel>
-          <RadioButton x:Name="RadioAZ104"  Content="AZ-104"  Style="{StaticResource TrajectBtn}" GroupName="Traject"/>
-          <RadioButton x:Name="RadioMD102"  Content="MD-102"  Style="{StaticResource TrajectBtn}" GroupName="Traject"/>
-          <RadioButton x:Name="RadioMS102"  Content="MS-102"  Style="{StaticResource TrajectBtn}" GroupName="Traject"/>
-          <RadioButton x:Name="RadioSC300"  Content="SC-300"  Style="{StaticResource TrajectBtn}" GroupName="Traject"/>
-          <RadioButton x:Name="RadioFull"   Content="Full (all)"  Style="{StaticResource TrajectBtn}" GroupName="Traject" IsChecked="True"/>
+          <RadioButton x:Name="RadioAZ104"  Content="AZ-104"  Style="{StaticResource TrackBtn}" GroupName="Track"/>
+          <RadioButton x:Name="RadioMD102"  Content="MD-102"  Style="{StaticResource TrackBtn}" GroupName="Track"/>
+          <RadioButton x:Name="RadioMS102"  Content="MS-102"  Style="{StaticResource TrackBtn}" GroupName="Track"/>
+          <RadioButton x:Name="RadioSC300"  Content="SC-300"  Style="{StaticResource TrackBtn}" GroupName="Track"/>
+          <RadioButton x:Name="RadioFull"   Content="Full (all)"  Style="{StaticResource TrackBtn}" GroupName="Track" IsChecked="True"/>
         </WrapPanel>
       </StackPanel>
     </Border>
@@ -432,4 +432,6 @@ $btnInstall.Add_Click({
 
 # ── Show window ───────────────────────────────────────────────────────────────
 $window.ShowDialog() | Out-Null
+
+
 

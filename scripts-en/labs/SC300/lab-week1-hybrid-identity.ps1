@@ -47,7 +47,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
         <Run Text="1. DC01: AD DS forest informatie ophalen"/>
         <LineBreak/><Run Text="2. MGMT01: Azure AD Connect sync status controleren"/>
         <LineBreak/><Run Text="3. MGMT01: Delta sync uitvoeren en loggen"/>
-        <LineBreak/><Run Text="4. Graph: gesynchroniseerde gebruikers verifiëren"/>
+        <LineBreak/><Run Text="4. Graph: verify synchronized users"/>
         <LineBreak/><Run Text="5. Entra portal: audit logs bekijken"/>
       </TextBlock>
     </StackPanel>
@@ -134,7 +134,7 @@ $btnRun.Add_Click({
             }
             Write-LabLog "  Forest: $($forestInfo.ForestName) [$($forestInfo.ForestMode)]"
             Write-LabLog "  PDC Emulator: $($forestInfo.PDCEmulator)"
-            Write-LabLog "  Gebruikers: $($forestInfo.UserCount) | Groepen: $($forestInfo.GroupCount) | Computers: $($forestInfo.ComputerCount)"
+            Write-LabLog "  Users: $($forestInfo.UserCount) | Groups: $($forestInfo.GroupCount) | Computers: $($forestInfo.ComputerCount)"
         } catch { Write-LabLog "  Error: $_" }
     }
 
@@ -190,8 +190,8 @@ $btnRun.Add_Click({
         } catch { Write-LabLog "  Error: $_" }
     }
 
-    # ── Stap 4: Gesynchroniseerde gebruikers via Graph ───────
-    Write-LabLog "${pre}Stap 4: Graph — gesynchroniseerde gebruikers tellen"
+    # ── Stap 4: Gesynchroniseerde users via Graph ───────
+    Write-LabLog "${pre}Stap 4: Graph — synchronized users tellen"
     $progress.Value = 68
     if ($isDry) {
         Write-LabLog "${pre}  Connect-MgGraph -Scopes 'User.Read.All'"
@@ -201,9 +201,9 @@ $btnRun.Add_Click({
         try {
             Connect-MgGraph -Scopes "User.Read.All" -ErrorAction Stop | Out-Null
             $syncedUsers = Get-MgUser -Filter "onPremisesSyncEnabled eq true" -All
-            Write-LabLog "  Gesynchroniseerde gebruikers: $($syncedUsers.Count)"
+            Write-LabLog "  Gesynchroniseerde users: $($syncedUsers.Count)"
             $syncedUsers | Select-Object -First 5 | ForEach-Object { Write-LabLog "  $($_.UserPrincipalName) [$($_.AccountEnabled)]" }
-        } catch { Write-LabLog "  Fout (Graph): $_" }
+        } catch { Write-LabLog "  Error (Graph): $_" }
     }
 
     # ── Stap 5: Entra audit logs ─────────────────────────────
@@ -216,7 +216,7 @@ $btnRun.Add_Click({
     Write-LabLog "  Sign-in logs: Identity > Monitoring > Sign-in logs"
     Write-LabLog "  Filter op: Status = Failure → bekijk de foutcode en reden"
 
-    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 1 lab afgerond."; Write-LabLog ""
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 1 lab completed."; Write-LabLog ""
     Write-LabLog "━━━ KNOWLEDGE CHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     Write-LabLog "1. Wat is het verschil tussen Azure AD Connect en Azure AD Connect cloud sync?"
     Write-LabLog "2. Welke attributen worden standaard gesynchroniseerd met Azure AD Connect?"
@@ -233,4 +233,6 @@ $btnNext.Add_Click({
     $reader.Close()
 })
 $reader.ShowDialog() | Out-Null
+
+
 

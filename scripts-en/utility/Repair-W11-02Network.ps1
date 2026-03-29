@@ -20,3 +20,5 @@ Write-Host "GW: $((Get-NetRoute -InterfaceIndex $idx -DestinationPrefix '0.0.0.0
 Write-Host "DNS: $((Get-DnsClientServerAddress -InterfaceIndex $idx -AddressFamily IPv4).ServerAddresses)"
 Test-NetConnection -ComputerName 8.8.8.8 -InformationLevel Quiet
 
+
+
