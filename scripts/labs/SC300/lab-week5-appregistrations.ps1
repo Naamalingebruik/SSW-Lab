@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/SC300/lab-week5-appregistrations.ps1
 # SC-300 Week 5 — App Registrations, App Proxy, OAuth2, Managed Identity
@@ -11,7 +11,6 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="SC-300 | Week 5 — App Registrations en App Proxy" Height="720" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
@@ -86,7 +85,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen app-registratie wordt aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -99,51 +98,51 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
     $isDry = $chkDryRun.IsChecked; $pre = if ($isDry) { "[DRY RUN] " } else { "" }
 
     # ── Stap 1: App registratie aanmaken ─────────────────────
-    Write-Log "${pre}Stap 1: App registratie aanmaken (SSW-Lab-App)"
+    Write-LabLog "${pre}Stap 1: App registratie aanmaken (SSW-Lab-App)"
     $progress.Value = 16
     if ($isDry) {
-        Write-Log "${pre}  Connect-MgGraph -Scopes 'Application.ReadWrite.All'"
-        Write-Log "${pre}  New-MgApplication -DisplayName 'SSW-Lab-App' -SignInAudience 'AzureADMyOrg'"
-        Write-Log "${pre}  `$app.AppId  # Application (client) ID"
-        Write-Log "${pre}  `$app.Id     # Object ID"
+        Write-LabLog "${pre}  Connect-MgGraph -Scopes 'Application.ReadWrite.All'"
+        Write-LabLog "${pre}  New-MgApplication -DisplayName 'SSW-Lab-App' -SignInAudience 'AzureADMyOrg'"
+        Write-LabLog "${pre}  `$app.AppId  # Application (client) ID"
+        Write-LabLog "${pre}  `$app.Id     # Object ID"
     } else {
         try {
             Connect-MgGraph -Scopes "Application.ReadWrite.All", "AppRoleAssignment.ReadWrite.All" -ErrorAction Stop | Out-Null
             $existingApp = Get-MgApplication -Filter "displayName eq 'SSW-Lab-App'" -ErrorAction SilentlyContinue
             if (-not $existingApp) {
                 $app = New-MgApplication -DisplayName "SSW-Lab-App" -SignInAudience "AzureADMyOrg"
-                Write-Log "  App aangemaakt: SSW-Lab-App"
-                Write-Log "  App ID (client): $($app.AppId)"
-                Write-Log "  Object ID: $($app.Id)"
+                Write-LabLog "  App aangemaakt: SSW-Lab-App"
+                Write-LabLog "  App ID (client): $($app.AppId)"
+                Write-LabLog "  Object ID: $($app.Id)"
                 $script:appId = $app.AppId
                 $script:appObjectId = $app.Id
             } else {
-                Write-Log "  App bestaat al: $($existingApp.DisplayName)"
-                Write-Log "  App ID (client): $($existingApp.AppId)"
+                Write-LabLog "  App bestaat al: $($existingApp.DisplayName)"
+                Write-LabLog "  App ID (client): $($existingApp.AppId)"
                 $script:appId = $existingApp.AppId
                 $script:appObjectId = $existingApp.Id
             }
-        } catch { Write-Log "  Fout: $_"; $btnRun.IsEnabled = $true; return }
+        } catch { Write-LabLog "  Fout: $_"; $btnRun.IsEnabled = $true; return }
     }
 
     # ── Stap 2: API-machtigingen toevoegen ───────────────────
-    Write-Log "${pre}Stap 2: API-machtigingen toevoegen (User.Read + Mail.Read)"
+    Write-LabLog "${pre}Stap 2: API-machtigingen toevoegen (User.Read + Mail.Read)"
     $progress.Value = 32
     if ($isDry) {
-        Write-Log "${pre}  # Microsoft Graph API (00000003-0000-0000-c000-000000000000)"
-        Write-Log "${pre}  # User.Read = e1fe6dd8-ba31-4d61-89e7-88639da4683d (delegated)"
-        Write-Log "${pre}  # Mail.Read = 570282fd-fa5c-430d-a7fd-fc8dc98a9dca (delegated)"
-        Write-Log "${pre}  `$requiredAccess = @{ resourceAppId = '00000003-0000-0000-c000-000000000000'; resourceAccess = @(@{id='e1fe6dd8-ba31-4d61-89e7-88639da4683d'; type='Scope'},@{id='570282fd-fa5c-430d-a7fd-fc8dc98a9dca';type='Scope'}) }"
-        Write-Log "${pre}  Update-MgApplication -ApplicationId `$app.Id -RequiredResourceAccess @(`$requiredAccess)"
+        Write-LabLog "${pre}  # Microsoft Graph API (00000003-0000-0000-c000-000000000000)"
+        Write-LabLog "${pre}  # User.Read = e1fe6dd8-ba31-4d61-89e7-88639da4683d (delegated)"
+        Write-LabLog "${pre}  # Mail.Read = 570282fd-fa5c-430d-a7fd-fc8dc98a9dca (delegated)"
+        Write-LabLog "${pre}  `$requiredAccess = @{ resourceAppId = '00000003-0000-0000-c000-000000000000'; resourceAccess = @(@{id='e1fe6dd8-ba31-4d61-89e7-88639da4683d'; type='Scope'},@{id='570282fd-fa5c-430d-a7fd-fc8dc98a9dca';type='Scope'}) }"
+        Write-LabLog "${pre}  Update-MgApplication -ApplicationId `$app.Id -RequiredResourceAccess @(`$requiredAccess)"
     } else {
         try {
             $requiredAccess = @{
@@ -154,64 +153,64 @@ $btnRun.Add_Click({
                 )
             }
             Update-MgApplication -ApplicationId $script:appObjectId -RequiredResourceAccess @($requiredAccess)
-            Write-Log "  API-machtigingen toegevoegd: User.Read + Mail.Read (delegated)"
-            Write-Log "  Admin consent vereist in Entra portal voor tenant-brede toegang"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  API-machtigingen toegevoegd: User.Read + Mail.Read (delegated)"
+            Write-LabLog "  Admin consent vereist in Entra portal voor tenant-brede toegang"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: Client secret aanmaken ───────────────────────
-    Write-Log "${pre}Stap 3: Client secret aanmaken (geldigheid 1 jaar)"
+    Write-LabLog "${pre}Stap 3: Client secret aanmaken (geldigheid 1 jaar)"
     $progress.Value = 50
     if ($isDry) {
-        Write-Log "${pre}  `$secretParam = @{ displayName = 'LabSecret'; endDateTime = (Get-Date).AddYears(1) }"
-        Write-Log "${pre}  `$secret = Add-MgApplicationPassword -ApplicationId `$app.Id -PasswordCredential `$secretParam"
-        Write-Log "${pre}  `$secret.SecretText  # EENMALIG ZICHTBAAR — sla dit direct op!"
-        Write-Log "${pre}  # Token aanvragen voor test:"
-        Write-Log "${pre}  `$body = @{ grant_type='client_credentials'; client_id=`$appId; client_secret=`$secret; scope='https://graph.microsoft.com/.default' }"
-        Write-Log "${pre}  Invoke-RestMethod -Uri 'https://login.microsoftonline.com/<tenantId>/oauth2/v2.0/token' -Method Post -Body `$body"
+        Write-LabLog "${pre}  `$secretParam = @{ displayName = 'LabSecret'; endDateTime = (Get-Date).AddYears(1) }"
+        Write-LabLog "${pre}  `$secret = Add-MgApplicationPassword -ApplicationId `$app.Id -PasswordCredential `$secretParam"
+        Write-LabLog "${pre}  `$secret.SecretText  # EENMALIG ZICHTBAAR — sla dit direct op!"
+        Write-LabLog "${pre}  # Token aanvragen voor test:"
+        Write-LabLog "${pre}  `$body = @{ grant_type='client_credentials'; client_id=`$appId; client_secret=`$secret; scope='https://graph.microsoft.com/.default' }"
+        Write-LabLog "${pre}  Invoke-RestMethod -Uri 'https://login.microsoftonline.com/<tenantId>/oauth2/v2.0/token' -Method Post -Body `$body"
     } else {
         try {
             $secretParam = @{ DisplayName = "LabSecret"; EndDateTime = (Get-Date).AddYears(1) }
             $secret = Add-MgApplicationPassword -ApplicationId $script:appObjectId -PasswordCredential $secretParam
-            Write-Log "  Client secret aangemaakt: LabSecret"
-            Write-Log "  SECRET (sla dit op, eenmalig zichtbaar!):"
-            Write-Log "  $($secret.SecretText)"
-            Write-Log "  Vervalt: $($secret.EndDateTime)"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  Client secret aangemaakt: LabSecret"
+            Write-LabLog "  SECRET (sla dit op, eenmalig zichtbaar!):"
+            Write-LabLog "  $($secret.SecretText)"
+            Write-LabLog "  Vervalt: $($secret.EndDateTime)"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 4: Enterprise app consent ───────────────────────
-    Write-Log "${pre}Stap 4: Manueel — Enterprise app en consent bekijken"
+    Write-LabLog "${pre}Stap 4: Manueel — Enterprise app en consent bekijken"
     $progress.Value = 68
-    Write-Log "  Entra portal > Applications > Enterprise applications > SSW-Lab-App"
-    Write-Log "  Permissions tab > Grant admin consent for <tenant>"
-    Write-Log "  Bekijk de verleende machtigingen (consent)"
-    Write-Log "  Users and groups tab: wijs een testgebruiker toe aan de app"
-    Write-Log "  Single sign-on tab: bekijk de configuratie-opties (SAML, OIDC)"
+    Write-LabLog "  Entra portal > Applications > Enterprise applications > SSW-Lab-App"
+    Write-LabLog "  Permissions tab > Grant admin consent for <tenant>"
+    Write-LabLog "  Bekijk de verleende machtigingen (consent)"
+    Write-LabLog "  Users and groups tab: wijs een testgebruiker toe aan de app"
+    Write-LabLog "  Single sign-on tab: bekijk de configuratie-opties (SAML, OIDC)"
 
     # ── Stap 5: App Proxy ────────────────────────────────────
-    Write-Log "${pre}Stap 5: Manueel — App Proxy connector bekijken"
+    Write-LabLog "${pre}Stap 5: Manueel — App Proxy connector bekijken"
     $progress.Value = 84
-    Write-Log "  Entra portal > Applications > Enterprise applications > Application proxy"
-    Write-Log "  Vereiste: Entra Application Proxy Connector op MGMT01 installeren"
-    Write-Log "  Download: https://aka.ms/aadappproxy"
-    Write-Log "  Connector installeert als Windows service: WAPCSvc"
-    Write-Log "  Na installatie: nieuwe connector verschijnt in portal"
-    Write-Log "  + Configure an app: stel intern ULR en externe URL in"
-    Write-Log "  Intern URL: http://mgmt01.ssw.lab/intranet"
-    Write-Log "  Extern URL: https://sswlab-intranet.<tenant>.msappproxy.net"
+    Write-LabLog "  Entra portal > Applications > Enterprise applications > Application proxy"
+    Write-LabLog "  Vereiste: Entra Application Proxy Connector op MGMT01 installeren"
+    Write-LabLog "  Download: https://aka.ms/aadappproxy"
+    Write-LabLog "  Connector installeert als Windows service: WAPCSvc"
+    Write-LabLog "  Na installatie: nieuwe connector verschijnt in portal"
+    Write-LabLog "  + Configure an app: stel intern ULR en externe URL in"
+    Write-LabLog "  Intern URL: http://mgmt01.ssw.lab/intranet"
+    Write-LabLog "  Extern URL: https://sswlab-intranet.<tenant>.msappproxy.net"
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show("Entra portal openen (App Proxy)?", "SSW-Lab", "YesNo", "Question")
         if ($open -eq "Yes") { Start-Process "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppProxy" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 5 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen Delegated permissions en Application permissions?"
-    Write-Log "2. Wanneer is Admin consent vereist voor API-machtigingen?"
-    Write-Log "3. Hoe werkt de OAuth2 authorization code flow met PKCE?"
-    Write-Log "4. Welk voordeel heeft een Managed Identity boven een client secret?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 5 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen Delegated permissions en Application permissions?"
+    Write-LabLog "2. Wanneer is Admin consent vereist voor API-machtigingen?"
+    Write-LabLog "3. Hoe werkt de OAuth2 authorization code flow met PKCE?"
+    Write-LabLog "4. Welk voordeel heeft een Managed Identity boven een client secret?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

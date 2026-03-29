@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/SC300/lab-week1-hybrid-identity.ps1
 # SC-300 Week 1 — Hybrid Identity: AD DS, Azure AD Connect, Entra ID
@@ -86,7 +86,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen wijzigingen"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -99,9 +99,9 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
@@ -112,13 +112,13 @@ $btnRun.Add_Click({
     $domainDN = "DC=$($SSWConfig.DomainName -replace '\.', ',DC=')"
 
     # ── Stap 1: AD DS forest op DC01 ────────────────────────
-    Write-Log "${pre}Stap 1: DC01 — AD DS forest informatie"
+    Write-LabLog "${pre}Stap 1: DC01 — AD DS forest informatie"
     $progress.Value = 16
     if ($isDry) {
-        Write-Log "${pre}  Get-ADForest | Select-Object Name, ForestMode, Domains, GlobalCatalogs"
-        Write-Log "${pre}  Get-ADDomain | Select-Object Name, DomainMode, PDCEmulator, RIDMaster"
-        Write-Log "${pre}  Get-ADUser -Filter * -SearchBase '$domainDN' | Measure-Object | Select-Object Count"
-        Write-Log "${pre}  Get-ADGroup -Filter * | Measure-Object | Select-Object Count"
+        Write-LabLog "${pre}  Get-ADForest | Select-Object Name, ForestMode, Domains, GlobalCatalogs"
+        Write-LabLog "${pre}  Get-ADDomain | Select-Object Name, DomainMode, PDCEmulator, RIDMaster"
+        Write-LabLog "${pre}  Get-ADUser -Filter * -SearchBase '$domainDN' | Measure-Object | Select-Object Count"
+        Write-LabLog "${pre}  Get-ADGroup -Filter * | Measure-Object | Select-Object Count"
     } else {
         try {
             $cred = Get-Credential -Message "Domain admin voor $dcVM" -UserName "$($SSWConfig.DomainNetBIOS)\$($SSWConfig.AdminUser)"
@@ -132,19 +132,19 @@ $btnRun.Add_Click({
                     ComputerCount = (Get-ADComputer -Filter * | Measure-Object).Count
                 }
             }
-            Write-Log "  Forest: $($forestInfo.ForestName) [$($forestInfo.ForestMode)]"
-            Write-Log "  PDC Emulator: $($forestInfo.PDCEmulator)"
-            Write-Log "  Gebruikers: $($forestInfo.UserCount) | Groepen: $($forestInfo.GroupCount) | Computers: $($forestInfo.ComputerCount)"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  Forest: $($forestInfo.ForestName) [$($forestInfo.ForestMode)]"
+            Write-LabLog "  PDC Emulator: $($forestInfo.PDCEmulator)"
+            Write-LabLog "  Gebruikers: $($forestInfo.UserCount) | Groepen: $($forestInfo.GroupCount) | Computers: $($forestInfo.ComputerCount)"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 2: Azure AD Connect status op MGMT01 ───────────
-    Write-Log "${pre}Stap 2: MGMT01 — Azure AD Connect sync status"
+    Write-LabLog "${pre}Stap 2: MGMT01 — Azure AD Connect sync status"
     $progress.Value = 32
     if ($isDry) {
-        Write-Log "${pre}  Get-ADSyncScheduler | Select-Object SyncCycleEnabled, NextSyncCyclePolicyType, NextSyncCycleStartTimeInUTC"
-        Write-Log "${pre}  Get-ADSyncConnector | Select-Object Name, ConnectorTypeName, Enabled | Format-Table"
-        Write-Log "${pre}  Get-ADSyncRunProfileResult -ConnectorName '<name>' | Select-Object -First 5 | Format-Table"
+        Write-LabLog "${pre}  Get-ADSyncScheduler | Select-Object SyncCycleEnabled, NextSyncCyclePolicyType, NextSyncCycleStartTimeInUTC"
+        Write-LabLog "${pre}  Get-ADSyncConnector | Select-Object Name, ConnectorTypeName, Enabled | Format-Table"
+        Write-LabLog "${pre}  Get-ADSyncRunProfileResult -ConnectorName '<name>' | Select-Object -First 5 | Format-Table"
     } else {
         try {
             $mgmtCred = Get-Credential -Message "Admin credentials voor $mgmtVM" -UserName "$mgmtVM\$($SSWConfig.AdminUser)"
@@ -160,21 +160,21 @@ $btnRun.Add_Click({
                     }
                 } catch { [PSCustomObject]@{ Error = $_.Exception.Message } }
             }
-            if ($syncStatus.Error) { Write-Log "  AAD Connect module niet beschikbaar: $($syncStatus.Error)" }
+            if ($syncStatus.Error) { Write-LabLog "  AAD Connect module niet beschikbaar: $($syncStatus.Error)" }
             else {
-                Write-Log "  Sync ingeschakeld: $($syncStatus.SyncEnabled)"
-                Write-Log "  Volgende sync: $($syncStatus.NextSync) [$($syncStatus.PolicyType)]"
-                Write-Log "  Connector: $($syncStatus.ConnectorName)"
+                Write-LabLog "  Sync ingeschakeld: $($syncStatus.SyncEnabled)"
+                Write-LabLog "  Volgende sync: $($syncStatus.NextSync) [$($syncStatus.PolicyType)]"
+                Write-LabLog "  Connector: $($syncStatus.ConnectorName)"
             }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: Delta sync uitvoeren ────────────────────────
-    Write-Log "${pre}Stap 3: MGMT01 — Delta synchronisatie uitvoeren"
+    Write-LabLog "${pre}Stap 3: MGMT01 — Delta synchronisatie uitvoeren"
     $progress.Value = 50
     if ($isDry) {
-        Write-Log "${pre}  Start-ADSyncSyncCycle -PolicyType Delta"
-        Write-Log "${pre}  # Wachten tot sync klaar: Get-ADSyncScheduler | Select-Object SyncCycleInProgress"
+        Write-LabLog "${pre}  Start-ADSyncSyncCycle -PolicyType Delta"
+        Write-LabLog "${pre}  # Wachten tot sync klaar: Get-ADSyncScheduler | Select-Object SyncCycleInProgress"
     } else {
         try {
             $syncResult = Invoke-Command -VMName $mgmtVM -Credential $mgmtCred -ScriptBlock {
@@ -185,44 +185,44 @@ $btnRun.Add_Click({
                     [PSCustomObject]@{ Started = $true; InProgress = $scheduler.SyncCycleInProgress }
                 } catch { [PSCustomObject]@{ Started = $false; Error = $_.Exception.Message } }
             }
-            if ($syncResult.Started) { Write-Log "  Delta sync gestart. Bezig: $($syncResult.InProgress)" }
-            else { Write-Log "  Sync niet gestart: $($syncResult.Error)" }
-        } catch { Write-Log "  Fout: $_" }
+            if ($syncResult.Started) { Write-LabLog "  Delta sync gestart. Bezig: $($syncResult.InProgress)" }
+            else { Write-LabLog "  Sync niet gestart: $($syncResult.Error)" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 4: Gesynchroniseerde gebruikers via Graph ───────
-    Write-Log "${pre}Stap 4: Graph — gesynchroniseerde gebruikers tellen"
+    Write-LabLog "${pre}Stap 4: Graph — gesynchroniseerde gebruikers tellen"
     $progress.Value = 68
     if ($isDry) {
-        Write-Log "${pre}  Connect-MgGraph -Scopes 'User.Read.All'"
-        Write-Log "${pre}  Get-MgUser -Filter 'onPremisesSyncEnabled eq true' -All | Measure-Object"
-        Write-Log "${pre}  Get-MgUser -Filter 'onPremisesSyncEnabled eq true' -Top 5 | Select-Object DisplayName, UserPrincipalName, AccountEnabled"
+        Write-LabLog "${pre}  Connect-MgGraph -Scopes 'User.Read.All'"
+        Write-LabLog "${pre}  Get-MgUser -Filter 'onPremisesSyncEnabled eq true' -All | Measure-Object"
+        Write-LabLog "${pre}  Get-MgUser -Filter 'onPremisesSyncEnabled eq true' -Top 5 | Select-Object DisplayName, UserPrincipalName, AccountEnabled"
     } else {
         try {
             Connect-MgGraph -Scopes "User.Read.All" -ErrorAction Stop | Out-Null
             $syncedUsers = Get-MgUser -Filter "onPremisesSyncEnabled eq true" -All
-            Write-Log "  Gesynchroniseerde gebruikers: $($syncedUsers.Count)"
-            $syncedUsers | Select-Object -First 5 | ForEach-Object { Write-Log "  $($_.UserPrincipalName) [$($_.AccountEnabled)]" }
-        } catch { Write-Log "  Fout (Graph): $_" }
+            Write-LabLog "  Gesynchroniseerde gebruikers: $($syncedUsers.Count)"
+            $syncedUsers | Select-Object -First 5 | ForEach-Object { Write-LabLog "  $($_.UserPrincipalName) [$($_.AccountEnabled)]" }
+        } catch { Write-LabLog "  Fout (Graph): $_" }
     }
 
     # ── Stap 5: Entra audit logs ─────────────────────────────
-    Write-Log "${pre}Stap 5: Manueel — Entra ID audit logs bekijken"
+    Write-LabLog "${pre}Stap 5: Manueel — Entra ID audit logs bekijken"
     $progress.Value = 84
-    Write-Log "  URL: https://entra.microsoft.com"
-    Write-Log "  Navigeer naar: Identity > Monitoring & health > Audit logs"
-    Write-Log "  Filter: Service = Azure AD Connect | Datum = afgelopen 24 uur"
-    Write-Log "  Bekijk de sync-activiteiten in de audit log"
-    Write-Log "  Sign-in logs: Identity > Monitoring > Sign-in logs"
-    Write-Log "  Filter op: Status = Failure → bekijk de foutcode en reden"
+    Write-LabLog "  URL: https://entra.microsoft.com"
+    Write-LabLog "  Navigeer naar: Identity > Monitoring & health > Audit logs"
+    Write-LabLog "  Filter: Service = Azure AD Connect | Datum = afgelopen 24 uur"
+    Write-LabLog "  Bekijk de sync-activiteiten in de audit log"
+    Write-LabLog "  Sign-in logs: Identity > Monitoring > Sign-in logs"
+    Write-LabLog "  Filter op: Status = Failure → bekijk de foutcode en reden"
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 1 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen Azure AD Connect en Azure AD Connect cloud sync?"
-    Write-Log "2. Welke attributen worden standaard gesynchroniseerd met Azure AD Connect?"
-    Write-Log "3. Wat is Password Hash Sync vs. Pass-through Authentication vs. Federation?"
-    Write-Log "4. Hoe herstel je van een mislukte sync (AADConnect troubleshooting stappen)?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 1 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen Azure AD Connect en Azure AD Connect cloud sync?"
+    Write-LabLog "2. Welke attributen worden standaard gesynchroniseerd met Azure AD Connect?"
+    Write-LabLog "3. Wat is Password Hash Sync vs. Pass-through Authentication vs. Federation?"
+    Write-LabLog "4. Hoe herstel je van een mislukte sync (AADConnect troubleshooting stappen)?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

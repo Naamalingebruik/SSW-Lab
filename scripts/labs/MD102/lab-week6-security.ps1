@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/MD102/lab-week6-security.ps1
 # MD-102 Week 6 — Security, Updates en Monitoring
@@ -97,7 +97,7 @@ $dryRunTitle = $reader.FindName("DryRunTitle")
 $dryRunSub   = $reader.FindName("DryRunSub")
 $conv        = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
@@ -117,11 +117,11 @@ function Update-DryRunBar {
     }
 }
 
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({   Update-DryRunBar })
-$chkDryRun.Add_Unchecked({ Update-DryRunBar })
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({   Show-DryRunState })
+$chkDryRun.Add_Unchecked({ Show-DryRunState })
 
-function Write-Log($msg) {
+function Write-LabLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"
     $logBox.Text += "[$ts] $msg`n"
     $logBox.ScrollToEnd()
@@ -137,12 +137,12 @@ $btnRun.Add_Click({
     $cred   = $null
 
     # ── Stap 1: Defender status controleren ─────────────────
-    Write-Log "${pre}Stap 1: W11-01 — Microsoft Defender status"
+    Write-LabLog "${pre}Stap 1: W11-01 — Microsoft Defender status"
     $progress.Value = 12
     if ($isDry) {
-        Write-Log "${pre}  Get-MpComputerStatus | Select-Object AMRunningMode, RealTimeProtectionEnabled,"
-        Write-Log "${pre}    AntivirusSignatureLastUpdated, QuickScanAge, FullScanAge"
-        Write-Log "${pre}  Verwacht: RealTimeProtectionEnabled=True, QuickScanAge < 7"
+        Write-LabLog "${pre}  Get-MpComputerStatus | Select-Object AMRunningMode, RealTimeProtectionEnabled,"
+        Write-LabLog "${pre}    AntivirusSignatureLastUpdated, QuickScanAge, FullScanAge"
+        Write-LabLog "${pre}  Verwacht: RealTimeProtectionEnabled=True, QuickScanAge < 7"
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $w11VM" -UserName "$w11VM\$($SSWConfig.AdminUser)"
@@ -156,64 +156,64 @@ $btnRun.Add_Click({
                     FullScanAge  = $s.FullScanAge
                 }
             }
-            Write-Log "  Realtime bescherming : $($mpStatus.Realtime)"
-            Write-Log "  Modus                : $($mpStatus.Mode)"
-            Write-Log "  Handtekening leeftijd: $($mpStatus.SigAge) dag(en)"
-            Write-Log "  Quick scan leeftijd  : $($mpStatus.QuickScanAge) dag(en)"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  Realtime bescherming : $($mpStatus.Realtime)"
+            Write-LabLog "  Modus                : $($mpStatus.Mode)"
+            Write-LabLog "  Handtekening leeftijd: $($mpStatus.SigAge) dag(en)"
+            Write-LabLog "  Quick scan leeftijd  : $($mpStatus.QuickScanAge) dag(en)"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 2: Quick Scan uitvoeren ────────────────────────
-    Write-Log "${pre}Stap 2: W11-01 — Defender Quick Scan uitvoeren"
+    Write-LabLog "${pre}Stap 2: W11-01 — Defender Quick Scan uitvoeren"
     $progress.Value = 28
     if ($isDry) {
-        Write-Log "${pre}  Start-MpScan -ScanType QuickScan"
-        Write-Log "${pre}  Scan duurt ca. 1-3 minuten"
-        Write-Log "${pre}  Resultaten via Get-MpThreatDetection na afloop"
+        Write-LabLog "${pre}  Start-MpScan -ScanType QuickScan"
+        Write-LabLog "${pre}  Scan duurt ca. 1-3 minuten"
+        Write-LabLog "${pre}  Resultaten via Get-MpThreatDetection na afloop"
     } else {
         try {
-            Write-Log "  Scan starten (dit kan enkele minuten duren)..."
+            Write-LabLog "  Scan starten (dit kan enkele minuten duren)..."
             Invoke-Command -VMName $w11VM -Credential $cred -ScriptBlock {
                 Start-MpScan -ScanType QuickScan -ErrorAction Stop
             }
-            Write-Log "  Scan voltooid"
+            Write-LabLog "  Scan voltooid"
             $threats = Invoke-Command -VMName $w11VM -Credential $cred -ScriptBlock {
                 (Get-MpThreatDetection | Select-Object -Last 5 | ForEach-Object { $_.ThreatName })
             }
             if ($threats) {
-                Write-Log "  Recente detecties: $($threats -join ', ')"
+                Write-LabLog "  Recente detecties: $($threats -join ', ')"
             } else {
-                Write-Log "  Geen bedreigingen gedetecteerd"
+                Write-LabLog "  Geen bedreigingen gedetecteerd"
             }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: Windows Update status ───────────────────────
-    Write-Log "${pre}Stap 3: W11-01 — Windows Update status"
+    Write-LabLog "${pre}Stap 3: W11-01 — Windows Update status"
     $progress.Value = 45
     if ($isDry) {
-        Write-Log "${pre}  Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 5"
-        Write-Log "${pre}  (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\Results\Install').LastSuccessTime"
+        Write-LabLog "${pre}  Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 5"
+        Write-LabLog "${pre}  (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\Results\Install').LastSuccessTime"
     } else {
         try {
             $updates = Invoke-Command -VMName $w11VM -Credential $cred -ScriptBlock {
                 $last5 = Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 5
                 $last5 | ForEach-Object { "$($_.InstalledOn.ToString('yyyy-MM-dd'))  $($_.HotFixID)  $($_.Description)" }
             }
-            Write-Log "  Recentste patches:"
-            $updates | ForEach-Object { Write-Log "    $_" }
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  Recentste patches:"
+            $updates | ForEach-Object { Write-LabLog "    $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 4: EICAR testbestand ────────────────────────────
-    Write-Log "${pre}Stap 4: W11-02 — EICAR detectietest"
+    Write-LabLog "${pre}Stap 4: W11-02 — EICAR detectietest"
     $progress.Value = 62
-    Write-Log "  EICAR is een standaard testbestand dat Defender als gevaarlijk markeert"
-    Write-Log "  Let op: gebruik NOOIT echt malware in een lab — EICAR is veilig"
+    Write-LabLog "  EICAR is een standaard testbestand dat Defender als gevaarlijk markeert"
+    Write-LabLog "  Let op: gebruik NOOIT echt malware in een lab — EICAR is veilig"
     if ($isDry) {
-        Write-Log "${pre}  Invoke-WebRequest https://www.eicar.org/download/eicar.com.txt -OutFile C:\Temp\eicar.txt"
-        Write-Log "${pre}  Verwacht: Defender detecteert en verwijdert het bestand automatisch"
-        Write-Log "${pre}  Alert zichtbaar in: Defender portal > Incidents & alerts"
+        Write-LabLog "${pre}  Invoke-WebRequest https://www.eicar.org/download/eicar.com.txt -OutFile C:\Temp\eicar.txt"
+        Write-LabLog "${pre}  Verwacht: Defender detecteert en verwijdert het bestand automatisch"
+        Write-LabLog "${pre}  Alert zichtbaar in: Defender portal > Incidents & alerts"
     } else {
         try {
             $cred2 = Get-Credential -Message "Admin credentials voor $w11VM2" -UserName "$w11VM2\$($SSWConfig.AdminUser)"
@@ -231,23 +231,23 @@ $btnRun.Add_Click({
                 } catch {
                     "Download mislukt (geen internet in VM?) - gebruik Invoke-WebRequest in VM console"
                 }
-            } | ForEach-Object { Write-Log "  $_" }
-        } catch { Write-Log "  Fout: $_" }
+            } | ForEach-Object { Write-LabLog "  $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 5: Manueel — Intune portals ────────────────────
-    Write-Log "${pre}Stap 5: Manueel — Intune Update ring en Endpoint Security"
+    Write-LabLog "${pre}Stap 5: Manueel — Intune Update ring en Endpoint Security"
     $progress.Value = 82
-    Write-Log "  Update ring configureren:"
-    Write-Log "    Intune > Devices > Update rings for Windows 10 and later > + Create"
-    Write-Log "    Kanaal: Semi-Annual | Defer updates: 7 dagen"
-    Write-Log ""
-    Write-Log "  Defender for Endpoint activeren:"
-    Write-Log "    Intune > Endpoint security > Microsoft Defender for Endpoint"
-    Write-Log "    Schakel in: Automatic onboarding"
-    Write-Log ""
-    Write-Log "  Device diagnostics opvragen:"
-    Write-Log "    Intune > Devices > W11-01 > ... > Collect diagnostics"
+    Write-LabLog "  Update ring configureren:"
+    Write-LabLog "    Intune > Devices > Update rings for Windows 10 and later > + Create"
+    Write-LabLog "    Kanaal: Semi-Annual | Defer updates: 7 dagen"
+    Write-LabLog ""
+    Write-LabLog "  Defender for Endpoint activeren:"
+    Write-LabLog "    Intune > Endpoint security > Microsoft Defender for Endpoint"
+    Write-LabLog "    Schakel in: Automatic onboarding"
+    Write-LabLog ""
+    Write-LabLog "  Device diagnostics opvragen:"
+    Write-LabLog "    Intune > Devices > W11-01 > ... > Collect diagnostics"
 
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show(
@@ -258,18 +258,18 @@ $btnRun.Add_Click({
     }
 
     $progress.Value = 100
-    Write-Log ""
-    Write-Log "MD-102 lab (alle 6 weken) voltooid!"
-    Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen een Update ring en een Feature update policy?"
-    Write-Log "2. Hoe werkt Co-management tussen Intune en Configuration Manager?"
-    Write-Log "3. Wat toont het Endpoint analytics dashboard in Intune?"
-    Write-Log "4. Hoe gebruik je Remote actions (wipe, retire, sync) in Intune?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log ""
-    Write-Log "Volgende stap: start MD-102 examenvoorbereiding"
-    Write-Log "  Practice assessment: https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications"
+    Write-LabLog ""
+    Write-LabLog "MD-102 lab (alle 6 weken) voltooid!"
+    Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen een Update ring en een Feature update policy?"
+    Write-LabLog "2. Hoe werkt Co-management tussen Intune en Configuration Manager?"
+    Write-LabLog "3. Wat toont het Endpoint analytics dashboard in Intune?"
+    Write-LabLog "4. Hoe gebruik je Remote actions (wipe, retire, sync) in Intune?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog ""
+    Write-LabLog "Volgende stap: start MD-102 examenvoorbereiding"
+    Write-LabLog "  Practice assessment: https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications"
 
     $btnNext.IsEnabled = $true
     $btnRun.IsEnabled  = $true

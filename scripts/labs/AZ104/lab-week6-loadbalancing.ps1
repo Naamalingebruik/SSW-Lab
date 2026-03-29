@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # SSW-Lab | labs/AZ104/lab-week6-loadbalancing.ps1
 # AZ-104 Week 6 — Load Balancer, Application Gateway, Network Watcher
 # Cloud: Azure subscription
@@ -82,7 +82,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — commando's getoond, geen resources aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -95,9 +95,9 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
@@ -108,13 +108,13 @@ $btnRun.Add_Click({
     $lbPipName = "ssw-lb-pip"
 
     # ── Stap 1: Public Load Balancer aanmaken ────────────────
-    Write-Log "${pre}Stap 1: Public Load Balancer aanmaken"
+    Write-LabLog "${pre}Stap 1: Public Load Balancer aanmaken"
     $progress.Value = 16
     if ($isDry) {
-        Write-Log "${pre}  `$pip = New-AzPublicIpAddress -Name '$lbPipName' -ResourceGroupName '$rgName' -Location '$location' -AllocationMethod Static -Sku Standard"
-        Write-Log "${pre}  `$feConfig = New-AzLoadBalancerFrontendIpConfig -Name 'FrontendSSW' -PublicIpAddress `$pip"
-        Write-Log "${pre}  `$bePool   = New-AzLoadBalancerBackendAddressPoolConfig -Name 'BackendSSW'"
-        Write-Log "${pre}  New-AzLoadBalancer -Name '$lbName' -ResourceGroupName '$rgName' -Location '$location' -Sku Standard -FrontendIpConfiguration `$feConfig -BackendAddressPool `$bePool"
+        Write-LabLog "${pre}  `$pip = New-AzPublicIpAddress -Name '$lbPipName' -ResourceGroupName '$rgName' -Location '$location' -AllocationMethod Static -Sku Standard"
+        Write-LabLog "${pre}  `$feConfig = New-AzLoadBalancerFrontendIpConfig -Name 'FrontendSSW' -PublicIpAddress `$pip"
+        Write-LabLog "${pre}  `$bePool   = New-AzLoadBalancerBackendAddressPoolConfig -Name 'BackendSSW'"
+        Write-LabLog "${pre}  New-AzLoadBalancer -Name '$lbName' -ResourceGroupName '$rgName' -Location '$location' -Sku Standard -FrontendIpConfiguration `$feConfig -BackendAddressPool `$bePool"
     } else {
         try {
             if (-not (Get-AzContext)) { Connect-AzAccount -ErrorAction Stop | Out-Null }
@@ -124,83 +124,83 @@ $btnRun.Add_Click({
                 $feConfig = New-AzLoadBalancerFrontendIpConfig -Name "FrontendSSW" -PublicIpAddress $pip
                 $bePool   = New-AzLoadBalancerBackendAddressPoolConfig -Name "BackendSSW"
                 $lb = New-AzLoadBalancer -Name $lbName -ResourceGroupName $rgName -Location $location -Sku Standard -FrontendIpConfiguration $feConfig -BackendAddressPool $bePool
-                Write-Log "  Load Balancer aangemaakt: $lbName"
-                Write-Log "  Frontend IP: $($pip.IpAddress)"
-            } else { Write-Log "  Load Balancer bestaat al: $lbName" }
-        } catch { Write-Log "  Fout: $_"; $btnRun.IsEnabled = $true; return }
+                Write-LabLog "  Load Balancer aangemaakt: $lbName"
+                Write-LabLog "  Frontend IP: $($pip.IpAddress)"
+            } else { Write-LabLog "  Load Balancer bestaat al: $lbName" }
+        } catch { Write-LabLog "  Fout: $_"; $btnRun.IsEnabled = $true; return }
     }
 
     # ── Stap 2: Health probe en LB rule ─────────────────────
-    Write-Log "${pre}Stap 2: Health probe (HTTP:80) en LB rule (port 80)"
+    Write-LabLog "${pre}Stap 2: Health probe (HTTP:80) en LB rule (port 80)"
     $progress.Value = 32
     if ($isDry) {
-        Write-Log "${pre}  `$probe = New-AzLoadBalancerProbeConfig -Name 'HttpProbe' -Protocol Http -Port 80 -RequestPath '/' -IntervalInSeconds 15 -ProbeCount 2"
-        Write-Log "${pre}  `$lbRule = New-AzLoadBalancerRuleConfig -Name 'HttpRule' -FrontendIpConfiguration `$feConfig -BackendAddressPool `$bePool -Probe `$probe -Protocol Tcp -FrontendPort 80 -BackendPort 80"
-        Write-Log "${pre}  `$lb | Add-AzLoadBalancerProbeConfig -Probe `$probe | Set-AzLoadBalancer"
+        Write-LabLog "${pre}  `$probe = New-AzLoadBalancerProbeConfig -Name 'HttpProbe' -Protocol Http -Port 80 -RequestPath '/' -IntervalInSeconds 15 -ProbeCount 2"
+        Write-LabLog "${pre}  `$lbRule = New-AzLoadBalancerRuleConfig -Name 'HttpRule' -FrontendIpConfiguration `$feConfig -BackendAddressPool `$bePool -Probe `$probe -Protocol Tcp -FrontendPort 80 -BackendPort 80"
+        Write-LabLog "${pre}  `$lb | Add-AzLoadBalancerProbeConfig -Probe `$probe | Set-AzLoadBalancer"
     } else {
-        Write-Log "  Health probe en LB rule worden manueel geconfigureerd via portal"
-        Write-Log "  Azure portal > Load balancers > $lbName > Health probes & Load balancing rules"
+        Write-LabLog "  Health probe en LB rule worden manueel geconfigureerd via portal"
+        Write-LabLog "  Azure portal > Load balancers > $lbName > Health probes & Load balancing rules"
     }
 
     # ── Stap 3: Application Gateway (portal) ────────────────
-    Write-Log "${pre}Stap 3: Manueel — Application Gateway met WAF inschakelen"
+    Write-LabLog "${pre}Stap 3: Manueel — Application Gateway met WAF inschakelen"
     $progress.Value = 50
-    Write-Log "  Azure portal > Create a resource > Application Gateway"
-    Write-Log "  SKU: WAF_v2 | Tier: WAF | VNet: ssw-hub-vnet | Subnet: AppSubnet"
-    Write-Log "  Frontend IP: Public | Backend: HTTP (port 80)"
-    Write-Log "  WAF mode: Detection (begin met Detection, switch naar Prevention)"
-    Write-Log "  Routing rule: listener (http:80) → backend pool"
-    Write-Log "  Deploytijd: 5-10 minuten"
+    Write-LabLog "  Azure portal > Create a resource > Application Gateway"
+    Write-LabLog "  SKU: WAF_v2 | Tier: WAF | VNet: ssw-hub-vnet | Subnet: AppSubnet"
+    Write-LabLog "  Frontend IP: Public | Backend: HTTP (port 80)"
+    Write-LabLog "  WAF mode: Detection (begin met Detection, switch naar Prevention)"
+    Write-LabLog "  Routing rule: listener (http:80) → backend pool"
+    Write-LabLog "  Deploytijd: 5-10 minuten"
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show("Application Gateway aanmaken via portal?", "SSW-Lab", "YesNo", "Question")
         if ($open -eq "Yes") { Start-Process "https://portal.azure.com/#create/Microsoft.ApplicationGateway" }
     }
 
     # ── Stap 4: Network Watcher ──────────────────────────────
-    Write-Log "${pre}Stap 4: Network Watcher — IP-flow verify en NSG flow logs"
+    Write-LabLog "${pre}Stap 4: Network Watcher — IP-flow verify en NSG flow logs"
     $progress.Value = 68
     if ($isDry) {
-        Write-Log "${pre}  # Network Watcher is automatisch aanwezig per regio"
-        Write-Log "${pre}  `$nw = Get-AzNetworkWatcher -Location '$location'"
-        Write-Log "${pre}  # IP-flow verify: test of NSG voorkomt dat VM2 VM1 kan bereiken"
-        Write-Log "${pre}  Test-AzNetworkWatcherIPFlow -NetworkWatcher `$nw -TargetVirtualMachineId <vmId> -Direction Inbound -Protocol TCP -RemoteIPAddress '1.2.3.4' -LocalIPAddress '10.1.1.4' -LocalPort 3389 -RemotePort 0"
+        Write-LabLog "${pre}  # Network Watcher is automatisch aanwezig per regio"
+        Write-LabLog "${pre}  `$nw = Get-AzNetworkWatcher -Location '$location'"
+        Write-LabLog "${pre}  # IP-flow verify: test of NSG voorkomt dat VM2 VM1 kan bereiken"
+        Write-LabLog "${pre}  Test-AzNetworkWatcherIPFlow -NetworkWatcher `$nw -TargetVirtualMachineId <vmId> -Direction Inbound -Protocol TCP -RemoteIPAddress '1.2.3.4' -LocalIPAddress '10.1.1.4' -LocalPort 3389 -RemotePort 0"
     } else {
         try {
             $nw = Get-AzNetworkWatcher -Location $location -ErrorAction SilentlyContinue
             if ($nw) {
-                Write-Log "  Network Watcher beschikbaar: $($nw.Name) [$($nw.ProvisioningState)]"
-                Write-Log "  IP-flow verify: portal > Network Watcher > IP flow verify"
-                Write-Log "  NSG flow logs: portal > Network Watcher > NSG flow logs"
+                Write-LabLog "  Network Watcher beschikbaar: $($nw.Name) [$($nw.ProvisioningState)]"
+                Write-LabLog "  IP-flow verify: portal > Network Watcher > IP flow verify"
+                Write-LabLog "  NSG flow logs: portal > Network Watcher > NSG flow logs"
             } else {
-                Write-Log "  Network Watcher niet gevonden voor $location — wordt automatisch aangemaakt met VNet"
+                Write-LabLog "  Network Watcher niet gevonden voor $location — wordt automatisch aangemaakt met VNet"
             }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 5: Traffic Manager ──────────────────────────────
-    Write-Log "${pre}Stap 5: Traffic Manager profiel aanmaken (priority routing)"
+    Write-LabLog "${pre}Stap 5: Traffic Manager profiel aanmaken (priority routing)"
     $progress.Value = 84
     if ($isDry) {
-        Write-Log "${pre}  New-AzTrafficManagerProfile -Name 'ssw-trafficmgr' -ResourceGroupName '$rgName' -TrafficRoutingMethod Priority -RelativeDnsName 'sswlabtraffic' -Ttl 30 -MonitorProtocol Http -MonitorPort 80 -MonitorPath '/'"
-        Write-Log "${pre}  New-AzTrafficManagerEndpoint -Name 'PrimaryEndpoint' -ProfileName 'ssw-trafficmgr' -ResourceGroupName '$rgName' -Type AzureEndpoints -TargetResourceId <appService.Id> -Priority 1 -EndpointStatus Enabled"
+        Write-LabLog "${pre}  New-AzTrafficManagerProfile -Name 'ssw-trafficmgr' -ResourceGroupName '$rgName' -TrafficRoutingMethod Priority -RelativeDnsName 'sswlabtraffic' -Ttl 30 -MonitorProtocol Http -MonitorPort 80 -MonitorPath '/'"
+        Write-LabLog "${pre}  New-AzTrafficManagerEndpoint -Name 'PrimaryEndpoint' -ProfileName 'ssw-trafficmgr' -ResourceGroupName '$rgName' -Type AzureEndpoints -TargetResourceId <appService.Id> -Priority 1 -EndpointStatus Enabled"
     } else {
         try {
             $tmProfile = Get-AzTrafficManagerProfile -Name "ssw-trafficmgr" -ResourceGroupName $rgName -ErrorAction SilentlyContinue
             if (-not $tmProfile) {
                 $tmProfile = New-AzTrafficManagerProfile -Name "ssw-trafficmgr" -ResourceGroupName $rgName -TrafficRoutingMethod Priority -RelativeDnsName "sswlabtraffic$(Get-Random -Maximum 9999)" -Ttl 30 -MonitorProtocol Http -MonitorPort 80 -MonitorPath "/"
-                Write-Log "  Traffic Manager aangemaakt: ssw-trafficmgr"
-                Write-Log "  DNS: $($tmProfile.DnsConfig.Fqdn)"
-            } else { Write-Log "  Traffic Manager bestaat al: ssw-trafficmgr" }
-        } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  Traffic Manager aangemaakt: ssw-trafficmgr"
+                Write-LabLog "  DNS: $($tmProfile.DnsConfig.Fqdn)"
+            } else { Write-LabLog "  Traffic Manager bestaat al: ssw-trafficmgr" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 6 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen een Standard en Basic SKU Load Balancer?"
-    Write-Log "2. Wanneer gebruik je een Application Gateway vs. Azure Load Balancer?"
-    Write-Log "3. Welke Traffic Manager routeringsmethoden bestaan er en wanneer gebruik je ze?"
-    Write-Log "4. Wat zijn NSG flow logs en waarvoor gebruik je ze?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 6 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen een Standard en Basic SKU Load Balancer?"
+    Write-LabLog "2. Wanneer gebruik je een Application Gateway vs. Azure Load Balancer?"
+    Write-LabLog "3. Welke Traffic Manager routeringsmethoden bestaan er en wanneer gebruik je ze?"
+    Write-LabLog "4. Wat zijn NSG flow logs en waarvoor gebruik je ze?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

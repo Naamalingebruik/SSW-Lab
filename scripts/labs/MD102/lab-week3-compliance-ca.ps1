@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | MD-102 | Week 3 — Compliance, Conditional Access en identiteit
 # Doel: Test-users in AD, Azure AD Connect, CA-policy, compliance
@@ -96,7 +96,7 @@ $dryRunTitle = $reader.FindName("DryRunTitle")
 $dryRunSub   = $reader.FindName("DryRunSub")
 $conv        = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen wijzigingen"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -109,20 +109,20 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({   Update-DryRunBar })
-$chkDryRun.Add_Unchecked({ Update-DryRunBar })
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({   Show-DryRunState })
+$chkDryRun.Add_Unchecked({ Show-DryRunState })
 
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 function Write-KennisCheck {
-    Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Welke signalen gebruikt Conditional Access voor een access-beslissing?"
-    Write-Log "2. Wat is het verschil tussen Block en Grant with controls in CA?"
-    Write-Log "3. Hoe verhoudt Azure AD Connect Sync zich tot Cloud Sync?"
-    Write-Log "4. Wat doet de Named Locations instelling in CA?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Welke signalen gebruikt Conditional Access voor een access-beslissing?"
+    Write-LabLog "2. Wat is het verschil tussen Block en Grant with controls in CA?"
+    Write-LabLog "3. Hoe verhoudt Azure AD Connect Sync zich tot Cloud Sync?"
+    Write-LabLog "4. Wat doet de Named Locations instelling in CA?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
 
 $btnRun.Add_Click({
@@ -135,13 +135,13 @@ $btnRun.Add_Click({
     $domain   = $SSWConfig.DomainName
 
     # ── Stap 1: DC01 — Maak testgebruikers aan ───────────────
-    Write-Log "${pre}Stap 1: DC01 — TestUser01 en TestUser02 aanmaken"
+    Write-LabLog "${pre}Stap 1: DC01 — TestUser01 en TestUser02 aanmaken"
     $progress.Value = 15
     if ($isDry) {
-        Write-Log "${pre}  New-ADUser -Name 'TestUser01' -SamAccountName testuser01 -UserPrincipalName testuser01@$domain"
-        Write-Log "${pre}             -AccountPassword (Read-Host -AsSecureString) -Enabled `$true -Path 'CN=Users,DC=ssw,DC=lab'"
-        Write-Log "${pre}  New-ADUser -Name 'TestUser02' -SamAccountName testuser02 ... (zelfde structuur)"
-        Write-Log "${pre}  Add-ADGroupMember -Identity 'Domain Users' -Members testuser01, testuser02"
+        Write-LabLog "${pre}  New-ADUser -Name 'TestUser01' -SamAccountName testuser01 -UserPrincipalName testuser01@$domain"
+        Write-LabLog "${pre}             -AccountPassword (Read-Host -AsSecureString) -Enabled `$true -Path 'CN=Users,DC=ssw,DC=lab'"
+        Write-LabLog "${pre}  New-ADUser -Name 'TestUser02' -SamAccountName testuser02 ... (zelfde structuur)"
+        Write-LabLog "${pre}  Add-ADGroupMember -Identity 'Domain Users' -Members testuser01, testuser02"
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $dcVM" -UserName "$dcVM\$($SSWConfig.AdminUser)"
@@ -158,17 +158,17 @@ $btnRun.Add_Click({
                     } else { Write-Host "Bestaat al: $u" }
                 }
             } -ArgumentList $domain, $testUserPassword
-            Write-Log "  ✔ Testgebruikers aangemaakt/geverifieerd"
-        } catch { Write-Log "  ✖ Fout: $_" }
+            Write-LabLog "  ✔ Testgebruikers aangemaakt/geverifieerd"
+        } catch { Write-LabLog "  ✖ Fout: $_" }
     }
 
     # ── Stap 2: DC01 — Azure AD Connect sync ─────────────────
-    Write-Log "${pre}Stap 2: DC01 — Azure AD Connect delta sync starten"
+    Write-LabLog "${pre}Stap 2: DC01 — Azure AD Connect delta sync starten"
     $progress.Value = 35
     if ($isDry) {
-        Write-Log "${pre}  Import-Module ADSync"
-        Write-Log "${pre}  Start-ADSyncSyncCycle -PolicyType Delta"
-        Write-Log "${pre}  Get-ADSyncScheduler → verifieer NextSyncCycleStartTimeInUTC"
+        Write-LabLog "${pre}  Import-Module ADSync"
+        Write-LabLog "${pre}  Start-ADSyncSyncCycle -PolicyType Delta"
+        Write-LabLog "${pre}  Get-ADSyncScheduler → verifieer NextSyncCycleStartTimeInUTC"
     } else {
         try {
             Invoke-Command -VMName $dcVM -Credential $cred -ScriptBlock {
@@ -177,38 +177,38 @@ $btnRun.Add_Click({
                     Start-ADSyncSyncCycle -PolicyType Delta
                     "Sync gestart: $(Get-Date)"
                 } else { "Azure AD Connect niet geinstalleerd op DC01 — installeer eerst via Initialize-DomainController.ps1" }
-            } | ForEach-Object { Write-Log "  $_" }
-        } catch { Write-Log "  ✖ Fout: $_" }
+            } | ForEach-Object { Write-LabLog "  $_" }
+        } catch { Write-LabLog "  ✖ Fout: $_" }
     }
 
     # ── Stap 3: MGMT01 — CA-policy instructies ───────────────
-    Write-Log "${pre}Stap 3: MGMT01 — Conditional Access policy aanmaken (handmatig)"
+    Write-LabLog "${pre}Stap 3: MGMT01 — Conditional Access policy aanmaken (handmatig)"
     $progress.Value = 55
-    Write-Log "  → Ga naar: entra.microsoft.com → Protection → Conditional Access → New policy"
-    Write-Log "  → Naam: 'MD102-Lab-MFA-Outside-CorpNetwork'"
-    Write-Log "  → Users: TestUser01"
-    Write-Log "  → Cloud apps: All cloud apps"
-    Write-Log "  → Conditions: Locations → Exclude 'All trusted locations'"
-    Write-Log "  → Grant: Grant access → Require MFA"
-    Write-Log "  → Enable policy: Report-only (tests eerst) → daarna On"
+    Write-LabLog "  → Ga naar: entra.microsoft.com → Protection → Conditional Access → New policy"
+    Write-LabLog "  → Naam: 'MD102-Lab-MFA-Outside-CorpNetwork'"
+    Write-LabLog "  → Users: TestUser01"
+    Write-LabLog "  → Cloud apps: All cloud apps"
+    Write-LabLog "  → Conditions: Locations → Exclude 'All trusted locations'"
+    Write-LabLog "  → Grant: Grant access → Require MFA"
+    Write-LabLog "  → Enable policy: Report-only (tests eerst) → daarna On"
 
     # ── Stap 4: MGMT01 — Compliance policy instructies ───────
-    Write-Log "${pre}Stap 4: MGMT01 — Compliance policy aanmaken (handmatig)"
+    Write-LabLog "${pre}Stap 4: MGMT01 — Compliance policy aanmaken (handmatig)"
     $progress.Value = 72
-    Write-Log "  → Ga naar: intune.microsoft.com → Devices → Compliance → Create policy → Windows 10 and later"
-    Write-Log "  → Naam: 'MD102-Lab-Compliance-Baseline'"
-    Write-Log "  → Instellingen:"
-    Write-Log "      Device Health: BitLocker required, Secure Boot enabled"
-    Write-Log "      System Security: Defender real-time protection required"
-    Write-Log "      OS Version: minimum 10.0.22000 (Windows 11 21H2)"
-    Write-Log "  → Assign aan: All devices"
+    Write-LabLog "  → Ga naar: intune.microsoft.com → Devices → Compliance → Create policy → Windows 10 and later"
+    Write-LabLog "  → Naam: 'MD102-Lab-Compliance-Baseline'"
+    Write-LabLog "  → Instellingen:"
+    Write-LabLog "      Device Health: BitLocker required, Secure Boot enabled"
+    Write-LabLog "      System Security: Defender real-time protection required"
+    Write-LabLog "      OS Version: minimum 10.0.22000 (Windows 11 21H2)"
+    Write-LabLog "  → Assign aan: All devices"
 
     # ── Stap 5: W11-02 — niet-compliant status ───────────────
-    Write-Log "${pre}Stap 5: W11-02 — niet-compliant device demonstreren"
+    Write-LabLog "${pre}Stap 5: W11-02 — niet-compliant device demonstreren"
     $progress.Value = 88
     if ($isDry) {
-        Write-Log "${pre}  dsregcmd /status → kijk naar 'ComplianceState'"
-        Write-Log "${pre}  Intune portal: Devices → W11-02 → Device compliance → kijk op status"
+        Write-LabLog "${pre}  dsregcmd /status → kijk naar 'ComplianceState'"
+        Write-LabLog "${pre}  Intune portal: Devices → W11-02 → Device compliance → kijk op status"
     } else {
         try {
             $cred2 = Get-Credential -Message "Admin credentials voor $w11bVM" -UserName "$w11bVM\$($SSWConfig.AdminUser)"
@@ -216,13 +216,13 @@ $btnRun.Add_Click({
                 $raw = & dsregcmd /status 2>&1
                 ($raw | Select-String "AzureAdJoined|MDMUrl|ComplianceState") -join "`n"
             }
-            Write-Log "  W11-02 status:`n  $comp"
-        } catch { Write-Log "  ✖ Fout: $_" }
+            Write-LabLog "  W11-02 status:`n  $comp"
+        } catch { Write-LabLog "  ✖ Fout: $_" }
     }
 
     $progress.Value = 100
-    Write-Log ""
-    Write-Log "✔ Week 3 lab afgerond."
+    Write-LabLog ""
+    Write-LabLog "✔ Week 3 lab afgerond."
     Write-KennisCheck
     $btnNext.IsEnabled = $true
     $btnRun.IsEnabled  = $true

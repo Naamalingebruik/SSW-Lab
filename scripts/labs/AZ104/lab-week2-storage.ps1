@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # SSW-Lab | labs/AZ104/lab-week2-storage.ps1
 # AZ-104 Week 2 — Azure Storage: blobs, shares, SAS, replication
 # Cloud: Azure subscription
@@ -82,7 +82,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen Azure-resources worden aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -95,9 +95,9 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
@@ -110,97 +110,97 @@ $btnRun.Add_Click({
     $shareName    = "labshare"
 
     # ── Stap 1: Storage account ──────────────────────────────
-    Write-Log "${pre}Stap 1: Storage account aanmaken"
+    Write-LabLog "${pre}Stap 1: Storage account aanmaken"
     $progress.Value = 16
     if ($isDry) {
-        Write-Log "${pre}  `$saName = 'sswlab<random>'"
-        Write-Log "${pre}  New-AzStorageAccount -ResourceGroupName '$rgName' -Name `$saName -Location '$location' -SkuName 'Standard_LRS' -Kind 'StorageV2'"
-        Write-Log "${pre}  Get-AzStorageAccount -ResourceGroupName '$rgName' | Select-Object StorageAccountName, PrimaryLocation, Sku"
+        Write-LabLog "${pre}  `$saName = 'sswlab<random>'"
+        Write-LabLog "${pre}  New-AzStorageAccount -ResourceGroupName '$rgName' -Name `$saName -Location '$location' -SkuName 'Standard_LRS' -Kind 'StorageV2'"
+        Write-LabLog "${pre}  Get-AzStorageAccount -ResourceGroupName '$rgName' | Select-Object StorageAccountName, PrimaryLocation, Sku"
     } else {
         try {
             if (-not (Get-AzContext)) { Connect-AzAccount -ErrorAction Stop | Out-Null }
             $sa = Get-AzStorageAccount -ResourceGroupName $rgName | Where-Object { $_.StorageAccountName -like "sswlab*" } | Select-Object -First 1
             if (-not $sa) {
-                Write-Log "  Aanmaken: $saName (Standard_LRS, StorageV2)"
+                Write-LabLog "  Aanmaken: $saName (Standard_LRS, StorageV2)"
                 $sa = New-AzStorageAccount -ResourceGroupName $rgName -Name $saName -Location $location -SkuName "Standard_LRS" -Kind "StorageV2"
             } else {
-                Write-Log "  Bestaand storage account gevonden: $($sa.StorageAccountName)"
+                Write-LabLog "  Bestaand storage account gevonden: $($sa.StorageAccountName)"
             }
             $saName = $sa.StorageAccountName
-            Write-Log "  Storage account: $saName [$($sa.PrimaryLocation)]"
-        } catch { Write-Log "  Fout: $_"; $btnRun.IsEnabled = $true; return }
+            Write-LabLog "  Storage account: $saName [$($sa.PrimaryLocation)]"
+        } catch { Write-LabLog "  Fout: $_"; $btnRun.IsEnabled = $true; return }
     }
 
     # ── Stap 2: Blob container + upload ─────────────────────
-    Write-Log "${pre}Stap 2: Blob container aanmaken en bestand uploaden"
+    Write-LabLog "${pre}Stap 2: Blob container aanmaken en bestand uploaden"
     $progress.Value = 32
     if ($isDry) {
-        Write-Log "${pre}  `$ctx = (Get-AzStorageAccount -Name `$saName -ResourceGroupName '$rgName').Context"
-        Write-Log "${pre}  New-AzStorageContainer -Name '$containerName' -Context `$ctx -Permission Blob"
-        Write-Log "${pre}  'Hello SSW-Lab' | Set-Content -Path `$env:TEMP\labfile.txt"
-        Write-Log "${pre}  Set-AzStorageBlobContent -File `$env:TEMP\labfile.txt -Container '$containerName' -Blob 'labfile.txt' -Context `$ctx"
+        Write-LabLog "${pre}  `$ctx = (Get-AzStorageAccount -Name `$saName -ResourceGroupName '$rgName').Context"
+        Write-LabLog "${pre}  New-AzStorageContainer -Name '$containerName' -Context `$ctx -Permission Blob"
+        Write-LabLog "${pre}  'Hello SSW-Lab' | Set-Content -Path `$env:TEMP\labfile.txt"
+        Write-LabLog "${pre}  Set-AzStorageBlobContent -File `$env:TEMP\labfile.txt -Container '$containerName' -Blob 'labfile.txt' -Context `$ctx"
     } else {
         try {
             $ctx = (Get-AzStorageAccount -Name $saName -ResourceGroupName $rgName).Context
             $container = Get-AzStorageContainer -Name $containerName -Context $ctx -ErrorAction SilentlyContinue
             if (-not $container) {
                 New-AzStorageContainer -Name $containerName -Context $ctx -Permission Blob | Out-Null
-                Write-Log "  Container aangemaakt: $containerName"
-            } else { Write-Log "  Container bestaat al: $containerName" }
+                Write-LabLog "  Container aangemaakt: $containerName"
+            } else { Write-LabLog "  Container bestaat al: $containerName" }
             $localFile = Join-Path $env:TEMP "labfile.txt"
             "Hello SSW-Lab $(Get-Date)" | Set-Content -Path $localFile
             Set-AzStorageBlobContent -File $localFile -Container $containerName -Blob "labfile.txt" -Context $ctx -Force | Out-Null
-            Write-Log "  Bestand geüpload: labfile.txt"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  Bestand geüpload: labfile.txt"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: SAS-token ─────────────────────────────────────
-    Write-Log "${pre}Stap 3: SAS-token genereren (container-niveau, read, 1 uur)"
+    Write-LabLog "${pre}Stap 3: SAS-token genereren (container-niveau, read, 1 uur)"
     $progress.Value = 50
     if ($isDry) {
-        Write-Log "${pre}  `$expiry = (Get-Date).AddHours(1)"
-        Write-Log "${pre}  `$sasToken = New-AzStorageContainerSASToken -Name '$containerName' -Permission r -ExpiryTime `$expiry -Context `$ctx"
-        Write-Log "${pre}  `$blobUrl = 'https://<accountname>.blob.core.windows.net/$containerName/labfile.txt' + `$sasToken"
+        Write-LabLog "${pre}  `$expiry = (Get-Date).AddHours(1)"
+        Write-LabLog "${pre}  `$sasToken = New-AzStorageContainerSASToken -Name '$containerName' -Permission r -ExpiryTime `$expiry -Context `$ctx"
+        Write-LabLog "${pre}  `$blobUrl = 'https://<accountname>.blob.core.windows.net/$containerName/labfile.txt' + `$sasToken"
     } else {
         try {
             $expiry   = (Get-Date).AddHours(1)
             $sasToken = New-AzStorageContainerSASToken -Name $containerName -Permission "r" -ExpiryTime $expiry -Context $ctx
             $blobUrl  = "https://$saName.blob.core.windows.net/$containerName/labfile.txt$sasToken"
-            Write-Log "  SAS-URL (geldig 1 uur):"
-            Write-Log "  $blobUrl"
-            Write-Log "  Test: Invoke-WebRequest -Uri '<url>' | Select-Object -ExpandProperty Content"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  SAS-URL (geldig 1 uur):"
+            Write-LabLog "  $blobUrl"
+            Write-LabLog "  Test: Invoke-WebRequest -Uri '<url>' | Select-Object -ExpandProperty Content"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 4: Azure File Share ─────────────────────────────
-    Write-Log "${pre}Stap 4: Azure File Share aanmaken"
+    Write-LabLog "${pre}Stap 4: Azure File Share aanmaken"
     $progress.Value = 68
     if ($isDry) {
-        Write-Log "${pre}  New-AzStorageShare -Name '$shareName' -Context `$ctx"
-        Write-Log "${pre}  # Mountcommand (Windows via PowerShell Direct / MGMT01):"
-        Write-Log "${pre}  net use Z: \\<accountname>.file.core.windows.net\$shareName <storagekey> /user:Azure\<accountname>"
+        Write-LabLog "${pre}  New-AzStorageShare -Name '$shareName' -Context `$ctx"
+        Write-LabLog "${pre}  # Mountcommand (Windows via PowerShell Direct / MGMT01):"
+        Write-LabLog "${pre}  net use Z: \\<accountname>.file.core.windows.net\$shareName <storagekey> /user:Azure\<accountname>"
     } else {
         try {
             $share = Get-AzStorageShare -Name $shareName -Context $ctx -ErrorAction SilentlyContinue
             if (-not $share) {
                 New-AzStorageShare -Name $shareName -Context $ctx | Out-Null
-                Write-Log "  File share aangemaakt: $shareName"
-            } else { Write-Log "  File share bestaat al: $shareName" }
+                Write-LabLog "  File share aangemaakt: $shareName"
+            } else { Write-LabLog "  File share bestaat al: $shareName" }
             $key = (Get-AzStorageAccountKey -ResourceGroupName $rgName -Name $saName)[0].Value
-            Write-Log "  Mount command (run op client):"
-            Write-Log "  net use Z: \\$saName.file.core.windows.net\$shareName `"$key`" /user:Azure\$saName"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  Mount command (run op client):"
+            Write-LabLog "  net use Z: \\$saName.file.core.windows.net\$shareName `"$key`" /user:Azure\$saName"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 5: Lifecycle management ─────────────────────────
-    Write-Log "${pre}Stap 5: Lifecycle management policy — cool-tier na 30 dagen"
+    Write-LabLog "${pre}Stap 5: Lifecycle management policy — cool-tier na 30 dagen"
     $progress.Value = 84
     if ($isDry) {
-        Write-Log "${pre}  Azure portal > Storage account > Data management > Lifecycle management"
-        Write-Log "${pre}  Voeg regel toe: alle blobs na 30 dagen naar Cool tier"
-        Write-Log "${pre}  Na 90 dagen: naar Archive tier"
-        Write-Log "${pre}  Na 365 dagen: verwijder blob"
-        Write-Log "${pre}  (PowerShell: Set-AzStorageManagementPolicy)"
+        Write-LabLog "${pre}  Azure portal > Storage account > Data management > Lifecycle management"
+        Write-LabLog "${pre}  Voeg regel toe: alle blobs na 30 dagen naar Cool tier"
+        Write-LabLog "${pre}  Na 90 dagen: naar Archive tier"
+        Write-LabLog "${pre}  Na 365 dagen: verwijder blob"
+        Write-LabLog "${pre}  (PowerShell: Set-AzStorageManagementPolicy)"
     } else {
         try {
             $rule = @{
@@ -219,17 +219,17 @@ $btnRun.Add_Click({
                 }
             }
             Set-AzStorageManagementPolicy -ResourceGroupName $rgName -StorageAccountName $saName -Rule $rule -ErrorAction Stop | Out-Null
-            Write-Log "  Lifecycle policy toegepast: Cool (30d) / Archive (90d) / Delete (365d)"
-        } catch { Write-Log "  Fout (portal alternatief): $_ " }
+            Write-LabLog "  Lifecycle policy toegepast: Cool (30d) / Archive (90d) / Delete (365d)"
+        } catch { Write-LabLog "  Fout (portal alternatief): $_ " }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 2 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen LRS, ZRS, GRS en GZRS?"
-    Write-Log "2. Wanneer gebruik je een Service SAS versus een Account SAS?"
-    Write-Log "3. Wat zijn de opslaglagen (access tiers) en hun use cases?"
-    Write-Log "4. Hoe werkt Azure File Sync en wanneer gebruik je het?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 2 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen LRS, ZRS, GRS en GZRS?"
+    Write-LabLog "2. Wanneer gebruik je een Service SAS versus een Account SAS?"
+    Write-LabLog "3. Wat zijn de opslaglagen (access tiers) en hun use cases?"
+    Write-LabLog "4. Hoe werkt Azure File Sync en wanneer gebruik je het?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

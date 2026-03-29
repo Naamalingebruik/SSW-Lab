@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | Configure-HostNetwork.ps1
 # Maakt interne Hyper-V vSwitch + NAT aan voor SSW-Lab.
@@ -128,7 +128,7 @@ $dryRunTitle = $reader.FindName("DryRunTitle")
 $dryRunSub   = $reader.FindName("DryRunSub")
 $conv        = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
@@ -153,11 +153,11 @@ $reader.Add_Loaded({
     $txtNAT.Text     = $SSWConfig.NATName
     $txtSubnet.Text  = $SSWConfig.NATSubnet
     $txtGateway.Text = $SSWConfig.GatewayIP
-    Update-DryRunBar
+    Show-DryRunState
 })
 
-$chkDryRun.Add_Checked({   Update-DryRunBar })
-$chkDryRun.Add_Unchecked({ Update-DryRunBar })
+$chkDryRun.Add_Checked({   Show-DryRunState })
+$chkDryRun.Add_Unchecked({ Show-DryRunState })
 
 function Add-UiLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"

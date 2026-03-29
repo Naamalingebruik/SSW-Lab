@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/MS102/lab-week2-gebruikers.ps1
 # MS-102 Week 2 — Gebruikers- en Groepsbeheer
@@ -107,7 +107,7 @@ $dryRunTitle = $reader.FindName("DryRunTitle")
 $dryRunSub   = $reader.FindName("DryRunSub")
 $conv        = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text       = "Dry Run — geen wijzigingen"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -121,10 +121,10 @@ function Update-DryRunBar {
     }
 }
 
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
 
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 # Bulk gebruikers CSV (aangemaakt in geheugen)
 $csvUsers = @"
@@ -143,16 +143,14 @@ $btnRun.Add_Click({
     $profiles = Get-Content $SSWConfig.ProfilePath -Raw | ConvertFrom-Json
     $dcVM  = $profiles.DC01.Name
     $domain = $SSWConfig.DomainName
-    $nb     = $SSWConfig.DomainNetBIOS
-
     # ── Stap 1: OU-structuur aanmaken ───────────────────────
-    Write-Log "${pre}Stap 1: DC01 — OU-structuur aanmaken"
+    Write-LabLog "${pre}Stap 1: DC01 — OU-structuur aanmaken"
     $progress.Value = 14
     if ($isDry) {
-        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'LAB' -Path 'DC=ssw,DC=lab'"
-        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'IT'  -Path 'OU=LAB,DC=ssw,DC=lab'"
-        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'HR'  -Path 'OU=LAB,DC=ssw,DC=lab'"
-        Write-Log "${pre}  New-ADOrganizationalUnit -Name 'Finance' -Path 'OU=LAB,DC=ssw,DC=lab'"
+        Write-LabLog "${pre}  New-ADOrganizationalUnit -Name 'LAB' -Path 'DC=ssw,DC=lab'"
+        Write-LabLog "${pre}  New-ADOrganizationalUnit -Name 'IT'  -Path 'OU=LAB,DC=ssw,DC=lab'"
+        Write-LabLog "${pre}  New-ADOrganizationalUnit -Name 'HR'  -Path 'OU=LAB,DC=ssw,DC=lab'"
+        Write-LabLog "${pre}  New-ADOrganizationalUnit -Name 'Finance' -Path 'OU=LAB,DC=ssw,DC=lab'"
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $dcVM" -UserName "$dcVM\$($SSWConfig.AdminUser)"
@@ -172,17 +170,17 @@ $btnRun.Add_Click({
                     }
                 }
             } -ArgumentList $domain
-            $ouResult | ForEach-Object { Write-Log "  $_" }
-        } catch { Write-Log "  Fout: $_" }
+            $ouResult | ForEach-Object { Write-LabLog "  $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 2: Bulk gebruikers aanmaken ────────────────────
-    Write-Log "${pre}Stap 2: DC01 — bulk testgebruikers aanmaken"
+    Write-LabLog "${pre}Stap 2: DC01 — bulk testgebruikers aanmaken"
     $progress.Value = 30
     if ($isDry) {
-        Write-Log "${pre}  Import-Csv users.csv | ForEach-Object { New-ADUser -Name ... }"
-        Write-Log "${pre}  Gebruikers: testuser01 t/m testuser05 (IT, HR, Finance)"
-        Write-Log "${pre}  Wachtwoord: SSWLab@2024 (uitsluitend voor labtesting)"
+        Write-LabLog "${pre}  Import-Csv users.csv | ForEach-Object { New-ADUser -Name ... }"
+        Write-LabLog "${pre}  Gebruikers: testuser01 t/m testuser05 (IT, HR, Finance)"
+        Write-LabLog "${pre}  Wachtwoord: SSWLab@2024 (uitsluitend voor labtesting)"
     } else {
         try {
             $csvPath = "$env:TEMP\ssw-lab-users.csv"
@@ -212,48 +210,48 @@ $btnRun.Add_Click({
                         "Al aanwezig: $($u.SamAccountName)"
                     }
                 }
-            } -ArgumentList $domain | ForEach-Object { Write-Log "  $_" }
-        } catch { Write-Log "  Fout: $_" }
+            } -ArgumentList $domain | ForEach-Object { Write-LabLog "  $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: Delta sync ───────────────────────────────────
-    Write-Log "${pre}Stap 3: DC01 — delta sync naar Entra ID"
+    Write-LabLog "${pre}Stap 3: DC01 — delta sync naar Entra ID"
     $progress.Value = 48
     if ($isDry) {
-        Write-Log "${pre}  Import-Module ADSync; Start-ADSyncSyncCycle -PolicyType Delta"
+        Write-LabLog "${pre}  Import-Module ADSync; Start-ADSyncSyncCycle -PolicyType Delta"
     } else {
         try {
             Invoke-Command -VMName $dcVM -Credential $cred -ScriptBlock {
                 Import-Module ADSync -ErrorAction SilentlyContinue
                 Start-ADSyncSyncCycle -PolicyType Delta -ErrorAction SilentlyContinue
             }
-            Write-Log "  Delta sync gestart"
-        } catch { Write-Log "  Waarschuwing: $_" }
+            Write-LabLog "  Delta sync gestart"
+        } catch { Write-LabLog "  Waarschuwing: $_" }
     }
 
     # ── Stap 4: Manueel — Helpdesk Administrator ─────────────
-    Write-Log "${pre}Stap 4: Manueel — Helpdesk Administrator rol toewijzen"
+    Write-LabLog "${pre}Stap 4: Manueel — Helpdesk Administrator rol toewijzen"
     $progress.Value = 62
-    Write-Log "  M365 admin center > Roles > Role assignments > Helpdesk Administrator"
-    Write-Log "  Voeg testuser01 toe als Helpdesk Administrator"
-    Write-Log "  Verifieer: testuser01 kan wachtwoorden resetten maar geen Global Admin-taken"
+    Write-LabLog "  M365 admin center > Roles > Role assignments > Helpdesk Administrator"
+    Write-LabLog "  Voeg testuser01 toe als Helpdesk Administrator"
+    Write-LabLog "  Verifieer: testuser01 kan wachtwoorden resetten maar geen Global Admin-taken"
 
     # ── Stap 5: Manueel — Dynamische groep ──────────────────
-    Write-Log "${pre}Stap 5: Manueel — Dynamische groep aanmaken"
+    Write-LabLog "${pre}Stap 5: Manueel — Dynamische groep aanmaken"
     $progress.Value = 74
-    Write-Log "  Entra admin center > Groups > New group"
-    Write-Log "  Type: Security | Membership: Dynamic User"
-    Write-Log "  Regel: (user.department -eq ""IT"")"
-    Write-Log "  Testgebruikers met Department=IT worden automatisch lid"
+    Write-LabLog "  Entra admin center > Groups > New group"
+    Write-LabLog "  Type: Security | Membership: Dynamic User"
+    Write-LabLog "  Regel: (user.department -eq ""IT"")"
+    Write-LabLog "  Testgebruikers met Department=IT worden automatisch lid"
 
     # ── Stap 6: Manueel — SSPR activeren ────────────────────
-    Write-Log "${pre}Stap 6: Manueel — Self-Service Password Reset activeren"
+    Write-LabLog "${pre}Stap 6: Manueel — Self-Service Password Reset activeren"
     $progress.Value = 88
-    Write-Log "  Entra admin center > Users > Password reset"
-    Write-Log "  Self service password reset: Selected"
-    Write-Log "  Selecteer groep: LAB-IT (de dynamische groep die je aanmaakte)"
-    Write-Log "  Verificatie: 2 methoden verplicht (Authenticator + email)"
-    Write-Log "  Test als testuser01: https://aka.ms/sspr"
+    Write-LabLog "  Entra admin center > Users > Password reset"
+    Write-LabLog "  Self service password reset: Selected"
+    Write-LabLog "  Selecteer groep: LAB-IT (de dynamische groep die je aanmaakte)"
+    Write-LabLog "  Verificatie: 2 methoden verplicht (Authenticator + email)"
+    Write-LabLog "  Test als testuser01: https://aka.ms/sspr"
 
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show(
@@ -262,15 +260,15 @@ $btnRun.Add_Click({
     }
 
     $progress.Value = 100
-    Write-Log ""
-    Write-Log "Week 2 lab afgerond."
-    Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het principe van least privilege bij het toewijzen van beheerderrollen?"
-    Write-Log "2. Wat is het verschil tussen een beveiligingsgroep en een Microsoft 365-groep?"
-    Write-Log "3. Hoe werkt bulk user creation via de Microsoft 365 admin center?"
-    Write-Log "4. Wanneer gebruik je dynamic groups versus assigned groups?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog ""
+    Write-LabLog "Week 2 lab afgerond."
+    Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het principe van least privilege bij het toewijzen van beheerderrollen?"
+    Write-LabLog "2. Wat is het verschil tussen een beveiligingsgroep en een Microsoft 365-groep?"
+    Write-LabLog "3. Hoe werkt bulk user creation via de Microsoft 365 admin center?"
+    Write-LabLog "4. Wanneer gebruik je dynamic groups versus assigned groups?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })

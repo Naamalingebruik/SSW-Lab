@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # SSW-Lab | labs/AZ104/lab-week4-appservices.ps1
 # AZ-104 Week 4 — App Services, Container Instances en schalen
 # Cloud: Azure subscription
@@ -82,7 +82,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — commando's worden getoond maar niet uitgevoerd"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -95,9 +95,9 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
@@ -109,98 +109,98 @@ $btnRun.Add_Click({
     $location = "westeurope"
 
     # ── Stap 1: App Service Plan ─────────────────────────────
-    Write-Log "${pre}Stap 1: App Service Plan aanmaken ($planName, B1, Linux)"
+    Write-LabLog "${pre}Stap 1: App Service Plan aanmaken ($planName, B1, Linux)"
     $progress.Value = 16
     if ($isDry) {
-        Write-Log "${pre}  New-AzAppServicePlan -Name '$planName' -ResourceGroupName '$rgName' -Location '$location' -Tier 'Basic' -NumberofWorkers 1 -WorkerSize 'Small' -Linux"
+        Write-LabLog "${pre}  New-AzAppServicePlan -Name '$planName' -ResourceGroupName '$rgName' -Location '$location' -Tier 'Basic' -NumberofWorkers 1 -WorkerSize 'Small' -Linux"
     } else {
         try {
             if (-not (Get-AzContext)) { Connect-AzAccount -ErrorAction Stop | Out-Null }
             $plan = Get-AzAppServicePlan -Name $planName -ResourceGroupName $rgName -ErrorAction SilentlyContinue
             if (-not $plan) {
                 $plan = New-AzAppServicePlan -Name $planName -ResourceGroupName $rgName -Location $location -Tier "Basic" -NumberofWorkers 1 -WorkerSize "Small" -Linux
-                Write-Log "  App Service Plan aangemaakt: $planName (B1 Linux)"
-            } else { Write-Log "  App Service Plan bestaat al: $planName [$($plan.Sku.Tier)]" }
-        } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  App Service Plan aangemaakt: $planName (B1 Linux)"
+            } else { Write-LabLog "  App Service Plan bestaat al: $planName [$($plan.Sku.Tier)]" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 2: Web App deployen ─────────────────────────────
-    Write-Log "${pre}Stap 2: Web App aanmaken ($appName)"
+    Write-LabLog "${pre}Stap 2: Web App aanmaken ($appName)"
     $progress.Value = 32
     if ($isDry) {
-        Write-Log "${pre}  New-AzWebApp -Name '$appName' -ResourceGroupName '$rgName' -AppServicePlan '$planName'"
-        Write-Log "${pre}  # URL: https://$appName.azurewebsites.net"
-        Write-Log "${pre}  # Deployment opties: GitHub Actions, ZIP deploy, Local Git"
+        Write-LabLog "${pre}  New-AzWebApp -Name '$appName' -ResourceGroupName '$rgName' -AppServicePlan '$planName'"
+        Write-LabLog "${pre}  # URL: https://$appName.azurewebsites.net"
+        Write-LabLog "${pre}  # Deployment opties: GitHub Actions, ZIP deploy, Local Git"
     } else {
         try {
             $app = Get-AzWebApp -Name $appName -ResourceGroupName $rgName -ErrorAction SilentlyContinue
             if (-not $app) {
                 $app = New-AzWebApp -Name $appName -ResourceGroupName $rgName -AppServicePlan $planName
-                Write-Log "  Web App aangemaakt: $appName"
-                Write-Log "  URL: https://$appName.azurewebsites.net"
-            } else { Write-Log "  Web App bestaat al: $appName" }
-        } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  Web App aangemaakt: $appName"
+                Write-LabLog "  URL: https://$appName.azurewebsites.net"
+            } else { Write-LabLog "  Web App bestaat al: $appName" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: Deployment slot ──────────────────────────────
-    Write-Log "${pre}Stap 3: Deployment slot — staging aanmaken en swappen"
+    Write-LabLog "${pre}Stap 3: Deployment slot — staging aanmaken en swappen"
     $progress.Value = 50
     if ($isDry) {
-        Write-Log "${pre}  New-AzWebAppSlot -ResourceGroupName '$rgName' -Name '$appName' -Slot 'staging'"
-        Write-Log "${pre}  # Deploy naar staging slot:"
-        Write-Log "${pre}  Publish-AzWebapp -ResourceGroupName '$rgName' -Name '$appName' -Slot 'staging' -ArchivePath <app.zip>"
-        Write-Log "${pre}  # Swap staging → production:"
-        Write-Log "${pre}  Switch-AzWebAppSlot -ResourceGroupName '$rgName' -Name '$appName' -SourceSlotName 'staging' -DestinationSlotName 'production' -Swap"
+        Write-LabLog "${pre}  New-AzWebAppSlot -ResourceGroupName '$rgName' -Name '$appName' -Slot 'staging'"
+        Write-LabLog "${pre}  # Deploy naar staging slot:"
+        Write-LabLog "${pre}  Publish-AzWebapp -ResourceGroupName '$rgName' -Name '$appName' -Slot 'staging' -ArchivePath <app.zip>"
+        Write-LabLog "${pre}  # Swap staging → production:"
+        Write-LabLog "${pre}  Switch-AzWebAppSlot -ResourceGroupName '$rgName' -Name '$appName' -SourceSlotName 'staging' -DestinationSlotName 'production' -Swap"
     } else {
         try {
             $slot = Get-AzWebAppSlot -ResourceGroupName $rgName -Name $appName -Slot "staging" -ErrorAction SilentlyContinue
             if (-not $slot) {
                 New-AzWebAppSlot -ResourceGroupName $rgName -Name $appName -Slot "staging" | Out-Null
-                Write-Log "  Staging slot aangemaakt voor $appName"
-            } else { Write-Log "  Staging slot bestaat al" }
-            Write-Log "  Staging URL: https://$appName-staging.azurewebsites.net"
-            Write-Log "  Swap via: Switch-AzWebAppSlot -Swap (na deployen naar staging)"
-        } catch { Write-Log "  Fout (B1 supports slots niet): $_" }
+                Write-LabLog "  Staging slot aangemaakt voor $appName"
+            } else { Write-LabLog "  Staging slot bestaat al" }
+            Write-LabLog "  Staging URL: https://$appName-staging.azurewebsites.net"
+            Write-LabLog "  Swap via: Switch-AzWebAppSlot -Swap (na deployen naar staging)"
+        } catch { Write-LabLog "  Fout (B1 supports slots niet): $_" }
     }
 
     # ── Stap 4: Azure Container Instance ────────────────────
-    Write-Log "${pre}Stap 4: Azure Container Instance — nginx deployen"
+    Write-LabLog "${pre}Stap 4: Azure Container Instance — nginx deployen"
     $progress.Value = 68
     if ($isDry) {
-        Write-Log "${pre}  New-AzContainerGroup -ResourceGroupName '$rgName' -Name '$aciName' -Image 'nginx' -OsType Linux -DnsNameLabel '$aciName-lab' -Port 80"
-        Write-Log "${pre}  # URL: http://$aciName-lab.$location.azurecontainer.io"
-        Write-Log "${pre}  Get-AzContainerGroup -ResourceGroupName '$rgName' -Name '$aciName' | Select-Object Name, IPAddressType, Fqdn, ProvisioningState"
+        Write-LabLog "${pre}  New-AzContainerGroup -ResourceGroupName '$rgName' -Name '$aciName' -Image 'nginx' -OsType Linux -DnsNameLabel '$aciName-lab' -Port 80"
+        Write-LabLog "${pre}  # URL: http://$aciName-lab.$location.azurecontainer.io"
+        Write-LabLog "${pre}  Get-AzContainerGroup -ResourceGroupName '$rgName' -Name '$aciName' | Select-Object Name, IPAddressType, Fqdn, ProvisioningState"
     } else {
         try {
             $aci = Get-AzContainerGroup -ResourceGroupName $rgName -Name $aciName -ErrorAction SilentlyContinue
             if (-not $aci) {
                 $aci = New-AzContainerGroup -ResourceGroupName $rgName -Name $aciName -Image "nginx" -OsType Linux -DnsNameLabel "$aciName-lab" -Port 80
-                Write-Log "  ACI aangemaakt: $aciName"
-                Write-Log "  URL: http://$($aci.Fqdn)"
-            } else { Write-Log "  ACI bestaat al: $aciName [$($aci.ProvisioningState)]" }
-        } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  ACI aangemaakt: $aciName"
+                Write-LabLog "  URL: http://$($aci.Fqdn)"
+            } else { Write-LabLog "  ACI bestaat al: $aciName [$($aci.ProvisioningState)]" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 5: Autoscale ────────────────────────────────────
-    Write-Log "${pre}Stap 5: Autoscale-regel configureren"
+    Write-LabLog "${pre}Stap 5: Autoscale-regel configureren"
     $progress.Value = 84
-    Write-Log "  Azure portal > App Service Plan > Scale out (App Service Plan)"
-    Write-Log "  Kies: Custom autoscaling"
-    Write-Log "  Voeg een regel toe: CPU > 70% → scale out +1 instance"
-    Write-Log "  Voeg een rule toe: CPU < 25% → scale in -1 instance"
-    Write-Log "  Min instances: 1 | Max: 3 | Default: 1"
+    Write-LabLog "  Azure portal > App Service Plan > Scale out (App Service Plan)"
+    Write-LabLog "  Kies: Custom autoscaling"
+    Write-LabLog "  Voeg een regel toe: CPU > 70% → scale out +1 instance"
+    Write-LabLog "  Voeg een rule toe: CPU < 25% → scale in -1 instance"
+    Write-LabLog "  Min instances: 1 | Max: 3 | Default: 1"
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show("Azure portal openen?", "SSW-Lab", "YesNo", "Question")
         if ($open -eq "Yes") { Start-Process "https://portal.azure.com/#resource/subscriptions//resourceGroups/$rgName/providers/Microsoft.Web/serverFarms/$planName/scaleSettings" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 4 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen App Service Plan tiers (Free, Basic, Standard, Premium)?"
-    Write-Log "2. Waarom gebruik je deployment slots voor blue/green deploys?"
-    Write-Log "3. Wanneer kies je voor ACI (Container Instances) vs. AKS?"
-    Write-Log "4. Wat is het verschil tussen Scale Out (horizontal) en Scale Up (vertical)?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 4 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen App Service Plan tiers (Free, Basic, Standard, Premium)?"
+    Write-LabLog "2. Waarom gebruik je deployment slots voor blue/green deploys?"
+    Write-LabLog "3. Wanneer kies je voor ACI (Container Instances) vs. AKS?"
+    Write-LabLog "4. Wat is het verschil tussen Scale Out (horizontal) en Scale Up (vertical)?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

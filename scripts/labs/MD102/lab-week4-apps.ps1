@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/MD102/lab-week4-apps.ps1
 # MD-102 Week 4 — Applicatiebeheer met Intune
@@ -98,7 +98,7 @@ $dryRunTitle = $reader.FindName("DryRunTitle")
 $dryRunSub   = $reader.FindName("DryRunSub")
 $conv        = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
@@ -118,11 +118,11 @@ function Update-DryRunBar {
     }
 }
 
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({   Update-DryRunBar })
-$chkDryRun.Add_Unchecked({ Update-DryRunBar })
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({   Show-DryRunState })
+$chkDryRun.Add_Unchecked({ Show-DryRunState })
 
-function Write-Log($msg) {
+function Write-LabLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"
     $logBox.Text += "[$ts] $msg`n"
     $logBox.ScrollToEnd()
@@ -138,12 +138,12 @@ $btnRun.Add_Click({
     $w11VM2 = $profiles."W11-02".Name
 
     # ── Stap 1: MGMT01 — IntuneWin32ContentPrepTool ─────────
-    Write-Log "${pre}Stap 1: MGMT01 — IntuneWin32ContentPrepTool aanwezigheid"
+    Write-LabLog "${pre}Stap 1: MGMT01 — IntuneWin32ContentPrepTool aanwezigheid"
     $progress.Value = 15
     if ($isDry) {
-        Write-Log "${pre}  Test-Path 'C:\Tools\IntuneWinAppUtil.exe'"
-        Write-Log "${pre}  Download: https://github.com/microsoft/Microsoft-Win32-Content-Prep-Tool"
-        Write-Log "${pre}  Gebruik: IntuneWinAppUtil.exe -c <bronmap> -s <setup.exe> -o <uitvoermap>"
+        Write-LabLog "${pre}  Test-Path 'C:\Tools\IntuneWinAppUtil.exe'"
+        Write-LabLog "${pre}  Download: https://github.com/microsoft/Microsoft-Win32-Content-Prep-Tool"
+        Write-LabLog "${pre}  Gebruik: IntuneWinAppUtil.exe -c <bronmap> -s <setup.exe> -o <uitvoermap>"
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $mgmtVM" -UserName "$mgmtVM\$($SSWConfig.AdminUser)"
@@ -157,17 +157,17 @@ $btnRun.Add_Click({
                 if ($found) { "Gevonden: $found" }
                 else { "Niet gevonden — download van https://github.com/microsoft/Microsoft-Win32-Content-Prep-Tool" }
             }
-            Write-Log "  $toolFound"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  $toolFound"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 2: W11-01 — IME log analyseren ─────────────────
-    Write-Log "${pre}Stap 2: W11-01 — IntuneManagementExtension.log (laatste 20 regels)"
+    Write-LabLog "${pre}Stap 2: W11-01 — IntuneManagementExtension.log (laatste 20 regels)"
     $progress.Value = 32
     if ($isDry) {
-        Write-Log "${pre}  Pad: C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log"
-        Write-Log "${pre}  Zoek op: 'Win32App', 'Successfully installed', 'Failed'"
-        Write-Log "${pre}  Get-Content <pad> | Select-Object -Last 20"
+        Write-LabLog "${pre}  Pad: C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log"
+        Write-LabLog "${pre}  Zoek op: 'Win32App', 'Successfully installed', 'Failed'"
+        Write-LabLog "${pre}  Get-Content <pad> | Select-Object -Last 20"
     } else {
         try {
             $cred3 = Get-Credential -Message "Admin credentials voor $w11VM" -UserName "$w11VM\$($SSWConfig.AdminUser)"
@@ -180,17 +180,17 @@ $btnRun.Add_Click({
                     "IME log niet gevonden — is het device enrolled in Intune?"
                 }
             }
-            $imeLog | ForEach-Object { Write-Log "  $_" }
-        } catch { Write-Log "  Fout: $_" }
+            $imeLog | ForEach-Object { Write-LabLog "  $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: W11-01 — geinstalleerde apps ────────────────
-    Write-Log "${pre}Stap 3: W11-01 — geinstalleerde applicaties (Win32 + Store)"
+    Write-LabLog "${pre}Stap 3: W11-01 — geinstalleerde applicaties (Win32 + Store)"
     $progress.Value = 50
     if ($isDry) {
-        Write-Log "${pre}  Get-AppxPackage | Select-Object Name, Version | Sort-Object Name"
-        Write-Log "${pre}  Get-WmiObject -Class Win32_Product | Select-Object Name, Version"
-        Write-Log "${pre}  Controleer of Intune-deployed apps aanwezig zijn"
+        Write-LabLog "${pre}  Get-AppxPackage | Select-Object Name, Version | Sort-Object Name"
+        Write-LabLog "${pre}  Get-WmiObject -Class Win32_Product | Select-Object Name, Version"
+        Write-LabLog "${pre}  Controleer of Intune-deployed apps aanwezig zijn"
     } else {
         try {
             $apps = Invoke-Command -VMName $w11VM -Credential $cred3 -ScriptBlock {
@@ -198,17 +198,17 @@ $btnRun.Add_Click({
                          Select-Object Name | Sort-Object Name | Select-Object -First 10
                 $store | ForEach-Object { "Store: $($_.Name)" }
             }
-            $apps | ForEach-Object { Write-Log "  $_" }
-        } catch { Write-Log "  Fout: $_" }
+            $apps | ForEach-Object { Write-LabLog "  $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 4: W11-02 — Office installatie ─────────────────
-    Write-Log "${pre}Stap 4: W11-02 — Microsoft 365 Apps installatie verifiëren"
+    Write-LabLog "${pre}Stap 4: W11-02 — Microsoft 365 Apps installatie verifiëren"
     $progress.Value = 68
     if ($isDry) {
-        Write-Log "${pre}  Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration"
-        Write-Log "${pre}  Verwacht na Intune M365 Apps deployment: VersionToReport aanwezig"
-        Write-Log "${pre}  Test-Path 'C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE'"
+        Write-LabLog "${pre}  Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration"
+        Write-LabLog "${pre}  Verwacht na Intune M365 Apps deployment: VersionToReport aanwezig"
+        Write-LabLog "${pre}  Test-Path 'C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE'"
     } else {
         try {
             $cred4 = Get-Credential -Message "Admin credentials voor $w11VM2" -UserName "$w11VM2\$($SSWConfig.AdminUser)"
@@ -221,19 +221,19 @@ $btnRun.Add_Click({
                     "Microsoft 365 Apps niet geinstalleerd (nog geen Intune assignment?)"
                 }
             }
-            Write-Log "  $officeStatus"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  $officeStatus"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 5: Manueel — Intune Apps portal ────────────────
-    Write-Log "${pre}Stap 5: Manueel — Intune Apps portal"
+    Write-LabLog "${pre}Stap 5: Manueel — Intune Apps portal"
     $progress.Value = 85
-    Write-Log "  URL: https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/AppsMenu/~/overview"
-    Write-Log "  Taken:"
-    Write-Log "    - Pak een .exe in als .intunewin met IntuneWin32ContentPrepTool"
-    Write-Log "    - Upload Win32 app > Assign aan W11-01 (Required)"
-    Write-Log "    - Maak M365 Apps deployment aan (Apps > Windows > + Add > Microsoft 365)"
-    Write-Log "    - Configureer App protection policy voor Microsoft Edge"
+    Write-LabLog "  URL: https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/AppsMenu/~/overview"
+    Write-LabLog "  Taken:"
+    Write-LabLog "    - Pak een .exe in als .intunewin met IntuneWin32ContentPrepTool"
+    Write-LabLog "    - Upload Win32 app > Assign aan W11-01 (Required)"
+    Write-LabLog "    - Maak M365 Apps deployment aan (Apps > Windows > + Add > Microsoft 365)"
+    Write-LabLog "    - Configureer App protection policy voor Microsoft Edge"
 
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show("Browser openen naar Intune Apps?", "SSW-Lab", "YesNo", "Question")
@@ -243,15 +243,15 @@ $btnRun.Add_Click({
     }
 
     $progress.Value = 100
-    Write-Log ""
-    Write-Log "Week 4 lab afgerond."
-    Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen een Required en Available app-assignment?"
-    Write-Log "2. Wanneer gebruik je Win32 app packaging versus Microsoft Store for Business?"
-    Write-Log "3. Wat doet de IntuneManagementExtension.log en waar staat die?"
-    Write-Log "4. Wat zijn de voordelen van MAM zonder MDM-enrollment?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog ""
+    Write-LabLog "Week 4 lab afgerond."
+    Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen een Required en Available app-assignment?"
+    Write-LabLog "2. Wanneer gebruik je Win32 app packaging versus Microsoft Store for Business?"
+    Write-LabLog "3. Wat doet de IntuneManagementExtension.log en waar staat die?"
+    Write-LabLog "4. Wat zijn de voordelen van MAM zonder MDM-enrollment?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     $btnNext.IsEnabled = $true
     $btnRun.IsEnabled  = $true

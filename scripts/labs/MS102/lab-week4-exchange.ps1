@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/MS102/lab-week4-exchange.ps1
 # MS-102 Week 4 — Exchange Online beheer
@@ -86,7 +86,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen wijzigingen"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -99,92 +99,92 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
     $isDry = $chkDryRun.IsChecked; $pre = if ($isDry) { "[DRY RUN] " } else { "" }
 
     # ── Stap 1: Module check en verbinding ───────────────────
-    Write-Log "${pre}Stap 1: Exchange Online PowerShell verbinden"
+    Write-LabLog "${pre}Stap 1: Exchange Online PowerShell verbinden"
     $progress.Value = 14
     $exoInstalled = Get-Module -ListAvailable -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
     if ($isDry) {
-        Write-Log "${pre}  Install-Module ExchangeOnlineManagement  (als niet aanwezig)"
-        Write-Log "${pre}  Connect-ExchangeOnline -UserPrincipalName admin@<tenant>.onmicrosoft.com"
-        Write-Log "${pre}  Get-Mailbox | Select-Object DisplayName, PrimarySmtpAddress, MailboxType | Sort-Object DisplayName"
+        Write-LabLog "${pre}  Install-Module ExchangeOnlineManagement  (als niet aanwezig)"
+        Write-LabLog "${pre}  Connect-ExchangeOnline -UserPrincipalName admin@<tenant>.onmicrosoft.com"
+        Write-LabLog "${pre}  Get-Mailbox | Select-Object DisplayName, PrimarySmtpAddress, MailboxType | Sort-Object DisplayName"
     } else {
         if (-not $exoInstalled) {
-            Write-Log "  ExchangeOnlineManagement module niet gevonden"
+            Write-LabLog "  ExchangeOnlineManagement module niet gevonden"
             $install = [System.Windows.MessageBox]::Show(
                 "ExchangeOnlineManagement module installeren?", "SSW-Lab", "YesNo", "Question")
             if ($install -eq "Yes") {
-                try { Install-Module ExchangeOnlineManagement -Scope CurrentUser -Force; Write-Log "  Module geinstalleerd" }
-                catch { Write-Log "  Installatie mislukt: $_"; $btnRun.IsEnabled = $true; return }
-            } else { Write-Log "  Overgeslagen"; $btnRun.IsEnabled = $true; return }
+                try { Install-Module ExchangeOnlineManagement -Scope CurrentUser -Force; Write-LabLog "  Module geinstalleerd" }
+                catch { Write-LabLog "  Installatie mislukt: $_"; $btnRun.IsEnabled = $true; return }
+            } else { Write-LabLog "  Overgeslagen"; $btnRun.IsEnabled = $true; return }
         }
         try {
             Import-Module ExchangeOnlineManagement -ErrorAction Stop
             Connect-ExchangeOnline -ShowBanner:$false -ErrorAction Stop
-            Write-Log "  Verbonden met Exchange Online"
-        } catch { Write-Log "  Verbinding mislukt: $_"; $btnRun.IsEnabled = $true; return }
+            Write-LabLog "  Verbonden met Exchange Online"
+        } catch { Write-LabLog "  Verbinding mislukt: $_"; $btnRun.IsEnabled = $true; return }
     }
 
     # ── Stap 2: Mailboxen opvragen ───────────────────────────
-    Write-Log "${pre}Stap 2: Mailboxen opvragen"
+    Write-LabLog "${pre}Stap 2: Mailboxen opvragen"
     $progress.Value = 28
     if ($isDry) {
-        Write-Log "${pre}  Get-Mailbox | Select-Object DisplayName, MailboxType | Sort-Object DisplayName | Select-Object -First 10"
+        Write-LabLog "${pre}  Get-Mailbox | Select-Object DisplayName, MailboxType | Sort-Object DisplayName | Select-Object -First 10"
     } else {
         try {
             $mailboxes = Get-Mailbox | Select-Object DisplayName, MailboxType | Sort-Object DisplayName | Select-Object -First 10
-            $mailboxes | ForEach-Object { Write-Log "  $($_.MailboxType.ToString().PadRight(12)) $($_.DisplayName)" }
-        } catch { Write-Log "  Fout: $_" }
+            $mailboxes | ForEach-Object { Write-LabLog "  $($_.MailboxType.ToString().PadRight(12)) $($_.DisplayName)" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: Shared mailbox aanmaken ─────────────────────
-    Write-Log "${pre}Stap 3: Shared mailbox aanmaken (ssw-helpdesk)"
+    Write-LabLog "${pre}Stap 3: Shared mailbox aanmaken (ssw-helpdesk)"
     $progress.Value = 42
     if ($isDry) {
-        Write-Log "${pre}  New-Mailbox -Shared -Name 'SSW Helpdesk' -Alias 'ssw-helpdesk'"
-        Write-Log "${pre}  Add-MailboxPermission -Identity ssw-helpdesk -User testuser01 -AccessRights FullAccess"
+        Write-LabLog "${pre}  New-Mailbox -Shared -Name 'SSW Helpdesk' -Alias 'ssw-helpdesk'"
+        Write-LabLog "${pre}  Add-MailboxPermission -Identity ssw-helpdesk -User testuser01 -AccessRights FullAccess"
     } else {
         try {
             $existing = Get-Mailbox -Identity "ssw-helpdesk" -ErrorAction SilentlyContinue
             if (-not $existing) {
                 New-Mailbox -Shared -Name "SSW Helpdesk" -Alias "ssw-helpdesk" | Out-Null
-                Write-Log "  Shared mailbox aangemaakt: ssw-helpdesk"
+                Write-LabLog "  Shared mailbox aangemaakt: ssw-helpdesk"
                 Add-MailboxPermission -Identity "ssw-helpdesk" -User "testuser01" -AccessRights FullAccess -ErrorAction SilentlyContinue | Out-Null
-                Write-Log "  Full Access toegewezen aan testuser01"
-            } else { Write-Log "  Shared mailbox al aanwezig: ssw-helpdesk" }
-        } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  Full Access toegewezen aan testuser01"
+            } else { Write-LabLog "  Shared mailbox al aanwezig: ssw-helpdesk" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 4: Distribution group ──────────────────────────
-    Write-Log "${pre}Stap 4: Distribution group aanmaken (LAB-IT-DL)"
+    Write-LabLog "${pre}Stap 4: Distribution group aanmaken (LAB-IT-DL)"
     $progress.Value = 55
     if ($isDry) {
-        Write-Log "${pre}  New-DistributionGroup -Name 'LAB IT Distribution' -Alias 'lab-it-dl' -Type Distribution"
-        Write-Log "${pre}  Add-DistributionGroupMember -Identity lab-it-dl -Member testuser01"
+        Write-LabLog "${pre}  New-DistributionGroup -Name 'LAB IT Distribution' -Alias 'lab-it-dl' -Type Distribution"
+        Write-LabLog "${pre}  Add-DistributionGroupMember -Identity lab-it-dl -Member testuser01"
     } else {
         try {
             $dlExisting = Get-DistributionGroup -Identity "lab-it-dl" -ErrorAction SilentlyContinue
             if (-not $dlExisting) {
                 New-DistributionGroup -Name "LAB IT Distribution" -Alias "lab-it-dl" -Type Distribution | Out-Null
-                Write-Log "  Distribution group aangemaakt: lab-it-dl"
-            } else { Write-Log "  Distribution group al aanwezig" }
-        } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  Distribution group aangemaakt: lab-it-dl"
+            } else { Write-LabLog "  Distribution group al aanwezig" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 5: Mail flow rule ───────────────────────────────
-    Write-Log "${pre}Stap 5: Mail flow rule — disclaimer toevoegen"
+    Write-LabLog "${pre}Stap 5: Mail flow rule — disclaimer toevoegen"
     $progress.Value = 68
     if ($isDry) {
-        Write-Log "${pre}  New-TransportRule -Name 'LAB Disclaimer' -FromScope InOrganization"
-        Write-Log "${pre}    -ApplyHtmlDisclaimerLocation Append"
-        Write-Log "${pre}    -ApplyHtmlDisclaimerText '<p>Dit bericht is afkomstig van SSW-Lab.</p>'"
+        Write-LabLog "${pre}  New-TransportRule -Name 'LAB Disclaimer' -FromScope InOrganization"
+        Write-LabLog "${pre}    -ApplyHtmlDisclaimerLocation Append"
+        Write-LabLog "${pre}    -ApplyHtmlDisclaimerText '<p>Dit bericht is afkomstig van SSW-Lab.</p>'"
     } else {
         try {
             $ruleExists = Get-TransportRule -Identity "LAB Disclaimer" -ErrorAction SilentlyContinue
@@ -193,25 +193,25 @@ $btnRun.Add_Click({
                     -ApplyHtmlDisclaimerLocation Append `
                     -ApplyHtmlDisclaimerText "<p><i>Dit bericht is afkomstig van LAB-testomgeving.</i></p>" `
                     -ApplyHtmlDisclaimerFallbackAction Wrap | Out-Null
-                Write-Log "  Transport rule aangemaakt: LAB Disclaimer"
-            } else { Write-Log "  Transport rule al aanwezig" }
-        } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  Transport rule aangemaakt: LAB Disclaimer"
+            } else { Write-LabLog "  Transport rule al aanwezig" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 6: Message trace & DKIM ────────────────────────
-    Write-Log "${pre}Stap 6: Message trace en DKIM controleren"
+    Write-LabLog "${pre}Stap 6: Message trace en DKIM controleren"
     $progress.Value = 84
     if ($isDry) {
-        Write-Log "${pre}  Get-MessageTrace -SenderAddress testuser01@<tenant> -StartDate (Get-Date).AddDays(-1)"
-        Write-Log "${pre}  Get-DkimSigningConfig | Select-Object Domain, Enabled, Status"
-        Write-Log "${pre}  EAC: https://admin.exchange.microsoft.com > Mail flow > Message trace"
+        Write-LabLog "${pre}  Get-MessageTrace -SenderAddress testuser01@<tenant> -StartDate (Get-Date).AddDays(-1)"
+        Write-LabLog "${pre}  Get-DkimSigningConfig | Select-Object Domain, Enabled, Status"
+        Write-LabLog "${pre}  EAC: https://admin.exchange.microsoft.com > Mail flow > Message trace"
     } else {
         try {
             $dkim = Get-DkimSigningConfig | Select-Object Domain, Enabled, Status
-            Write-Log "  DKIM configuratie:"
-            $dkim | ForEach-Object { Write-Log "    $($_.Domain) | Enabled: $($_.Enabled) | Status: $($_.Status)" }
-        } catch { Write-Log "  DKIM opvragen mislukt: $_" }
-        try { Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue } catch {}
+            Write-LabLog "  DKIM configuratie:"
+            $dkim | ForEach-Object { Write-LabLog "    $($_.Domain) | Enabled: $($_.Enabled) | Status: $($_.Status)" }
+        } catch { Write-LabLog "  DKIM opvragen mislukt: $_" }
+        try { Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue } catch { Write-Verbose "Disconnect-ExchangeOnline gaf een fout terug." }
     }
 
     if (-not $isDry) {
@@ -220,13 +220,13 @@ $btnRun.Add_Click({
     }
 
     $progress.Value = 100
-    Write-Log ""; Write-Log "Week 4 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen een shared mailbox en een room mailbox?"
-    Write-Log "2. Hoe werkt message trace en wanneer gebruik je het?"
-    Write-Log "3. Wat doen Safe Attachments en Safe Links in Defender for Office 365?"
-    Write-Log "4. Wat is het verschil tussen anti-spam en anti-phishing policies?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog ""; Write-LabLog "Week 4 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen een shared mailbox en een room mailbox?"
+    Write-LabLog "2. Hoe werkt message trace en wanneer gebruik je het?"
+    Write-LabLog "3. Wat doen Safe Attachments en Safe Links in Defender for Office 365?"
+    Write-LabLog "4. Wat is het verschil tussen anti-spam en anti-phishing policies?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

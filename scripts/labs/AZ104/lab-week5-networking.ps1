@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # SSW-Lab | labs/AZ104/lab-week5-networking.ps1
 # AZ-104 Week 5 — Azure Netwerken: VNet, NSG, Peering, DNS, VPN
 # Cloud: Azure subscription
@@ -82,7 +82,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — VNet-resources worden nog niet aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -95,9 +95,9 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
@@ -110,14 +110,14 @@ $btnRun.Add_Click({
     $dnsZone  = "ssw.internal"
 
     # ── Stap 1: VNet met subnets ─────────────────────────────
-    Write-Log "${pre}Stap 1: VNet aanmaken met Web en App subnets"
+    Write-LabLog "${pre}Stap 1: VNet aanmaken met Web en App subnets"
     $progress.Value = 16
     if ($isDry) {
-        Write-Log "${pre}  `$webSubnet = New-AzVirtualNetworkSubnetConfig -Name 'WebSubnet' -AddressPrefix '10.1.1.0/24'"
-        Write-Log "${pre}  `$appSubnet = New-AzVirtualNetworkSubnetConfig -Name 'AppSubnet' -AddressPrefix '10.1.2.0/24'"
-        Write-Log "${pre}  New-AzVirtualNetwork -Name '$hubVnetName' -ResourceGroupName '$rgName' -Location '$location' -AddressPrefix '10.1.0.0/16' -Subnet `$webSubnet,`$appSubnet"
-        Write-Log "${pre}  # Spoke VNet (10.2.0.0/16):"
-        Write-Log "${pre}  New-AzVirtualNetwork -Name '$spokeVnetName' -ResourceGroupName '$rgName' -Location '$location' -AddressPrefix '10.2.0.0/16' -Subnet (New-AzVirtualNetworkSubnetConfig -Name 'DefaultSubnet' -AddressPrefix '10.2.0.0/24')"
+        Write-LabLog "${pre}  `$webSubnet = New-AzVirtualNetworkSubnetConfig -Name 'WebSubnet' -AddressPrefix '10.1.1.0/24'"
+        Write-LabLog "${pre}  `$appSubnet = New-AzVirtualNetworkSubnetConfig -Name 'AppSubnet' -AddressPrefix '10.1.2.0/24'"
+        Write-LabLog "${pre}  New-AzVirtualNetwork -Name '$hubVnetName' -ResourceGroupName '$rgName' -Location '$location' -AddressPrefix '10.1.0.0/16' -Subnet `$webSubnet,`$appSubnet"
+        Write-LabLog "${pre}  # Spoke VNet (10.2.0.0/16):"
+        Write-LabLog "${pre}  New-AzVirtualNetwork -Name '$spokeVnetName' -ResourceGroupName '$rgName' -Location '$location' -AddressPrefix '10.2.0.0/16' -Subnet (New-AzVirtualNetworkSubnetConfig -Name 'DefaultSubnet' -AddressPrefix '10.2.0.0/24')"
     } else {
         try {
             if (-not (Get-AzContext)) { Connect-AzAccount -ErrorAction Stop | Out-Null }
@@ -126,43 +126,43 @@ $btnRun.Add_Click({
                 $webSub = New-AzVirtualNetworkSubnetConfig -Name "WebSubnet" -AddressPrefix "10.1.1.0/24"
                 $appSub = New-AzVirtualNetworkSubnetConfig -Name "AppSubnet" -AddressPrefix "10.1.2.0/24"
                 $hubVnet = New-AzVirtualNetwork -Name $hubVnetName -ResourceGroupName $rgName -Location $location -AddressPrefix "10.1.0.0/16" -Subnet $webSub, $appSub
-                Write-Log "  Hub VNet aangemaakt: $hubVnetName (10.1.0.0/16)"
-            } else { Write-Log "  Hub VNet bestaat al: $hubVnetName" }
+                Write-LabLog "  Hub VNet aangemaakt: $hubVnetName (10.1.0.0/16)"
+            } else { Write-LabLog "  Hub VNet bestaat al: $hubVnetName" }
             $spokeVnet = Get-AzVirtualNetwork -Name $spokeVnetName -ResourceGroupName $rgName -ErrorAction SilentlyContinue
             if (-not $spokeVnet) {
                 $defSub = New-AzVirtualNetworkSubnetConfig -Name "DefaultSubnet" -AddressPrefix "10.2.0.0/24"
                 $spokeVnet = New-AzVirtualNetwork -Name $spokeVnetName -ResourceGroupName $rgName -Location $location -AddressPrefix "10.2.0.0/16" -Subnet $defSub
-                Write-Log "  Spoke VNet aangemaakt: $spokeVnetName (10.2.0.0/16)"
-            } else { Write-Log "  Spoke VNet bestaat al: $spokeVnetName" }
-        } catch { Write-Log "  Fout: $_"; $btnRun.IsEnabled = $true; return }
+                Write-LabLog "  Spoke VNet aangemaakt: $spokeVnetName (10.2.0.0/16)"
+            } else { Write-LabLog "  Spoke VNet bestaat al: $spokeVnetName" }
+        } catch { Write-LabLog "  Fout: $_"; $btnRun.IsEnabled = $true; return }
     }
 
     # ── Stap 2: NSG ──────────────────────────────────────────
-    Write-Log "${pre}Stap 2: NSG aanmaken met RDP inbound-regel"
+    Write-LabLog "${pre}Stap 2: NSG aanmaken met RDP inbound-regel"
     $progress.Value = 32
     if ($isDry) {
-        Write-Log "${pre}  `$rdpRule = New-AzNetworkSecurityRuleConfig -Name 'Allow-RDP' -Protocol Tcp -Direction Inbound -Priority 1000 -SourceAddressPrefix '*' -SourcePortRange '*' -DestinationAddressPrefix '*' -DestinationPortRange 3389 -Access Allow"
-        Write-Log "${pre}  New-AzNetworkSecurityGroup -Name '$nsgName' -ResourceGroupName '$rgName' -Location '$location' -SecurityRules `$rdpRule"
-        Write-Log "${pre}  # Voorzichtig: RDP vanuit Internet openzetten is beveiligingsrisico! Gebruik Just-In-Time VM Access in productie."
+        Write-LabLog "${pre}  `$rdpRule = New-AzNetworkSecurityRuleConfig -Name 'Allow-RDP' -Protocol Tcp -Direction Inbound -Priority 1000 -SourceAddressPrefix '*' -SourcePortRange '*' -DestinationAddressPrefix '*' -DestinationPortRange 3389 -Access Allow"
+        Write-LabLog "${pre}  New-AzNetworkSecurityGroup -Name '$nsgName' -ResourceGroupName '$rgName' -Location '$location' -SecurityRules `$rdpRule"
+        Write-LabLog "${pre}  # Voorzichtig: RDP vanuit Internet openzetten is beveiligingsrisico! Gebruik Just-In-Time VM Access in productie."
     } else {
         try {
             $nsg = Get-AzNetworkSecurityGroup -Name $nsgName -ResourceGroupName $rgName -ErrorAction SilentlyContinue
             if (-not $nsg) {
                 $rdpRule = New-AzNetworkSecurityRuleConfig -Name "Allow-RDP" -Protocol "Tcp" -Direction "Inbound" -Priority 1000 -SourceAddressPrefix "*" -SourcePortRange "*" -DestinationAddressPrefix "*" -DestinationPortRange "3389" -Access "Allow"
                 $nsg = New-AzNetworkSecurityGroup -Name $nsgName -ResourceGroupName $rgName -Location $location -SecurityRules $rdpRule
-                Write-Log "  NSG aangemaakt: $nsgName (Allow-RDP inbound)"
-                Write-Log "  Let op: in productie altijd Just-In-Time VM Access gebruiken"
-            } else { Write-Log "  NSG bestaat al: $nsgName" }
-        } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  NSG aangemaakt: $nsgName (Allow-RDP inbound)"
+                Write-LabLog "  Let op: in productie altijd Just-In-Time VM Access gebruiken"
+            } else { Write-LabLog "  NSG bestaat al: $nsgName" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: VNet Peering ─────────────────────────────────
-    Write-Log "${pre}Stap 3: VNet Peering — Hub naar Spoke en terug"
+    Write-LabLog "${pre}Stap 3: VNet Peering — Hub naar Spoke en terug"
     $progress.Value = 50
     if ($isDry) {
-        Write-Log "${pre}  Add-AzVirtualNetworkPeering -Name 'Hub-to-Spoke' -VirtualNetwork `$hubVnet -RemoteVirtualNetworkId `$spokeVnet.Id"
-        Write-Log "${pre}  Add-AzVirtualNetworkPeering -Name 'Spoke-to-Hub' -VirtualNetwork `$spokeVnet -RemoteVirtualNetworkId `$hubVnet.Id"
-        Write-Log "${pre}  Get-AzVirtualNetworkPeering -VirtualNetworkName '$hubVnetName' -ResourceGroupName '$rgName'"
+        Write-LabLog "${pre}  Add-AzVirtualNetworkPeering -Name 'Hub-to-Spoke' -VirtualNetwork `$hubVnet -RemoteVirtualNetworkId `$spokeVnet.Id"
+        Write-LabLog "${pre}  Add-AzVirtualNetworkPeering -Name 'Spoke-to-Hub' -VirtualNetwork `$spokeVnet -RemoteVirtualNetworkId `$hubVnet.Id"
+        Write-LabLog "${pre}  Get-AzVirtualNetworkPeering -VirtualNetworkName '$hubVnetName' -ResourceGroupName '$rgName'"
     } else {
         try {
             $existingPeer = Get-AzVirtualNetworkPeering -VirtualNetworkName $hubVnetName -ResourceGroupName $rgName -ErrorAction SilentlyContinue
@@ -171,63 +171,63 @@ $btnRun.Add_Click({
                 $spokeVnet = Get-AzVirtualNetwork -Name $spokeVnetName -ResourceGroupName $rgName
                 Add-AzVirtualNetworkPeering -Name "Hub-to-Spoke" -VirtualNetwork $hubVnet -RemoteVirtualNetworkId $spokeVnet.Id | Out-Null
                 Add-AzVirtualNetworkPeering -Name "Spoke-to-Hub" -VirtualNetwork $spokeVnet -RemoteVirtualNetworkId $hubVnet.Id | Out-Null
-                Write-Log "  VNet Peering aangemaakt: Hub ↔ Spoke"
-            } else { Write-Log "  VNet Peering bestaat al" }
-            Get-AzVirtualNetworkPeering -VirtualNetworkName $hubVnetName -ResourceGroupName $rgName | ForEach-Object { Write-Log "  $($_.Name): $($_.PeeringState)" }
-        } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  VNet Peering aangemaakt: Hub ↔ Spoke"
+            } else { Write-LabLog "  VNet Peering bestaat al" }
+            Get-AzVirtualNetworkPeering -VirtualNetworkName $hubVnetName -ResourceGroupName $rgName | ForEach-Object { Write-LabLog "  $($_.Name): $($_.PeeringState)" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 4: Private DNS Zone ─────────────────────────────
-    Write-Log "${pre}Stap 4: Private DNS Zone ($dnsZone) koppelen aan Hub VNet"
+    Write-LabLog "${pre}Stap 4: Private DNS Zone ($dnsZone) koppelen aan Hub VNet"
     $progress.Value = 68
     if ($isDry) {
-        Write-Log "${pre}  New-AzPrivateDnsZone -Name '$dnsZone' -ResourceGroupName '$rgName'"
-        Write-Log "${pre}  New-AzPrivateDnsVirtualNetworkLink -ZoneName '$dnsZone' -ResourceGroupName '$rgName' -Name 'hub-link' -VirtualNetworkId `$hubVnet.Id -EnableRegistration"
-        Write-Log "${pre}  New-AzPrivateDnsRecordSet -ZoneName '$dnsZone' -ResourceGroupName '$rgName' -Name 'dc01' -RecordType A -Ttl 300 -PrivateDnsRecords (New-AzPrivateDnsRecordConfig -Ipv4Address '10.1.1.10')"
+        Write-LabLog "${pre}  New-AzPrivateDnsZone -Name '$dnsZone' -ResourceGroupName '$rgName'"
+        Write-LabLog "${pre}  New-AzPrivateDnsVirtualNetworkLink -ZoneName '$dnsZone' -ResourceGroupName '$rgName' -Name 'hub-link' -VirtualNetworkId `$hubVnet.Id -EnableRegistration"
+        Write-LabLog "${pre}  New-AzPrivateDnsRecordSet -ZoneName '$dnsZone' -ResourceGroupName '$rgName' -Name 'dc01' -RecordType A -Ttl 300 -PrivateDnsRecords (New-AzPrivateDnsRecordConfig -Ipv4Address '10.1.1.10')"
     } else {
         try {
             $dnsZoneObj = Get-AzPrivateDnsZone -Name $dnsZone -ResourceGroupName $rgName -ErrorAction SilentlyContinue
             if (-not $dnsZoneObj) {
                 $dnsZoneObj = New-AzPrivateDnsZone -Name $dnsZone -ResourceGroupName $rgName
-                Write-Log "  Private DNS Zone aangemaakt: $dnsZone"
-            } else { Write-Log "  DNS Zone bestaat al: $dnsZone" }
+                Write-LabLog "  Private DNS Zone aangemaakt: $dnsZone"
+            } else { Write-LabLog "  DNS Zone bestaat al: $dnsZone" }
             $hubVnet = Get-AzVirtualNetwork -Name $hubVnetName -ResourceGroupName $rgName
             $link = Get-AzPrivateDnsVirtualNetworkLink -ZoneName $dnsZone -ResourceGroupName $rgName -Name "hub-link" -ErrorAction SilentlyContinue
             if (-not $link) {
                 New-AzPrivateDnsVirtualNetworkLink -ZoneName $dnsZone -ResourceGroupName $rgName -Name "hub-link" -VirtualNetworkId $hubVnet.Id -EnableRegistration | Out-Null
-                Write-Log "  VNet link aangemaakt: hub-link (auto-registratie aan)"
-            } else { Write-Log "  VNet link bestaat al" }
+                Write-LabLog "  VNet link aangemaakt: hub-link (auto-registratie aan)"
+            } else { Write-LabLog "  VNet link bestaat al" }
             $recSet = Get-AzPrivateDnsRecordSet -ZoneName $dnsZone -ResourceGroupName $rgName -Name "testhost" -RecordType A -ErrorAction SilentlyContinue
             if (-not $recSet) {
                 $rec = New-AzPrivateDnsRecordConfig -Ipv4Address "10.1.1.10"
                 New-AzPrivateDnsRecordSet -ZoneName $dnsZone -ResourceGroupName $rgName -Name "testhost" -RecordType A -Ttl 300 -PrivateDnsRecords $rec | Out-Null
-                Write-Log "  A-record aangemaakt: testhost.$dnsZone → 10.1.1.10"
+                Write-LabLog "  A-record aangemaakt: testhost.$dnsZone → 10.1.1.10"
             }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 5: VPN Gateway (manueel) ────────────────────────
-    Write-Log "${pre}Stap 5: VPN Gateway — manueel via portal (deploytijd ~45 min)"
+    Write-LabLog "${pre}Stap 5: VPN Gateway — manueel via portal (deploytijd ~45 min)"
     $progress.Value = 84
-    Write-Log "  Azure portal > Maak 'GatewaySubnet' aan in de Hub VNet"
-    Write-Log "  Subnetnaam: GatewaySubnet | Prefix: 10.1.255.0/27"
-    Write-Log "  Maak een Public IP aan (ssw-vpn-pip)"
-    Write-Log "  Maak een Virtual Network Gateway aan:"
-    Write-Log "    Gateway type: VPN | VPN type: RouteBased | SKU: VpnGw1"
-    Write-Log "  VNet: $hubVnetName | PIP: ssw-vpn-pip"
-    Write-Log "  Deploytijd: ~30-45 minuten"
+    Write-LabLog "  Azure portal > Maak 'GatewaySubnet' aan in de Hub VNet"
+    Write-LabLog "  Subnetnaam: GatewaySubnet | Prefix: 10.1.255.0/27"
+    Write-LabLog "  Maak een Public IP aan (ssw-vpn-pip)"
+    Write-LabLog "  Maak een Virtual Network Gateway aan:"
+    Write-LabLog "    Gateway type: VPN | VPN type: RouteBased | SKU: VpnGw1"
+    Write-LabLog "  VNet: $hubVnetName | PIP: ssw-vpn-pip"
+    Write-LabLog "  Deploytijd: ~30-45 minuten"
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show("Azure portal openen?", "SSW-Lab", "YesNo", "Question")
         if ($open -eq "Yes") { Start-Process "https://portal.azure.com/#create/Microsoft.VirtualNetworkGateway" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 5 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen VNet Peering en VPN Gateway?"
-    Write-Log "2. Hoe werken NSG-regels — wat is de evaluatievolgorde?"
-    Write-Log "3. Wat is het verschil tussen een Public DNS Zone en een Private DNS Zone?"
-    Write-Log "4. Wanneer gebruik je een Application Gateway vs. een Azure Load Balancer?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 5 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen VNet Peering en VPN Gateway?"
+    Write-LabLog "2. Hoe werken NSG-regels — wat is de evaluatievolgorde?"
+    Write-LabLog "3. Wat is het verschil tussen een Public DNS Zone en een Private DNS Zone?"
+    Write-LabLog "4. Wanneer gebruik je een Application Gateway vs. een Azure Load Balancer?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

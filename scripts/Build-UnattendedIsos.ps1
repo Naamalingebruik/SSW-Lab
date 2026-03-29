@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | Build-UnattendedIsos.ps1
 # Injecteert unattend.xml in MSDN ISO's voor W11 + WS2025.
@@ -193,7 +193,7 @@ $dryRunSub   = $reader.FindName("DryRunSub")
 $conv        = [System.Windows.Media.BrushConverter]::new()
 $oscdimg     = "${env:ProgramFiles(x86)}\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe"
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
@@ -229,11 +229,11 @@ $reader.Add_Loaded({
         $pwdAdmin.Password = $savedSecret
     }
     $adkBanner.Visibility = if (Test-Path $oscdimg) { "Collapsed" } else { "Visible" }
-    Update-DryRunBar
+    Show-DryRunState
 })
 
-$chkDryRun.Add_Checked({   Update-DryRunBar })
-$chkDryRun.Add_Unchecked({ Update-DryRunBar })
+$chkDryRun.Add_Checked({   Show-DryRunState })
+$chkDryRun.Add_Unchecked({ Show-DryRunState })
 
 function Add-UiLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"

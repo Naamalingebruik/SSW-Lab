@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/SC300/lab-week3-authentication.ps1
 # SC-300 Week 3 — Authenticatiemethoden: MFA, FIDO2, Windows Hello, SSPR
@@ -86,7 +86,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen beleid wordt aangepast"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -99,9 +99,9 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
@@ -110,41 +110,41 @@ $btnRun.Add_Click({
     $w11VM    = $profiles."W11-01".Name
 
     # ── Stap 1: Authentication Methods Policy via Graph ──────
-    Write-Log "${pre}Stap 1: Graph — Authentication Methods Policy"
+    Write-LabLog "${pre}Stap 1: Graph — Authentication Methods Policy"
     $progress.Value = 16
     if ($isDry) {
-        Write-Log "${pre}  Connect-MgGraph -Scopes 'Policy.Read.All','Policy.ReadWrite.AuthenticationMethod'"
-        Write-Log "${pre}  Invoke-MgGraphRequest -Method GET -Uri '/beta/policies/authenticationMethodsPolicy'"
-        Write-Log "${pre}  # Toont alle ingeschakelde methoden: SMS, Voice, TOTP, FIDO2, Authenticator, etc."
+        Write-LabLog "${pre}  Connect-MgGraph -Scopes 'Policy.Read.All','Policy.ReadWrite.AuthenticationMethod'"
+        Write-LabLog "${pre}  Invoke-MgGraphRequest -Method GET -Uri '/beta/policies/authenticationMethodsPolicy'"
+        Write-LabLog "${pre}  # Toont alle ingeschakelde methoden: SMS, Voice, TOTP, FIDO2, Authenticator, etc."
     } else {
         try {
             Connect-MgGraph -Scopes "Policy.Read.All", "Policy.ReadWrite.AuthenticationMethod" -ErrorAction Stop | Out-Null
             $policy = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/beta/policies/authenticationMethodsPolicy"
-            Write-Log "  Authenticatiemethoden (ingeschakeld):"
+            Write-LabLog "  Authenticatiemethoden (ingeschakeld):"
             foreach ($method in $policy.authenticationMethodConfigurations) {
-                if ($method.state -eq "enabled") { Write-Log "  [ON]  $($method.id)" }
-                else { Write-Log "  [OFF] $($method.id)" }
+                if ($method.state -eq "enabled") { Write-LabLog "  [ON]  $($method.id)" }
+                else { Write-LabLog "  [OFF] $($method.id)" }
             }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 2: SSPR configureren ────────────────────────────
-    Write-Log "${pre}Stap 2: SSPR — Self-Service Password Reset"
+    Write-LabLog "${pre}Stap 2: SSPR — Self-Service Password Reset"
     $progress.Value = 32
-    Write-Log "  Entra portal > Protection > Password reset"
-    Write-Log "  Self service password reset enabled: Kies 'Selected' (niet All)"
-    Write-Log "  Groep: SG-SSPR (maak aan via Entra > Groups)"
-    Write-Log "  Methoden vereist: 2 | Methoden: Email + Mobile app notification"
-    Write-Log "  Registration: Vereist bij volgende aanmelding — Duration: 180 dagen"
-    Write-Log "  Notifications: Notify users and admins on password reset"
-    Write-Log "  Test: Meld aan als testuser01 op https://aka.ms/sspr"
+    Write-LabLog "  Entra portal > Protection > Password reset"
+    Write-LabLog "  Self service password reset enabled: Kies 'Selected' (niet All)"
+    Write-LabLog "  Groep: SG-SSPR (maak aan via Entra > Groups)"
+    Write-LabLog "  Methoden vereist: 2 | Methoden: Email + Mobile app notification"
+    Write-LabLog "  Registration: Vereist bij volgende aanmelding — Duration: 180 dagen"
+    Write-LabLog "  Notifications: Notify users and admins on password reset"
+    Write-LabLog "  Test: Meld aan als testuser01 op https://aka.ms/sspr"
 
     # ── Stap 3: FIDO2 inschakelen ────────────────────────────
-    Write-Log "${pre}Stap 3: FIDO2 security keys inschakelen"
+    Write-LabLog "${pre}Stap 3: FIDO2 security keys inschakelen"
     $progress.Value = 50
     if ($isDry) {
-        Write-Log "${pre}  `$body = @{ state = 'enabled'; includeTargets = @(@{ targetType = 'group'; id = 'all_users'; isRegistrationRequired = `$false }) }"
-        Write-Log "${pre}  Invoke-MgGraphRequest -Method PATCH -Uri '/beta/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/Fido2' -Body (`$body | ConvertTo-Json)"
+        Write-LabLog "${pre}  `$body = @{ state = 'enabled'; includeTargets = @(@{ targetType = 'group'; id = 'all_users'; isRegistrationRequired = `$false }) }"
+        Write-LabLog "${pre}  Invoke-MgGraphRequest -Method PATCH -Uri '/beta/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/Fido2' -Body (`$body | ConvertTo-Json)"
     } else {
         try {
             $body = @{
@@ -155,17 +155,17 @@ $btnRun.Add_Click({
                 includeTargets = @(@{ targetType = "group"; id = "all_users"; isRegistrationRequired = $false })
             }
             Invoke-MgGraphRequest -Method PATCH -Uri "https://graph.microsoft.com/beta/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/Fido2" -Body ($body | ConvertTo-Json -Depth 5) -ContentType "application/json" | Out-Null
-            Write-Log "  FIDO2 ingeschakeld voor alle gebruikers"
-        } catch { Write-Log "  Fout (of al ingeschakeld): $_" }
+            Write-LabLog "  FIDO2 ingeschakeld voor alle gebruikers"
+        } catch { Write-LabLog "  Fout (of al ingeschakeld): $_" }
     }
 
     # ── Stap 4: Windows Hello for Business op W11-01 ─────────
-    Write-Log "${pre}Stap 4: W11-01 — Windows Hello for Business status"
+    Write-LabLog "${pre}Stap 4: W11-01 — Windows Hello for Business status"
     $progress.Value = 68
     if ($isDry) {
-        Write-Log "${pre}  Get-MgUserAuthenticationWindowsHelloForBusinessMethod -UserId 'testuser01@<tenant>'"
-        Write-Log "${pre}  # Op W11-01 als gebruiker: certutil -store -user 'MY' | findstr 'Smart Card'"
-        Write-Log "${pre}  dsregcmd /status | Select-String 'WindowsHelloForBusiness'"
+        Write-LabLog "${pre}  Get-MgUserAuthenticationWindowsHelloForBusinessMethod -UserId 'testuser01@<tenant>'"
+        Write-LabLog "${pre}  # Op W11-01 als gebruiker: certutil -store -user 'MY' | findstr 'Smart Card'"
+        Write-LabLog "${pre}  dsregcmd /status | Select-String 'WindowsHelloForBusiness'"
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $w11VM" -UserName "$w11VM\$($SSWConfig.AdminUser)"
@@ -175,35 +175,35 @@ $btnRun.Add_Click({
                 $azureJoined = ($dsreg | Where-Object { $_ -match "AzureAdJoined" }) -join ""
                 [PSCustomObject]@{ WHfBInfo = $whfb; AzureJoined = $azureJoined }
             }
-            Write-Log "  Azure AD Joined: $($whfbStatus.AzureJoined)"
-            Write-Log "  $($whfbStatus.WHfBInfo)"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  Azure AD Joined: $($whfbStatus.AzureJoined)"
+            Write-LabLog "  $($whfbStatus.WHfBInfo)"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 5: Authentication Strength ─────────────────────
-    Write-Log "${pre}Stap 5: Authentication Strength — Phishing-resistant MFA"
+    Write-LabLog "${pre}Stap 5: Authentication Strength — Phishing-resistant MFA"
     $progress.Value = 84
-    Write-Log "  Entra portal > Protection > Authentication methods > Authentication strengths"
-    Write-Log "  + New authentication strength"
-    Write-Log "  Naam: 'Phishing-resistant MFA'"
-    Write-Log "  Selecteer: Windows Hello for Business, FIDO2 security key, Certificate-based authentication"
-    Write-Log "  Gebruik in Conditional Access policy als 'Grant access - Require auth strength'"
+    Write-LabLog "  Entra portal > Protection > Authentication methods > Authentication strengths"
+    Write-LabLog "  + New authentication strength"
+    Write-LabLog "  Naam: 'Phishing-resistant MFA'"
+    Write-LabLog "  Selecteer: Windows Hello for Business, FIDO2 security key, Certificate-based authentication"
+    Write-LabLog "  Gebruik in Conditional Access policy als 'Grant access - Require auth strength'"
     if ($isDry) {
-        Write-Log "${pre}  # Via Graph API (beta):"
-        Write-Log "${pre}  POST /identity/conditionalAccess/authenticationStrength/policies"
-        Write-Log "${pre}  Body: { displayName: 'Phishing-resistant MFA', allowedCombinations: ['fido2', 'windowsHelloForBusiness'] }"
+        Write-LabLog "${pre}  # Via Graph API (beta):"
+        Write-LabLog "${pre}  POST /identity/conditionalAccess/authenticationStrength/policies"
+        Write-LabLog "${pre}  Body: { displayName: 'Phishing-resistant MFA', allowedCombinations: ['fido2', 'windowsHelloForBusiness'] }"
     } else {
         $open = [System.Windows.MessageBox]::Show("Entra portal openen (Authentication strengths)?", "SSW-Lab", "YesNo", "Question")
         if ($open -eq "Yes") { Start-Process "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/~/AuthStrengths" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 3 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat onderscheidt FIDO2 van een TOTP authenticator-app?"
-    Write-Log "2. Hoe werkt de verificatieregistratiestroom voor SSPR?"
-    Write-Log "3. Wat is Temporary Access Pass (TAP) en wanneer gebruik je het?"
-    Write-Log "4. Hoe werkt Windows Hello for Business met Entra ID Join (Cloud Trust)?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 3 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat onderscheidt FIDO2 van een TOTP authenticator-app?"
+    Write-LabLog "2. Hoe werkt de verificatieregistratiestroom voor SSPR?"
+    Write-LabLog "3. Wat is Temporary Access Pass (TAP) en wanneer gebruik je het?"
+    Write-LabLog "4. Hoe werkt Windows Hello for Business met Entra ID Join (Cloud Trust)?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

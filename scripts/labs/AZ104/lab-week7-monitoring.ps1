@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # SSW-Lab | labs/AZ104/lab-week7-monitoring.ps1
 # AZ-104 Week 7 — Azure Monitor: Log Analytics, alerts, KQL, Backup
 # Cloud: Azure subscription
@@ -82,7 +82,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — Log Analytics workspace nog niet aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -95,9 +95,9 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
@@ -108,36 +108,36 @@ $btnRun.Add_Click({
     $vmName   = "ssw-lab-vm01"
 
     # ── Stap 1: Log Analytics Workspace ─────────────────────
-    Write-Log "${pre}Stap 1: Log Analytics Workspace aanmaken ($lawName)"
+    Write-LabLog "${pre}Stap 1: Log Analytics Workspace aanmaken ($lawName)"
     $progress.Value = 16
     if ($isDry) {
-        Write-Log "${pre}  New-AzOperationalInsightsWorkspace -ResourceGroupName '$rgName' -Name '$lawName' -Location '$location' -Sku PerGB2018"
-        Write-Log "${pre}  `$law = Get-AzOperationalInsightsWorkspace -ResourceGroupName '$rgName' -Name '$lawName'"
-        Write-Log "${pre}  `$law.CustomerId  # Workspace ID"
-        Write-Log "${pre}  (Get-AzOperationalInsightsWorkspaceSharedKeys -ResourceGroupName '$rgName' -Name '$lawName').PrimarySharedKey"
+        Write-LabLog "${pre}  New-AzOperationalInsightsWorkspace -ResourceGroupName '$rgName' -Name '$lawName' -Location '$location' -Sku PerGB2018"
+        Write-LabLog "${pre}  `$law = Get-AzOperationalInsightsWorkspace -ResourceGroupName '$rgName' -Name '$lawName'"
+        Write-LabLog "${pre}  `$law.CustomerId  # Workspace ID"
+        Write-LabLog "${pre}  (Get-AzOperationalInsightsWorkspaceSharedKeys -ResourceGroupName '$rgName' -Name '$lawName').PrimarySharedKey"
     } else {
         try {
             if (-not (Get-AzContext)) { Connect-AzAccount -ErrorAction Stop | Out-Null }
             $law = Get-AzOperationalInsightsWorkspace -ResourceGroupName $rgName -Name $lawName -ErrorAction SilentlyContinue
             if (-not $law) {
                 $law = New-AzOperationalInsightsWorkspace -ResourceGroupName $rgName -Name $lawName -Location $location -Sku PerGB2018
-                Write-Log "  Log Analytics Workspace aangemaakt: $lawName"
-            } else { Write-Log "  Workspace bestaat al: $lawName" }
-            Write-Log "  Workspace ID: $($law.CustomerId)"
-        } catch { Write-Log "  Fout: $_"; $btnRun.IsEnabled = $true; return }
+                Write-LabLog "  Log Analytics Workspace aangemaakt: $lawName"
+            } else { Write-LabLog "  Workspace bestaat al: $lawName" }
+            Write-LabLog "  Workspace ID: $($law.CustomerId)"
+        } catch { Write-LabLog "  Fout: $_"; $btnRun.IsEnabled = $true; return }
     }
 
     # ── Stap 2: VM Insights inschakelen ─────────────────────
-    Write-Log "${pre}Stap 2: VM Insights inschakelen op $vmName"
+    Write-LabLog "${pre}Stap 2: VM Insights inschakelen op $vmName"
     $progress.Value = 32
     if ($isDry) {
-        Write-Log "${pre}  `$vm = Get-AzVM -ResourceGroupName '$rgName' -Name '$vmName'"
-        Write-Log "${pre}  Set-AzVMExtension -ResourceGroupName '$rgName' -VMName '$vmName' -Name 'MmaAgent' -Publisher 'Microsoft.EnterpriseCloud.Monitoring' -ExtensionType 'MicrosoftMonitoringAgent' -TypeHandlerVersion '1.0' -Settings @{workspaceId='<id>'} -ProtectedSettings @{workspaceKey='<key>'}"
-        Write-Log "${pre}  # Alternatief via portal: VM > Insights > Inschakelen"
+        Write-LabLog "${pre}  `$vm = Get-AzVM -ResourceGroupName '$rgName' -Name '$vmName'"
+        Write-LabLog "${pre}  Set-AzVMExtension -ResourceGroupName '$rgName' -VMName '$vmName' -Name 'MmaAgent' -Publisher 'Microsoft.EnterpriseCloud.Monitoring' -ExtensionType 'MicrosoftMonitoringAgent' -TypeHandlerVersion '1.0' -Settings @{workspaceId='<id>'} -ProtectedSettings @{workspaceKey='<key>'}"
+        Write-LabLog "${pre}  # Alternatief via portal: VM > Insights > Inschakelen"
     } else {
-        Write-Log "  VM Insights inschakelen via portal: Azure portal > VM > Insights > Enable"
-        Write-Log "  Selecteer workspace: $lawName in $rgName"
-        Write-Log "  Dit installeert automatisch MMA en Dependency Agent"
+        Write-LabLog "  VM Insights inschakelen via portal: Azure portal > VM > Insights > Enable"
+        Write-LabLog "  Selecteer workspace: $lawName in $rgName"
+        Write-LabLog "  Dit installeert automatisch MMA en Dependency Agent"
         if (-not $isDry) {
             $open = [System.Windows.MessageBox]::Show("Azure portal openen (VM Insights)?", "SSW-Lab", "YesNo", "Question")
             if ($open -eq "Yes") { Start-Process "https://portal.azure.com/#resource/subscriptions//resourceGroups/$rgName/providers/Microsoft.Compute/virtualMachines/$vmName/performance" }
@@ -145,57 +145,57 @@ $btnRun.Add_Click({
     }
 
     # ── Stap 3: KQL queries ──────────────────────────────────
-    Write-Log "${pre}Stap 3: KQL-queries in Log Analytics"
+    Write-LabLog "${pre}Stap 3: KQL-queries in Log Analytics"
     $progress.Value = 50
-    Write-Log "  Azure portal > Log Analytics workspaces > $lawName > Logs"
-    Write-Log ""
-    Write-Log "  Query 1 — Heartbeat laatste 24 uur:"
-    Write-Log "  Heartbeat | where TimeGenerated > ago(24h) | summarize count() by Computer | order by count_ desc"
-    Write-Log ""
-    Write-Log "  Query 2 — Hoog CPU gebruik:"
-    Write-Log "  Perf | where ObjectName == 'Processor' and CounterName == '% Processor Time' | where CounterValue > 80 | project TimeGenerated, Computer, CounterValue"
-    Write-Log ""
-    Write-Log "  Query 3 — Windows Events (fouten):"
-    Write-Log "  Event | where EventLevelName == 'Error' | project TimeGenerated, Computer, Source, RenderedDescription | take 20"
+    Write-LabLog "  Azure portal > Log Analytics workspaces > $lawName > Logs"
+    Write-LabLog ""
+    Write-LabLog "  Query 1 — Heartbeat laatste 24 uur:"
+    Write-LabLog "  Heartbeat | where TimeGenerated > ago(24h) | summarize count() by Computer | order by count_ desc"
+    Write-LabLog ""
+    Write-LabLog "  Query 2 — Hoog CPU gebruik:"
+    Write-LabLog "  Perf | where ObjectName == 'Processor' and CounterName == '% Processor Time' | where CounterValue > 80 | project TimeGenerated, Computer, CounterValue"
+    Write-LabLog ""
+    Write-LabLog "  Query 3 — Windows Events (fouten):"
+    Write-LabLog "  Event | where EventLevelName == 'Error' | project TimeGenerated, Computer, Source, RenderedDescription | take 20"
 
     # ── Stap 4: Alert-regel ──────────────────────────────────
-    Write-Log "${pre}Stap 4: Alert-regel aanmaken (CPU > 80%)"
+    Write-LabLog "${pre}Stap 4: Alert-regel aanmaken (CPU > 80%)"
     $progress.Value = 68
     if ($isDry) {
-        Write-Log "${pre}  # Via Azure portal: Monitor > Alerts > Create alert rule"
-        Write-Log "${pre}  Resource: $vmName | Signal: CPU Percentage"
-        Write-Log "${pre}  Operator: Greater than | Threshold: 80 | Aggregation: Average over 5 min"
-        Write-Log "${pre}  Action group: e-mail naar admin@<tenant>"
-        Write-Log "${pre}  Alert rule name: 'ssw-vm-cpu-alert'"
+        Write-LabLog "${pre}  # Via Azure portal: Monitor > Alerts > Create alert rule"
+        Write-LabLog "${pre}  Resource: $vmName | Signal: CPU Percentage"
+        Write-LabLog "${pre}  Operator: Greater than | Threshold: 80 | Aggregation: Average over 5 min"
+        Write-LabLog "${pre}  Action group: e-mail naar admin@<tenant>"
+        Write-LabLog "${pre}  Alert rule name: 'ssw-vm-cpu-alert'"
     } else {
         try {
             $law = Get-AzOperationalInsightsWorkspace -ResourceGroupName $rgName -Name $lawName -ErrorAction Stop
-            Write-Log "  Alert aanmaken via Azure portal:"
-            Write-Log "  Monitor > Alerts > + Create > Alert rule"
-            Write-Log "  Scope: $vmName | Condition: CPU percentage > 80%"
-            Write-Log "  Action Group: maak een nieuwe aan met e-mail melding"
+            Write-LabLog "  Alert aanmaken via Azure portal:"
+            Write-LabLog "  Monitor > Alerts > + Create > Alert rule"
+            Write-LabLog "  Scope: $vmName | Condition: CPU percentage > 80%"
+            Write-LabLog "  Action Group: maak een nieuwe aan met e-mail melding"
             $open = [System.Windows.MessageBox]::Show("Azure Monitor Alerts openen?", "SSW-Lab", "YesNo", "Question")
             if ($open -eq "Yes") { Start-Process "https://portal.azure.com/#view/Microsoft_Azure_Monitoring/AzureMonitoringBrowseBlade/~/alertsV2" }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 5: Monitor Workbook ─────────────────────────────
-    Write-Log "${pre}Stap 5: Azure Monitor Workbook bekijken"
+    Write-LabLog "${pre}Stap 5: Azure Monitor Workbook bekijken"
     $progress.Value = 84
-    Write-Log "  Azure portal > Monitor > Workbooks"
-    Write-Log "  Kies: 'Virtual Machine Performance' werkmap"
-    Write-Log "  Filter op: workspaceId = $lawName"
-    Write-Log "  Bekijk: CPU trend, memory, disk I/O over 24 uur"
-    Write-Log "  Maak een eigen werkmap: + New | voeg KQL-tile toe"
-    Write-Log "  Sla op als 'SSW-Lab Monitoring'"
+    Write-LabLog "  Azure portal > Monitor > Workbooks"
+    Write-LabLog "  Kies: 'Virtual Machine Performance' werkmap"
+    Write-LabLog "  Filter op: workspaceId = $lawName"
+    Write-LabLog "  Bekijk: CPU trend, memory, disk I/O over 24 uur"
+    Write-LabLog "  Maak een eigen werkmap: + New | voeg KQL-tile toe"
+    Write-LabLog "  Sla op als 'SSW-Lab Monitoring'"
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 7 lab afgerond — AZ-104 track volledig!"; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen Azure Monitor Metrics en Logs?"
-    Write-Log "2. Welke drie soorten alerts bestaan er in Azure Monitor?"
-    Write-Log "3. Hoe gebruik je KQL om events in de laatste 7 dagen samen te vatten per dag?"
-    Write-Log "4. Wat is het verschil tussen Alert Rules en Alert Processing Rules?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 7 lab afgerond — AZ-104 track volledig!"; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen Azure Monitor Metrics en Logs?"
+    Write-LabLog "2. Welke drie soorten alerts bestaan er in Azure Monitor?"
+    Write-LabLog "3. Hoe gebruik je KQL om events in de laatste 7 dagen samen te vatten per dag?"
+    Write-LabLog "4. Wat is het verschil tussen Alert Rules en Alert Processing Rules?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/MS102/lab-week6-defender.ps1
 # MS-102 Week 6 — Microsoft 365 Defender en bedreigingsbeheer
@@ -86,7 +86,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen wijzigingen"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -99,9 +99,9 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
@@ -110,12 +110,12 @@ $btnRun.Add_Click({
     $w11VM = $profiles."W11-01".Name
 
     # ── Stap 1: Defender for Endpoint onboarding ────────────
-    Write-Log "${pre}Stap 1: W11-01 — Defender for Endpoint onboarding status"
+    Write-LabLog "${pre}Stap 1: W11-01 — Defender for Endpoint onboarding status"
     $progress.Value = 16
     if ($isDry) {
-        Write-Log "${pre}  Get-MpComputerStatus | Select-Object AMRunningMode, IsTamperProtected"
-        Write-Log "${pre}  Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Advanced Threat Protection\Status'"
-        Write-Log "${pre}  Verwacht na Intune MDE onboarding: OnboardingState=1"
+        Write-LabLog "${pre}  Get-MpComputerStatus | Select-Object AMRunningMode, IsTamperProtected"
+        Write-LabLog "${pre}  Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Advanced Threat Protection\Status'"
+        Write-LabLog "${pre}  Verwacht na Intune MDE onboarding: OnboardingState=1"
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $w11VM" -UserName "$w11VM\$($SSWConfig.AdminUser)"
@@ -128,24 +128,24 @@ $btnRun.Add_Click({
                     RunningMode  = if ($mp) { $mp.AMRunningMode } else { "Onbekend" }
                 }
             }
-            Write-Log "  MDE onboarded   : $($mdeStatus.Onboarded)"
-            Write-Log "  Tamper bescherm : $($mdeStatus.TamperProt)"
-            Write-Log "  Defender modus  : $($mdeStatus.RunningMode)"
+            Write-LabLog "  MDE onboarded   : $($mdeStatus.Onboarded)"
+            Write-LabLog "  Tamper bescherm : $($mdeStatus.TamperProt)"
+            Write-LabLog "  Defender modus  : $($mdeStatus.RunningMode)"
             if (-not $mdeStatus.Onboarded) {
-                Write-Log "  Let op: Activeer MDE onboarding via Intune (Endpoint security > MDE)"
+                Write-LabLog "  Let op: Activeer MDE onboarding via Intune (Endpoint security > MDE)"
             }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 2: EICAR detectie ───────────────────────────────
-    Write-Log "${pre}Stap 2: W11-01 — EICAR detectietest"
+    Write-LabLog "${pre}Stap 2: W11-01 — EICAR detectietest"
     $progress.Value = 32
-    Write-Log "  Let op: EICAR is een veilig standaard testbestand — GEEN echte malware"
+    Write-LabLog "  Let op: EICAR is een veilig standaard testbestand — GEEN echte malware"
     if ($isDry) {
-        Write-Log "${pre}  New-Item -Path C:\Temp -Force"
-        Write-Log "${pre}  Invoke-WebRequest https://www.eicar.org/download/eicar.com.txt -OutFile C:\Temp\eicar.txt"
-        Write-Log "${pre}  Start-Sleep -Seconds 5"
-        Write-Log "${pre}  Test-Path C:\Temp\eicar.txt  # Moet False zijn na Defender-detectie"
+        Write-LabLog "${pre}  New-Item -Path C:\Temp -Force"
+        Write-LabLog "${pre}  Invoke-WebRequest https://www.eicar.org/download/eicar.com.txt -OutFile C:\Temp\eicar.txt"
+        Write-LabLog "${pre}  Start-Sleep -Seconds 5"
+        Write-LabLog "${pre}  Test-Path C:\Temp\eicar.txt  # Moet False zijn na Defender-detectie"
     } else {
         try {
             $eicarResult = Invoke-Command -VMName $w11VM -Credential $cred -ScriptBlock {
@@ -160,49 +160,49 @@ $btnRun.Add_Click({
                     }
                 } catch { "Download mislukt: $_ — geen internetverbinding vanuit VM?" }
             }
-            Write-Log "  $eicarResult"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  $eicarResult"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: Incident analyseren ──────────────────────────
-    Write-Log "${pre}Stap 3: Manueel — Incident analyseren in Defender portal"
+    Write-LabLog "${pre}Stap 3: Manueel — Incident analyseren in Defender portal"
     $progress.Value = 50
-    Write-Log "  URL: https://security.microsoft.com"
-    Write-Log "  Navigeer naar: Incidents & alerts > Incidents"
-    Write-Log "  Zoek de EICAR detectie-alert van W11-01"
-    Write-Log "  Bekijk: Attack story graph, Entities, Evidence"
-    Write-Log "  Sla het incident op als 'Opgelost' na verificatie"
+    Write-LabLog "  URL: https://security.microsoft.com"
+    Write-LabLog "  Navigeer naar: Incidents & alerts > Incidents"
+    Write-LabLog "  Zoek de EICAR detectie-alert van W11-01"
+    Write-LabLog "  Bekijk: Attack story graph, Entities, Evidence"
+    Write-LabLog "  Sla het incident op als 'Opgelost' na verificatie"
 
     # ── Stap 4: Attack Simulation Training ──────────────────
-    Write-Log "${pre}Stap 4: Manueel — Attack Simulation Training"
+    Write-LabLog "${pre}Stap 4: Manueel — Attack Simulation Training"
     $progress.Value = 68
-    Write-Log "  Defender portal > Email & collaboration > Attack simulation training"
-    Write-Log "  + Launch a simulation"
-    Write-Log "  Techniek: Credential harvest | Payload: Microsoft login phishing"
-    Write-Log "  Target: testuser01@<tenant>.onmicrosoft.com"
-    Write-Log "  Bekijk resultaten na 24-48 uur (click rate, compromised users)"
+    Write-LabLog "  Defender portal > Email & collaboration > Attack simulation training"
+    Write-LabLog "  + Launch a simulation"
+    Write-LabLog "  Techniek: Credential harvest | Payload: Microsoft login phishing"
+    Write-LabLog "  Target: testuser01@<tenant>.onmicrosoft.com"
+    Write-LabLog "  Bekijk resultaten na 24-48 uur (click rate, compromised users)"
 
     # ── Stap 5: Secure Score ─────────────────────────────────
-    Write-Log "${pre}Stap 5: Manueel — Microsoft Secure Score analyseren"
+    Write-LabLog "${pre}Stap 5: Manueel — Microsoft Secure Score analyseren"
     $progress.Value = 84
-    Write-Log "  Defender portal > Secure score"
-    Write-Log "  Bekijk: huidige score, improvement actions"
-    Write-Log "  Kies een verbetering (bijv. 'Require MFA for all users')"
-    Write-Log "  Implementeer de aanbeveling en observeer score-stijging"
-    Write-Log "  Score bijhouden in rapporten: Overview > Score history"
+    Write-LabLog "  Defender portal > Secure score"
+    Write-LabLog "  Bekijk: huidige score, improvement actions"
+    Write-LabLog "  Kies een verbetering (bijv. 'Require MFA for all users')"
+    Write-LabLog "  Implementeer de aanbeveling en observeer score-stijging"
+    Write-LabLog "  Score bijhouden in rapporten: Overview > Score history"
 
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show("Browser openen naar Microsoft 365 Defender portal?", "SSW-Lab", "YesNo", "Question")
         if ($open -eq "Yes") { Start-Process "https://security.microsoft.com" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 6 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen Defender for Office 365 Plan 1 en Plan 2?"
-    Write-Log "2. Hoe werkt Automated Investigation and Response (AIR) in Defender?"
-    Write-Log "3. Wat toont de Threat Explorer en wanneer gebruik je het?"
-    Write-Log "4. Hoe verhoog je de Microsoft Secure Score effectief?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 6 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen Defender for Office 365 Plan 1 en Plan 2?"
+    Write-LabLog "2. Hoe werkt Automated Investigation and Response (AIR) in Defender?"
+    Write-LabLog "3. Wat toont de Threat Explorer en wanneer gebruik je het?"
+    Write-LabLog "4. Hoe verhoog je de Microsoft Secure Score effectief?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

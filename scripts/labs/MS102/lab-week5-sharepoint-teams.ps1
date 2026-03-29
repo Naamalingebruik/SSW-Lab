@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # SSW-Lab | labs/MS102/lab-week5-sharepoint-teams.ps1
 # MS-102 Week 5 — SharePoint Online en Microsoft Teams
 # Cloud: SharePoint admin center, Teams admin center
@@ -86,7 +86,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen wijzigingen"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -99,106 +99,106 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
     $isDry = $chkDryRun.IsChecked; $pre = if ($isDry) { "[DRY RUN] " } else { "" }
 
     # ── Stap 1: SharePoint Online module ────────────────────
-    Write-Log "${pre}Stap 1: SharePoint Online PowerShell"
+    Write-LabLog "${pre}Stap 1: SharePoint Online PowerShell"
     $progress.Value = 14
     $spoInstalled = Get-Module -ListAvailable -Name Microsoft.Online.SharePoint.PowerShell -ErrorAction SilentlyContinue
     if ($isDry) {
-        Write-Log "${pre}  Install-Module Microsoft.Online.SharePoint.PowerShell  (indien nodig)"
-        Write-Log "${pre}  Connect-SPOService -Url https://<tenant>-admin.sharepoint.com"
-        Write-Log "${pre}  Get-SPOSite | Select-Object Url, StorageUsageCurrent, SharingCapability"
+        Write-LabLog "${pre}  Install-Module Microsoft.Online.SharePoint.PowerShell  (indien nodig)"
+        Write-LabLog "${pre}  Connect-SPOService -Url https://<tenant>-admin.sharepoint.com"
+        Write-LabLog "${pre}  Get-SPOSite | Select-Object Url, StorageUsageCurrent, SharingCapability"
     } else {
         if (-not $spoInstalled) {
-            Write-Log "  SPO module niet gevonden — installeer met:"
-            Write-Log "  Install-Module Microsoft.Online.SharePoint.PowerShell -Scope CurrentUser"
+            Write-LabLog "  SPO module niet gevonden — installeer met:"
+            Write-LabLog "  Install-Module Microsoft.Online.SharePoint.PowerShell -Scope CurrentUser"
         } else {
             try {
                 Import-Module Microsoft.Online.SharePoint.PowerShell -ErrorAction Stop
                 $tenantUrl = Read-Host "Voer je SharePoint tenant URL in (bijv. https://contoso-admin.sharepoint.com)"
                 Connect-SPOService -Url $tenantUrl -ErrorAction Stop
                 $sites = Get-SPOSite | Select-Object Url, StorageUsageCurrent | Select-Object -First 8
-                Write-Log "  Sitecollecties (top 8):"
-                $sites | ForEach-Object { Write-Log "    $($_.Url) ($($_.StorageUsageCurrent) MB)" }
-            } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  Sitecollecties (top 8):"
+                $sites | ForEach-Object { Write-LabLog "    $($_.Url) ($($_.StorageUsageCurrent) MB)" }
+            } catch { Write-LabLog "  Fout: $_" }
         }
     }
 
     # ── Stap 2: Team site aanmaken (manueel) ─────────────────
-    Write-Log "${pre}Stap 2: Manueel — Team site aanmaken"
+    Write-LabLog "${pre}Stap 2: Manueel — Team site aanmaken"
     $progress.Value = 28
-    Write-Log "  SharePoint admin center: https://admin.microsoft.com > SharePoint"
-    Write-Log "  Sites > Active sites > + Create > Team site"
-    Write-Log "  Naam: SSW Lab Site | Eigenaar: testuser01@<tenant>"
-    Write-Log "  Voeg testuser02 toe als site-lid"
+    Write-LabLog "  SharePoint admin center: https://admin.microsoft.com > SharePoint"
+    Write-LabLog "  Sites > Active sites > + Create > Team site"
+    Write-LabLog "  Naam: SSW Lab Site | Eigenaar: testuser01@<tenant>"
+    Write-LabLog "  Voeg testuser02 toe als site-lid"
 
     # ── Stap 3: Externe deling ───────────────────────────────
-    Write-Log "${pre}Stap 3: Manueel — externe delingsinstellingen"
+    Write-LabLog "${pre}Stap 3: Manueel — externe delingsinstellingen"
     $progress.Value = 40
-    Write-Log "  SharePoint admin center > Policies > Sharing"
-    Write-Log "  Stel tenant-niveau in op: New and existing guests"
-    Write-Log "  Site-niveau voor SSW Lab Site: Existing guests only"
-    Write-Log "  Test: upload document > Delen > voer extern emailadres in"
+    Write-LabLog "  SharePoint admin center > Policies > Sharing"
+    Write-LabLog "  Stel tenant-niveau in op: New and existing guests"
+    Write-LabLog "  Site-niveau voor SSW Lab Site: Existing guests only"
+    Write-LabLog "  Test: upload document > Delen > voer extern emailadres in"
 
     # ── Stap 4: Teams PowerShell ─────────────────────────────
-    Write-Log "${pre}Stap 4: Microsoft Teams PowerShell"
+    Write-LabLog "${pre}Stap 4: Microsoft Teams PowerShell"
     $progress.Value = 54
     $teamsInstalled = Get-Module -ListAvailable -Name MicrosoftTeams -ErrorAction SilentlyContinue
     if ($isDry) {
-        Write-Log "${pre}  Install-Module MicrosoftTeams  (indien nodig)"
-        Write-Log "${pre}  Connect-MicrosoftTeams"
-        Write-Log "${pre}  Get-Team | Select-Object DisplayName, Visibility, GuestSettings"
-        Write-Log "${pre}  New-Team -DisplayName 'SSW Lab Team' -Visibility Private"
+        Write-LabLog "${pre}  Install-Module MicrosoftTeams  (indien nodig)"
+        Write-LabLog "${pre}  Connect-MicrosoftTeams"
+        Write-LabLog "${pre}  Get-Team | Select-Object DisplayName, Visibility, GuestSettings"
+        Write-LabLog "${pre}  New-Team -DisplayName 'SSW Lab Team' -Visibility Private"
     } else {
         if (-not $teamsInstalled) {
-            Write-Log "  MicrosoftTeams module niet gevonden — installeer met:"
-            Write-Log "  Install-Module MicrosoftTeams -Scope CurrentUser"
+            Write-LabLog "  MicrosoftTeams module niet gevonden — installeer met:"
+            Write-LabLog "  Install-Module MicrosoftTeams -Scope CurrentUser"
         } else {
             try {
                 Import-Module MicrosoftTeams -ErrorAction Stop
                 Connect-MicrosoftTeams -ErrorAction Stop
                 $teams = Get-Team | Select-Object DisplayName, Visibility | Select-Object -First 8
-                Write-Log "  Teams (top 8):"
-                $teams | ForEach-Object { Write-Log "    $($_.DisplayName) [$($_.Visibility)]" }
-            } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  Teams (top 8):"
+                $teams | ForEach-Object { Write-LabLog "    $($_.DisplayName) [$($_.Visibility)]" }
+            } catch { Write-LabLog "  Fout: $_" }
         }
     }
 
     # ── Stap 5: Teams Meeting policy ─────────────────────────
-    Write-Log "${pre}Stap 5: Manueel — Teams Meetings policy"
+    Write-LabLog "${pre}Stap 5: Manueel — Teams Meetings policy"
     $progress.Value = 70
-    Write-Log "  Teams admin center: https://admin.teams.microsoft.com"
-    Write-Log "  Meetings > Meeting policies > Global (Org-wide default)"
-    Write-Log "  Wijzig: Allow cloud recording = Off voor gasten"
-    Write-Log "  Of: maak een custom policy voor externe gebruikers"
+    Write-LabLog "  Teams admin center: https://admin.teams.microsoft.com"
+    Write-LabLog "  Meetings > Meeting policies > Global (Org-wide default)"
+    Write-LabLog "  Wijzig: Allow cloud recording = Off voor gasten"
+    Write-LabLog "  Of: maak een custom policy voor externe gebruikers"
 
     # ── Stap 6: Usage reports ────────────────────────────────
-    Write-Log "${pre}Stap 6: Manueel — Usage reports bekijken"
+    Write-LabLog "${pre}Stap 6: Manueel — Usage reports bekijken"
     $progress.Value = 86
-    Write-Log "  M365 admin center > Reports > Usage"
-    Write-Log "  Selecteer: Microsoft Teams activity"
-    Write-Log "  Bekijk: Active users, Messages, Meetings"
-    Write-Log "  Teams admin center > Analytics & reports > Usage reports"
+    Write-LabLog "  M365 admin center > Reports > Usage"
+    Write-LabLog "  Selecteer: Microsoft Teams activity"
+    Write-LabLog "  Bekijk: Active users, Messages, Meetings"
+    Write-LabLog "  Teams admin center > Analytics & reports > Usage reports"
 
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show("Browser openen naar M365 Usage Reports?", "SSW-Lab", "YesNo", "Question")
         if ($open -eq "Yes") { Start-Process "https://admin.microsoft.com/AdminPortal/Home#/reportsUsage/TeamsUserActivity" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 5 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen een Group site, Communication site en Hub site?"
-    Write-Log "2. Hoe beheer je externe toegang in Teams op channel-niveau versus team-niveau?"
-    Write-Log "3. Wat zijn sensitivity labels en hoe pas je ze toe op Teams en SharePoint?"
-    Write-Log "4. Hoe gebruik je PowerShell (PnP / Teams module) voor bulk-beheer?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 5 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen een Group site, Communication site en Hub site?"
+    Write-LabLog "2. Hoe beheer je externe toegang in Teams op channel-niveau versus team-niveau?"
+    Write-LabLog "3. Wat zijn sensitivity labels en hoe pas je ze toe op Teams en SharePoint?"
+    Write-LabLog "4. Hoe gebruik je PowerShell (PnP / Teams module) voor bulk-beheer?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

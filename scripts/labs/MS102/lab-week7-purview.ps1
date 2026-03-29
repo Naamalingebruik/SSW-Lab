@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/MS102/lab-week7-purview.ps1
 # MS-102 Week 7 — Microsoft Purview: compliance, DLP, eDiscovery
@@ -86,7 +86,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen wijzigingen"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -99,9 +99,9 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
@@ -110,12 +110,12 @@ $btnRun.Add_Click({
     $mgmtVM  = $profiles.MGMT01.Name
 
     # ── Stap 1: MIP module op MGMT01 ───────────────────────
-    Write-Log "${pre}Stap 1: MGMT01 — Verificatie Exchange/Compliance module"
+    Write-LabLog "${pre}Stap 1: MGMT01 — Verificatie Exchange/Compliance module"
     $progress.Value = 14
     if ($isDry) {
-        Write-Log "${pre}  Get-InstalledModule ExchangeOnlineManagement"
-        Write-Log "${pre}  Connect-IPPSSession -UserPrincipalName admin@<tenant>.onmicrosoft.com"
-        Write-Log "${pre}  Get-Label | Select-Object DisplayName, Priority, IsEnabled | Format-Table"
+        Write-LabLog "${pre}  Get-InstalledModule ExchangeOnlineManagement"
+        Write-LabLog "${pre}  Connect-IPPSSession -UserPrincipalName admin@<tenant>.onmicrosoft.com"
+        Write-LabLog "${pre}  Get-Label | Select-Object DisplayName, Priority, IsEnabled | Format-Table"
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $mgmtVM" -UserName "$mgmtVM\$($SSWConfig.AdminUser)"
@@ -125,68 +125,68 @@ $btnRun.Add_Click({
                     ModuleVersie = if ($mod) { ($mod | Sort-Object Version -Descending | Select-Object -First 1).Version.ToString() } else { "Niet geïnstalleerd" }
                 }
             }
-            Write-Log "  ExchangeOnlineManagement: $($labelCheck.ModuleVersie)"
+            Write-LabLog "  ExchangeOnlineManagement: $($labelCheck.ModuleVersie)"
             if ($labelCheck.ModuleVersie -eq "Niet geïnstalleerd") {
-                Write-Log "  Installatie: Install-Module ExchangeOnlineManagement -Force"
+                Write-LabLog "  Installatie: Install-Module ExchangeOnlineManagement -Force"
             }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 2: Sensitivity label ────────────────────────────
-    Write-Log "${pre}Stap 2: Manueel — Sensitivity label aanmaken"
+    Write-LabLog "${pre}Stap 2: Manueel — Sensitivity label aanmaken"
     $progress.Value = 28
-    Write-Log "  URL: https://compliance.microsoft.com"
-    Write-Log "  Navigeer naar: Information protection > Labels"
-    Write-Log "  + Create a label"
-    Write-Log "  Naam: 'Vertrouwelijk - Intern'"
-    Write-Log "  Encryptie: inschakelen | Owner: admin"
-    Write-Log "  Content marking: watermark 'VERTROUWELIJK'"
-    Write-Log "  Scope: Files and emails"
-    Write-Log "  Publiceer het label via Label policies"
+    Write-LabLog "  URL: https://compliance.microsoft.com"
+    Write-LabLog "  Navigeer naar: Information protection > Labels"
+    Write-LabLog "  + Create a label"
+    Write-LabLog "  Naam: 'Vertrouwelijk - Intern'"
+    Write-LabLog "  Encryptie: inschakelen | Owner: admin"
+    Write-LabLog "  Content marking: watermark 'VERTROUWELIJK'"
+    Write-LabLog "  Scope: Files and emails"
+    Write-LabLog "  Publiceer het label via Label policies"
 
     # ── Stap 3: DLP-beleid ────────────────────────────────────
-    Write-Log "${pre}Stap 3: Manueel — DLP-beleid voor BSN-nummers"
+    Write-LabLog "${pre}Stap 3: Manueel — DLP-beleid voor BSN-nummers"
     $progress.Value = 42
-    Write-Log "  Compliance portal > Data Loss Prevention > Policies"
-    Write-Log "  + Create a DLP policy"
-    Write-Log "  Template: Privacy > Netherlands > Dutch Citizen Card Number"
-    Write-Log "  Scope: Exchange Online e-mail"
-    Write-Log "  Actie: Block + stuur melding aan gebruiker en admin"
-    Write-Log "  Test: stuur mail met BSN-patroon (bijv. 123456789) → DLP alert"
-    Write-Log "  Monitor alerts via: Data loss prevention > Alerts"
+    Write-LabLog "  Compliance portal > Data Loss Prevention > Policies"
+    Write-LabLog "  + Create a DLP policy"
+    Write-LabLog "  Template: Privacy > Netherlands > Dutch Citizen Card Number"
+    Write-LabLog "  Scope: Exchange Online e-mail"
+    Write-LabLog "  Actie: Block + stuur melding aan gebruiker en admin"
+    Write-LabLog "  Test: stuur mail met BSN-patroon (bijv. 123456789) → DLP alert"
+    Write-LabLog "  Monitor alerts via: Data loss prevention > Alerts"
 
     # ── Stap 4: eDiscovery Core ──────────────────────────────
-    Write-Log "${pre}Stap 4: Manueel — eDiscovery Core zoekopdracht"
+    Write-LabLog "${pre}Stap 4: Manueel — eDiscovery Core zoekopdracht"
     $progress.Value = 58
-    Write-Log "  Compliance portal > eDiscovery > Core"
-    Write-Log "  + Create a case: naam 'SSW-TestCase'"
-    Write-Log "  Voeg een hold toe op de mailbox van testuser01"
-    Write-Log "  Maak een Search: alle items in testuser01-mailbox (geen filter)"
-    Write-Log "  Exporteer resultaten (Preview) — let op licentievereiste"
-    Write-Log "  Bekijk de statistieken: aantal items, totale grootte"
+    Write-LabLog "  Compliance portal > eDiscovery > Core"
+    Write-LabLog "  + Create a case: naam 'SSW-TestCase'"
+    Write-LabLog "  Voeg een hold toe op de mailbox van testuser01"
+    Write-LabLog "  Maak een Search: alle items in testuser01-mailbox (geen filter)"
+    Write-LabLog "  Exporteer resultaten (Preview) — let op licentievereiste"
+    Write-LabLog "  Bekijk de statistieken: aantal items, totale grootte"
 
     # ── Stap 5: Compliance Manager ───────────────────────────
-    Write-Log "${pre}Stap 5: Manueel — Compliance Manager bekijken"
+    Write-LabLog "${pre}Stap 5: Manueel — Compliance Manager bekijken"
     $progress.Value = 74
-    Write-Log "  Compliance portal > Compliance Manager"
-    Write-Log "  Bekijk de huidige Compliance Score van de tenant"
-    Write-Log "  Lees minstens 2 improvement actions in detail"
-    Write-Log "  Bekijk het AVG-assessment (GDPR) en openstaande items"
-    Write-Log "  Vergelijk met Microsoft 365 Data Protection Baseline"
+    Write-LabLog "  Compliance portal > Compliance Manager"
+    Write-LabLog "  Bekijk de huidige Compliance Score van de tenant"
+    Write-LabLog "  Lees minstens 2 improvement actions in detail"
+    Write-LabLog "  Bekijk het AVG-assessment (GDPR) en openstaande items"
+    Write-LabLog "  Vergelijk met Microsoft 365 Data Protection Baseline"
 
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show("Browser openen naar Microsoft Purview compliance portal?", "SSW-Lab", "YesNo", "Question")
         if ($open -eq "Yes") { Start-Process "https://compliance.microsoft.com" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 7 lab afgerond — MS-102 track volledig!"
-    Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het onderscheid tussen MIP labels en DLP-beleid?"
-    Write-Log "2. In welk scenario gebruik je eDiscovery versus Content Search?"
-    Write-Log "3. Welke licentie is vereist voor eDiscovery Premium (vroeger: AeD)?"
-    Write-Log "4. Wat is de rol van Compliance Manager versus Compliance Score?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 7 lab afgerond — MS-102 track volledig!"
+    Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het onderscheid tussen MIP labels en DLP-beleid?"
+    Write-LabLog "2. In welk scenario gebruik je eDiscovery versus Content Search?"
+    Write-LabLog "3. Welke licentie is vereist voor eDiscovery Premium (vroeger: AeD)?"
+    Write-LabLog "4. Wat is de rol van Compliance Manager versus Compliance Score?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

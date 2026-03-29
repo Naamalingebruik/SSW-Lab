@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/SC300/lab-week6-governance-pim.ps1
 # SC-300 Week 6 — Identity Governance: Entitlement Management, Access Reviews, PIM
@@ -85,7 +85,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen objects worden aangemaakt in Entra ID"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -98,35 +98,35 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
     $isDry = $chkDryRun.IsChecked; $pre = if ($isDry) { "[DRY RUN] " } else { "" }
 
     # ── Stap 1: Access package aanmaken (Entitlement Management) ─────────────
-    Write-Log "${pre}Stap 1: Access package aanmaken via MS Graph"
+    Write-LabLog "${pre}Stap 1: Access package aanmaken via MS Graph"
     $progress.Value = 12
-    Write-Log "  Entra portal > Identity Governance > Entitlement management > Catalogs"
-    Write-Log "  Maak catalog aan: 'LAB Resources'"
-    Write-Log "  Voeg resource toe: Security Group 'LAB-LabUsers'"
-    Write-Log ""
+    Write-LabLog "  Entra portal > Identity Governance > Entitlement management > Catalogs"
+    Write-LabLog "  Maak catalog aan: 'LAB Resources'"
+    Write-LabLog "  Voeg resource toe: Security Group 'LAB-LabUsers'"
+    Write-LabLog ""
     if ($isDry) {
-        Write-Log "${pre}  Connect-MgGraph -Scopes 'EntitlementManagement.ReadWrite.All'"
-        Write-Log "${pre}  # Catalog aanmaken"
-        Write-Log "${pre}  `$catalog = New-MgEntitlementManagementAccessPackageCatalog -DisplayName 'LAB Resources' -IsExternallyVisible:`$false"
-        Write-Log "${pre}  # Access package aanmaken"
-        Write-Log "${pre}  `$pkg = New-MgEntitlementManagementAccessPackage -DisplayName 'LAB Toegang' -Description 'Toegang voor LAB-oefeningen' -CatalogId `$catalog.Id"
-        Write-Log "${pre}  # Beleid toevoegen: interne gebruikers kunnen aanvragen, manager keurt goed"
-        Write-Log "${pre}  `$policy = @{"
-        Write-Log "${pre}    DisplayName = 'LAB Request Policy'"
-        Write-Log "${pre}    RequestorSettings = @{ ScopeType = 'AllExistingDirectoryMemberUsers'; AcceptRequests = `$true }"
-        Write-Log "${pre}    RequestApprovalSettings = @{ IsApprovalRequired = `$true; ApprovalMode = 'SingleStage' }"
-        Write-Log "${pre}    AccessReviewSettings = @{ IsEnabled = `$true; RecurrenceType = 'quarterly' }"
-        Write-Log "${pre}  }"
-        Write-Log "${pre}  New-MgEntitlementManagementAccessPackageAssignmentPolicy -AccessPackageId `$pkg.Id -BodyParameter `$policy"
+        Write-LabLog "${pre}  Connect-MgGraph -Scopes 'EntitlementManagement.ReadWrite.All'"
+        Write-LabLog "${pre}  # Catalog aanmaken"
+        Write-LabLog "${pre}  `$catalog = New-MgEntitlementManagementAccessPackageCatalog -DisplayName 'LAB Resources' -IsExternallyVisible:`$false"
+        Write-LabLog "${pre}  # Access package aanmaken"
+        Write-LabLog "${pre}  `$pkg = New-MgEntitlementManagementAccessPackage -DisplayName 'LAB Toegang' -Description 'Toegang voor LAB-oefeningen' -CatalogId `$catalog.Id"
+        Write-LabLog "${pre}  # Beleid toevoegen: interne gebruikers kunnen aanvragen, manager keurt goed"
+        Write-LabLog "${pre}  `$policy = @{"
+        Write-LabLog "${pre}    DisplayName = 'LAB Request Policy'"
+        Write-LabLog "${pre}    RequestorSettings = @{ ScopeType = 'AllExistingDirectoryMemberUsers'; AcceptRequests = `$true }"
+        Write-LabLog "${pre}    RequestApprovalSettings = @{ IsApprovalRequired = `$true; ApprovalMode = 'SingleStage' }"
+        Write-LabLog "${pre}    AccessReviewSettings = @{ IsEnabled = `$true; RecurrenceType = 'quarterly' }"
+        Write-LabLog "${pre}  }"
+        Write-LabLog "${pre}  New-MgEntitlementManagementAccessPackageAssignmentPolicy -AccessPackageId `$pkg.Id -BodyParameter `$policy"
     } else {
         try {
             Connect-MgGraph -Scopes "EntitlementManagement.ReadWrite.All" -ErrorAction Stop | Out-Null
@@ -135,10 +135,10 @@ $btnRun.Add_Click({
             $existCatalog = Get-MgEntitlementManagementAccessPackageCatalog -Filter "displayName eq 'LAB Resources'" -ErrorAction SilentlyContinue
             if (-not $existCatalog) {
                 $catalog = New-MgEntitlementManagementAccessPackageCatalog -DisplayName "LAB Resources" -IsExternallyVisible:$false
-                Write-Log "  Catalog aangemaakt: LAB Resources (ID: $($catalog.Id))"
+                Write-LabLog "  Catalog aangemaakt: LAB Resources (ID: $($catalog.Id))"
             } else {
                 $catalog = $existCatalog
-                Write-Log "  Catalog bestaat al: $($catalog.DisplayName)"
+                Write-LabLog "  Catalog bestaat al: $($catalog.DisplayName)"
             }
 
             # Access package
@@ -146,96 +146,96 @@ $btnRun.Add_Click({
             if (-not $existPkg) {
                 $pkg = New-MgEntitlementManagementAccessPackage -DisplayName "LAB Toegang" `
                     -Description "Toegang voor LAB-oefeningen" -CatalogId $catalog.Id
-                Write-Log "  Access package aangemaakt: LAB Toegang (ID: $($pkg.Id))"
+                Write-LabLog "  Access package aangemaakt: LAB Toegang (ID: $($pkg.Id))"
                 $script:accessPackageId = $pkg.Id
             } else {
-                Write-Log "  Access package bestaat al: $($existPkg.DisplayName)"
+                Write-LabLog "  Access package bestaat al: $($existPkg.DisplayName)"
                 $script:accessPackageId = $existPkg.Id
             }
-            Write-Log "  My Access portal: https://myaccess.microsoft.com"
-            Write-Log "  TestUser01 kan package aanvragen via bovenstaande URL"
-        } catch { Write-Log "  Fout: $_"; $btnRun.IsEnabled = $true; return }
+            Write-LabLog "  My Access portal: https://myaccess.microsoft.com"
+            Write-LabLog "  TestUser01 kan package aanvragen via bovenstaande URL"
+        } catch { Write-LabLog "  Fout: $_"; $btnRun.IsEnabled = $true; return }
     }
 
     # ── Stap 2: Access review aanmaken ──────────────────────────────────────
-    Write-Log ""
-    Write-Log "${pre}Stap 2: Access review aanmaken voor groepsleden"
+    Write-LabLog ""
+    Write-LabLog "${pre}Stap 2: Access review aanmaken voor groepsleden"
     $progress.Value = 28
     if ($isDry) {
-        Write-Log "${pre}  Connect-MgGraph -Scopes 'AccessReview.ReadWrite.All', 'Group.Read.All'"
-        Write-Log "${pre}  # Haal de groep 'LAB-LabUsers' op"
-        Write-Log "${pre}  `$grp = Get-MgGroup -Filter `"displayName eq 'LAB-LabUsers'`""
-        Write-Log "${pre}  `$reviewBody = @{"
-        Write-Log "${pre}    DisplayName = 'SSW Lab Quarterly Review'"
-        Write-Log "${pre}    StartDateTime = (Get-Date).ToUniversalTime().ToString('o')"
-        Write-Log "${pre}    EndDateTime = (Get-Date).AddDays(14).ToUniversalTime().ToString('o')"
-        Write-Log "${pre}    Reviewers = @(@{ Query = '/v1.0/users/<admin-user-id>'; QueryType = 'MicrosoftGraph' })"
-        Write-Log "${pre}    Scope = @{ Query = '/groups/<group-id>/members'; QueryType = 'MicrosoftGraph' }"
-        Write-Log "${pre}    Settings = @{ MailNotificationsEnabled = `$true; DefaultDecision = 'Deny'; AutoApplyDecisionsEnabled = `$true }"
-        Write-Log "${pre}  }"
-        Write-Log "${pre}  New-MgIdentityGovernanceAccessReviewDefinition -BodyParameter `$reviewBody"
+        Write-LabLog "${pre}  Connect-MgGraph -Scopes 'AccessReview.ReadWrite.All', 'Group.Read.All'"
+        Write-LabLog "${pre}  # Haal de groep 'LAB-LabUsers' op"
+        Write-LabLog "${pre}  `$grp = Get-MgGroup -Filter `"displayName eq 'LAB-LabUsers'`""
+        Write-LabLog "${pre}  `$reviewBody = @{"
+        Write-LabLog "${pre}    DisplayName = 'SSW Lab Quarterly Review'"
+        Write-LabLog "${pre}    StartDateTime = (Get-Date).ToUniversalTime().ToString('o')"
+        Write-LabLog "${pre}    EndDateTime = (Get-Date).AddDays(14).ToUniversalTime().ToString('o')"
+        Write-LabLog "${pre}    Reviewers = @(@{ Query = '/v1.0/users/<admin-user-id>'; QueryType = 'MicrosoftGraph' })"
+        Write-LabLog "${pre}    Scope = @{ Query = '/groups/<group-id>/members'; QueryType = 'MicrosoftGraph' }"
+        Write-LabLog "${pre}    Settings = @{ MailNotificationsEnabled = `$true; DefaultDecision = 'Deny'; AutoApplyDecisionsEnabled = `$true }"
+        Write-LabLog "${pre}  }"
+        Write-LabLog "${pre}  New-MgIdentityGovernanceAccessReviewDefinition -BodyParameter `$reviewBody"
     } else {
         try {
-            Write-Log "  Entra portal > Identity Governance > Access reviews > + New access review"
-            Write-Log "  Selecteer: Review type = Groups and teams"
-            Write-Log "  Scope: Alle leden van LAB-LabUsers"
-            Write-Log "  Reviewers: Geselecteerde gebruikers (Admin of manager)"
-            Write-Log "  Herhaling: Kwartaal | Duur: 14 dagen"
-            Write-Log "  Einde: Beschikking automatisch toepassen"
-            Write-Log "  Default beslissing als reviewer niet reageert: Deny (toegang intrekken)"
+            Write-LabLog "  Entra portal > Identity Governance > Access reviews > + New access review"
+            Write-LabLog "  Selecteer: Review type = Groups and teams"
+            Write-LabLog "  Scope: Alle leden van LAB-LabUsers"
+            Write-LabLog "  Reviewers: Geselecteerde gebruikers (Admin of manager)"
+            Write-LabLog "  Herhaling: Kwartaal | Duur: 14 dagen"
+            Write-LabLog "  Einde: Beschikking automatisch toepassen"
+            Write-LabLog "  Default beslissing als reviewer niet reageert: Deny (toegang intrekken)"
             Start-Process "https://entra.microsoft.com/#view/Microsoft_AAD_ERM/DashboardBlade/~/Controls"
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: PIM — eligible assignment aanmaken ──────────────────────────
-    Write-Log ""
-    Write-Log "${pre}Stap 3: PIM — eligible assignment voor Global Administrator"
+    Write-LabLog ""
+    Write-LabLog "${pre}Stap 3: PIM — eligible assignment voor Global Administrator"
     $progress.Value = 48
     if ($isDry) {
-        Write-Log "${pre}  Connect-MgGraph -Scopes 'PrivilegedEligibilitySchedule.ReadWrite.AzureADGroup', 'RoleEligibilitySchedule.ReadWrite.Directory'"
-        Write-Log "${pre}  # Global Admin rol-definitie ophalen"
-        Write-Log "${pre}  `$role = Get-MgRoleManagementDirectoryRoleDefinition -Filter `"displayName eq 'Global Administrator'`""
-        Write-Log "${pre}  # Eligible assignment aanmaken voor TestUser01"
-        Write-Log "${pre}  `$user = Get-MgUser -Filter `"displayName eq 'TestUser01'`""
-        Write-Log "${pre}  `$scheduleReq = @{"
-        Write-Log "${pre}    PrincipalId = `$user.Id"
-        Write-Log "${pre}    RoleDefinitionId = `$role.Id"
-        Write-Log "${pre}    Justification = 'SC-300 lab — PIM eligible assignment'"
-        Write-Log "${pre}    ScheduleInfo = @{ StartDateTime = (Get-Date).ToUniversalTime().ToString('o'); Expiration = @{ Type = 'AfterDuration'; Duration = 'PT8H' } }"
-        Write-Log "${pre}    Action = 'adminAssign'"
-        Write-Log "${pre}  }"
-        Write-Log "${pre}  New-MgRoleManagementDirectoryRoleEligibilityScheduleRequest -BodyParameter `$scheduleReq"
+        Write-LabLog "${pre}  Connect-MgGraph -Scopes 'PrivilegedEligibilitySchedule.ReadWrite.AzureADGroup', 'RoleEligibilitySchedule.ReadWrite.Directory'"
+        Write-LabLog "${pre}  # Global Admin rol-definitie ophalen"
+        Write-LabLog "${pre}  `$role = Get-MgRoleManagementDirectoryRoleDefinition -Filter `"displayName eq 'Global Administrator'`""
+        Write-LabLog "${pre}  # Eligible assignment aanmaken voor TestUser01"
+        Write-LabLog "${pre}  `$user = Get-MgUser -Filter `"displayName eq 'TestUser01'`""
+        Write-LabLog "${pre}  `$scheduleReq = @{"
+        Write-LabLog "${pre}    PrincipalId = `$user.Id"
+        Write-LabLog "${pre}    RoleDefinitionId = `$role.Id"
+        Write-LabLog "${pre}    Justification = 'SC-300 lab — PIM eligible assignment'"
+        Write-LabLog "${pre}    ScheduleInfo = @{ StartDateTime = (Get-Date).ToUniversalTime().ToString('o'); Expiration = @{ Type = 'AfterDuration'; Duration = 'PT8H' } }"
+        Write-LabLog "${pre}    Action = 'adminAssign'"
+        Write-LabLog "${pre}  }"
+        Write-LabLog "${pre}  New-MgRoleManagementDirectoryRoleEligibilityScheduleRequest -BodyParameter `$scheduleReq"
     } else {
         try {
-            Write-Log "  Entra portal > Identity > Roles and admins > Privileged Identity Management"
-            Write-Log "  OF: https://entra.microsoft.com/#view/Microsoft_Azure_PIMPrivilegedPIM/CommonMenuBlade/~/quickStart"
-            Write-Log "  Selecteer: Manage > Entra roles"
-            Write-Log "  Klik op 'Global Administrator' > + Add assignments"
-            Write-Log "  Toewijzingstype: Eligible"
-            Write-Log "  Gebruiker: TestUser01"
-            Write-Log "  Geldigheid: 8 uur (voor labdoeleinden)"
-            Write-Log "  Let op: Permanente eligible assignment is ook mogelijk voor labs"
+            Write-LabLog "  Entra portal > Identity > Roles and admins > Privileged Identity Management"
+            Write-LabLog "  OF: https://entra.microsoft.com/#view/Microsoft_Azure_PIMPrivilegedPIM/CommonMenuBlade/~/quickStart"
+            Write-LabLog "  Selecteer: Manage > Entra roles"
+            Write-LabLog "  Klik op 'Global Administrator' > + Add assignments"
+            Write-LabLog "  Toewijzingstype: Eligible"
+            Write-LabLog "  Gebruiker: TestUser01"
+            Write-LabLog "  Geldigheid: 8 uur (voor labdoeleinden)"
+            Write-LabLog "  Let op: Permanente eligible assignment is ook mogelijk voor labs"
             Start-Process "https://entra.microsoft.com/#view/Microsoft_Azure_PIMPrivilegedPIM/CommonMenuBlade/~/quickStart"
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 4: PIM JIT-activering en audit trail ────────────────────────────
-    Write-Log ""
-    Write-Log "${pre}Stap 4: PIM — JIT-activering als TestUser01 en audit trail"
+    Write-LabLog ""
+    Write-LabLog "${pre}Stap 4: PIM — JIT-activering als TestUser01 en audit trail"
     $progress.Value = 68
-    Write-Log "  Via W11-01 als TestUser01 (of InPrivate/aparte browser-sessie):"
-    Write-Log "  1. Ga naar: https://entra.microsoft.com/#view/Microsoft_Azure_PIMPrivilegedPIM/UserActivateRolesBlade"
-    Write-Log "  2. Klik 'Activate' naast Global Administrator"
-    Write-Log "  3. Vul in: Tijdsduur (max. 1 uur voor lab), reden: 'SC-300 lab PIM test'"
-    Write-Log "  4. Bevestig MFA-prompt (Authenticator push of FIDO2)"
-    Write-Log "  5. Wacht ~30 sec → rol is actief"
-    Write-Log ""
-    Write-Log "  Audit trail bekijken (als Admin):"
+    Write-LabLog "  Via W11-01 als TestUser01 (of InPrivate/aparte browser-sessie):"
+    Write-LabLog "  1. Ga naar: https://entra.microsoft.com/#view/Microsoft_Azure_PIMPrivilegedPIM/UserActivateRolesBlade"
+    Write-LabLog "  2. Klik 'Activate' naast Global Administrator"
+    Write-LabLog "  3. Vul in: Tijdsduur (max. 1 uur voor lab), reden: 'SC-300 lab PIM test'"
+    Write-LabLog "  4. Bevestig MFA-prompt (Authenticator push of FIDO2)"
+    Write-LabLog "  5. Wacht ~30 sec → rol is actief"
+    Write-LabLog ""
+    Write-LabLog "  Audit trail bekijken (als Admin):"
     if ($isDry) {
-        Write-Log "${pre}  Connect-MgGraph -Scopes 'AuditLog.Read.All'"
-        Write-Log "${pre}  Get-MgAuditLogDirectoryAudit -Filter `"activityDisplayName eq 'Add member to role completed (PIM activation)'`" | Select-Object ActivityDateTime, InitiatedBy, Result"
-        Write-Log "${pre}  # PIM-specifiek:"
-        Write-Log "${pre}  Get-MgPolicyRoleManagementPolicyRule -UnifiedRoleManagementPolicyId <policyId>"
+        Write-LabLog "${pre}  Connect-MgGraph -Scopes 'AuditLog.Read.All'"
+        Write-LabLog "${pre}  Get-MgAuditLogDirectoryAudit -Filter `"activityDisplayName eq 'Add member to role completed (PIM activation)'`" | Select-Object ActivityDateTime, InitiatedBy, Result"
+        Write-LabLog "${pre}  # PIM-specifiek:"
+        Write-LabLog "${pre}  Get-MgPolicyRoleManagementPolicyRule -UnifiedRoleManagementPolicyId <policyId>"
     } else {
         try {
             Connect-MgGraph -Scopes "AuditLog.Read.All" -ErrorAction Stop | Out-Null
@@ -243,57 +243,57 @@ $btnRun.Add_Click({
                 -Filter "activityDisplayName eq 'Add member to role completed (PIM activation)'" `
                 -Top 5 -ErrorAction SilentlyContinue
             if ($pimLogs) {
-                Write-Log "  Recente PIM-activaties:"
+                Write-LabLog "  Recente PIM-activaties:"
                 foreach ($log in $pimLogs) {
                     $who = $log.InitiatedBy.User.UserPrincipalName
-                    Write-Log "    $($log.ActivityDateTime) | $who | $($log.Result)"
+                    Write-LabLog "    $($log.ActivityDateTime) | $who | $($log.Result)"
                 }
             } else {
-                Write-Log "  Geen recente PIM-activaties gevonden (voer stap 4 handmatig uit via portal)"
+                Write-LabLog "  Geen recente PIM-activaties gevonden (voer stap 4 handmatig uit via portal)"
             }
-            Write-Log ""
-            Write-Log "  PIM audit in portal: Entra > Identity > PIM > Entra roles > Audit history"
+            Write-LabLog ""
+            Write-LabLog "  PIM audit in portal: Entra > Identity > PIM > Entra roles > Audit history"
             Start-Process "https://entra.microsoft.com/#view/Microsoft_Azure_PIMPrivilegedPIM/ResourceMenuBlade/~/audit"
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 5: Eligible vs Active vs Permanent vergelijking tonen ──────────
-    Write-Log ""
-    Write-Log "${pre}Stap 5: PIM — overzicht assignmenttypes"
+    Write-LabLog ""
+    Write-LabLog "${pre}Stap 5: PIM — overzicht assignmenttypes"
     $progress.Value = 84
     if ($isDry) {
-        Write-Log "${pre}  # Bekijk huidige eligible assignments:"
-        Write-Log "${pre}  Get-MgRoleManagementDirectoryRoleEligibilitySchedule -All | Select-Object PrincipalId, RoleDefinitionId, ScheduleInfo"
-        Write-Log "${pre}  # Bekijk actieve assignments:"
-        Write-Log "${pre}  Get-MgRoleManagementDirectoryRoleAssignmentSchedule -All | Select-Object PrincipalId, RoleDefinitionId, AssignmentType"
+        Write-LabLog "${pre}  # Bekijk huidige eligible assignments:"
+        Write-LabLog "${pre}  Get-MgRoleManagementDirectoryRoleEligibilitySchedule -All | Select-Object PrincipalId, RoleDefinitionId, ScheduleInfo"
+        Write-LabLog "${pre}  # Bekijk actieve assignments:"
+        Write-LabLog "${pre}  Get-MgRoleManagementDirectoryRoleAssignmentSchedule -All | Select-Object PrincipalId, RoleDefinitionId, AssignmentType"
     } else {
         try {
             Connect-MgGraph -Scopes "RoleEligibilitySchedule.Read.Directory", "RoleAssignmentSchedule.Read.Directory" -ErrorAction SilentlyContinue | Out-Null
             $eligible = Get-MgRoleManagementDirectoryRoleEligibilitySchedule -All -ErrorAction SilentlyContinue
-            Write-Log "  Eligible assignments in tenant: $($eligible.Count)"
+            Write-LabLog "  Eligible assignments in tenant: $($eligible.Count)"
             $active   = Get-MgRoleManagementDirectoryRoleAssignmentSchedule -All -ErrorAction SilentlyContinue
-            Write-Log "  Actieve role assignments: $($active.Count)"
-            Write-Log ""
-            Write-Log "  Eligible  = JIT — gebruiker moet zelf activeren, MFA + reden vereist"
-            Write-Log "  Active    = Altijd actief gedurende ingestelde periode"
-            Write-Log "  Permanent = Geen vervaldatum (vermijd dit voor beheerdersrollen)"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  Actieve role assignments: $($active.Count)"
+            Write-LabLog ""
+            Write-LabLog "  Eligible  = JIT — gebruiker moet zelf activeren, MFA + reden vereist"
+            Write-LabLog "  Active    = Altijd actief gedurende ingestelde periode"
+            Write-LabLog "  Permanent = Geen vervaldatum (vermijd dit voor beheerdersrollen)"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 6 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen entitlement management en access reviews?"
-    Write-Log "2. Hoe werkt PIM Just-in-Time access en waarom is het veiliger dan permanente rollentoewijzing?"
-    Write-Log "3. Wat zijn lifecycle workflows en voor welke scenario's gebruik je ze?"
-    Write-Log "4. Hoe configureer je separation of duties via incompatible access packages?"
-    Write-Log "5. Wanneer kies je voor eligible vs. active assignment in PIM?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log ""
-    Write-Log "════════════════════════════════════════════════════════"
-    Write-Log "  SC-300 LEERPAD VOLTOOID — alle 6 weken afgerond"
-    Write-Log "  Volgend stap: Practice assessment op MS Learn"
-    Write-Log "  https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications"
-    Write-Log "════════════════════════════════════════════════════════"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 6 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen entitlement management en access reviews?"
+    Write-LabLog "2. Hoe werkt PIM Just-in-Time access en waarom is het veiliger dan permanente rollentoewijzing?"
+    Write-LabLog "3. Wat zijn lifecycle workflows en voor welke scenario's gebruik je ze?"
+    Write-LabLog "4. Hoe configureer je separation of duties via incompatible access packages?"
+    Write-LabLog "5. Wanneer kies je voor eligible vs. active assignment in PIM?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog ""
+    Write-LabLog "════════════════════════════════════════════════════════"
+    Write-LabLog "  SC-300 LEERPAD VOLTOOID — alle 6 weken afgerond"
+    Write-LabLog "  Volgend stap: Practice assessment op MS Learn"
+    Write-LabLog "  https://learn.microsoft.com/en-us/certifications/practice-assessments-for-microsoft-certifications"
+    Write-LabLog "════════════════════════════════════════════════════════"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

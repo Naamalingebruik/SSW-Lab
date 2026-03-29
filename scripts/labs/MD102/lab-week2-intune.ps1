@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | MD-102 | Week 2 — Intune enrollment en device management
 # Doel: Demonstreer enrollment-stappen, BitLocker-policy, compliance
@@ -98,7 +98,7 @@ $dryRunTitle = $reader.FindName("DryRunTitle")
 $dryRunSub   = $reader.FindName("DryRunSub")
 $conv        = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
@@ -118,24 +118,24 @@ function Update-DryRunBar {
     }
 }
 
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({   Update-DryRunBar })
-$chkDryRun.Add_Unchecked({ Update-DryRunBar })
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({   Show-DryRunState })
+$chkDryRun.Add_Unchecked({ Show-DryRunState })
 
-function Write-Log($msg) {
+function Write-LabLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"
     $logBox.Text += "[$ts] $msg`n"
     $logBox.ScrollToEnd()
 }
 
 function Write-KennisCheck {
-    Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen MDM-enrollment en Hybrid Azure AD Join?"
-    Write-Log "2. Welke enrollment-methodes bestaan in Intune en wanneer gebruik je welke?"
-    Write-Log "3. Wat betekent Compliant versus Not compliant in Intune?"
-    Write-Log "4. Hoe werkt de Enrollment Status Page bij Autopilot?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen MDM-enrollment en Hybrid Azure AD Join?"
+    Write-LabLog "2. Welke enrollment-methodes bestaan in Intune en wanneer gebruik je welke?"
+    Write-LabLog "3. Wat betekent Compliant versus Not compliant in Intune?"
+    Write-LabLog "4. Hoe werkt de Enrollment Status Page bij Autopilot?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
 
 $btnRun.Add_Click({
@@ -147,11 +147,11 @@ $btnRun.Add_Click({
     $w11bVM   = $profiles."W11-02".Name
 
     # ── Stap 1: W11-01 MDM enrollment status ─────────────────
-    Write-Log "${pre}Stap 1: W11-01 — MDM enrollment status controleren"
+    Write-LabLog "${pre}Stap 1: W11-01 — MDM enrollment status controleren"
     $progress.Value = 15
     if ($isDry) {
-        Write-Log "${pre}  dsregcmd /status → kijk naar 'AzureAdJoined', 'MDMUrl', 'EnterpriseJoined'"
-        Write-Log "${pre}  Verwacht na enrollment: AzureAdJoined=YES, MDMUrl=https://enrollment.manage.microsoft.com"
+        Write-LabLog "${pre}  dsregcmd /status → kijk naar 'AzureAdJoined', 'MDMUrl', 'EnterpriseJoined'"
+        Write-LabLog "${pre}  Verwacht na enrollment: AzureAdJoined=YES, MDMUrl=https://enrollment.manage.microsoft.com"
     } else {
         try {
             $cred1 = Get-Credential -Message "Admin credentials voor $w11aVM" -UserName "$w11aVM\$($SSWConfig.AdminUser)"
@@ -159,17 +159,17 @@ $btnRun.Add_Click({
                 $raw = & dsregcmd /status 2>&1
                 $raw | Select-String "AzureAdJoined|MDMUrl|EnterpriseJoined|WorkplaceJoined"
             }
-            $result | ForEach-Object { Write-Log "  $_" }
-        } catch { Write-Log "  ✖ Fout: $_" }
+            $result | ForEach-Object { Write-LabLog "  $_" }
+        } catch { Write-LabLog "  ✖ Fout: $_" }
     }
 
     # ── Stap 2: W11-01 BitLocker status ──────────────────────
-    Write-Log "${pre}Stap 2: W11-01 — BitLocker status (manage-bde -status)"
+    Write-LabLog "${pre}Stap 2: W11-01 — BitLocker status (manage-bde -status)"
     $progress.Value = 30
     if ($isDry) {
-        Write-Log "${pre}  manage-bde -status C:"
-        Write-Log "${pre}  Verwacht: Protection Status=Protection On, Encryption Method=XTS-AES 128"
-        Write-Log "${pre}  Als OFF: Intune BitLocker-policy nog niet toegepast of niet enrolled"
+        Write-LabLog "${pre}  manage-bde -status C:"
+        Write-LabLog "${pre}  Verwacht: Protection Status=Protection On, Encryption Method=XTS-AES 128"
+        Write-LabLog "${pre}  Als OFF: Intune BitLocker-policy nog niet toegepast of niet enrolled"
     } else {
         try {
             $bl = Invoke-Command -VMName $w11aVM -Credential $cred1 -ScriptBlock {
@@ -177,16 +177,16 @@ $btnRun.Add_Click({
                 if ($vol) { "Status: $($vol.ProtectionStatus) | Methode: $($vol.EncryptionMethod) | KeyProtectors: $($vol.KeyProtector.KeyProtectorType -join ', ')" }
                 else { "BitLocker-module niet beschikbaar — voer manage-bde -status C: uit in de VM" }
             }
-            Write-Log "  ✔ $bl"
-        } catch { Write-Log "  ✖ Fout: $_" }
+            Write-LabLog "  ✔ $bl"
+        } catch { Write-LabLog "  ✖ Fout: $_" }
     }
 
     # ── Stap 3: W11-02 enrollment status ─────────────────────
-    Write-Log "${pre}Stap 3: W11-02 — MDM enrollment status controleren"
+    Write-LabLog "${pre}Stap 3: W11-02 — MDM enrollment status controleren"
     $progress.Value = 50
     if ($isDry) {
-        Write-Log "${pre}  dsregcmd /status op W11-02"
-        Write-Log "${pre}  Vergelijk met W11-01 — beide moeten enrolled zijn"
+        Write-LabLog "${pre}  dsregcmd /status op W11-02"
+        Write-LabLog "${pre}  Vergelijk met W11-01 — beide moeten enrolled zijn"
     } else {
         try {
             $cred2 = Get-Credential -Message "Admin credentials voor $w11bVM" -UserName "$w11bVM\$($SSWConfig.AdminUser)"
@@ -194,26 +194,26 @@ $btnRun.Add_Click({
                 $raw = & dsregcmd /status 2>&1
                 $raw | Select-String "AzureAdJoined|MDMUrl|EnterpriseJoined|WorkplaceJoined"
             }
-            $result2 | ForEach-Object { Write-Log "  $_" }
-        } catch { Write-Log "  ✖ Fout: $_" }
+            $result2 | ForEach-Object { Write-LabLog "  $_" }
+        } catch { Write-LabLog "  ✖ Fout: $_" }
     }
 
     # ── Stap 4: MGMT01 — portaalinstructies ──────────────────
-    Write-Log "${pre}Stap 4: MGMT01 — Intune portal acties (handmatig)"
+    Write-LabLog "${pre}Stap 4: MGMT01 — Intune portal acties (handmatig)"
     $progress.Value = 70
-    Write-Log "  → Open intune.microsoft.com in Edge op MGMT01"
-    Write-Log "  → Ga naar: Devices → All devices → verifieer W11-01 en W11-02"
-    Write-Log "  → Maak Configuration profile: Endpoint security → Disk encryption → BitLocker"
-    Write-Log "      Assign aan: alle devices / groep met W11-01"
-    Write-Log "  → Maak Compliance policy: Devices → Compliance → Create policy"
-    Write-Log "      Vereisten: OS minimaal 10.0.22000 (W11), Defender actief, BitLocker aan"
+    Write-LabLog "  → Open intune.microsoft.com in Edge op MGMT01"
+    Write-LabLog "  → Ga naar: Devices → All devices → verifieer W11-01 en W11-02"
+    Write-LabLog "  → Maak Configuration profile: Endpoint security → Disk encryption → BitLocker"
+    Write-LabLog "      Assign aan: alle devices / groep met W11-01"
+    Write-LabLog "  → Maak Compliance policy: Devices → Compliance → Create policy"
+    Write-LabLog "      Vereisten: OS minimaal 10.0.22000 (W11), Defender actief, BitLocker aan"
 
     # ── Stap 5: Intune sync forceren ──────────────────────────
-    Write-Log "${pre}Stap 5: W11-01 — forceer Intune sync"
+    Write-LabLog "${pre}Stap 5: W11-01 — forceer Intune sync"
     $progress.Value = 85
     if ($isDry) {
-        Write-Log "${pre}  Start-Process ms-settings:workplace"
-        Write-Log "${pre}  Klik op Info → Sync → wacht 2-5 min op policy-toepassing"
+        Write-LabLog "${pre}  Start-Process ms-settings:workplace"
+        Write-LabLog "${pre}  Klik op Info → Sync → wacht 2-5 min op policy-toepassing"
     } else {
         try {
             Invoke-Command -VMName $w11aVM -Credential $cred1 -ScriptBlock {
@@ -221,13 +221,13 @@ $btnRun.Add_Click({
                 Get-ScheduledTask | Where-Object { $_.TaskPath -like "*Microsoft*EnterpriseMgmt*" } |
                     ForEach-Object { Start-ScheduledTask -TaskPath $_.TaskPath -TaskName $_.TaskName -ErrorAction SilentlyContinue }
             }
-            Write-Log "  ✔ MDM sync-tasks getriggerd op W11-01"
-        } catch { Write-Log "  ✖ Fout: $_" }
+            Write-LabLog "  ✔ MDM sync-tasks getriggerd op W11-01"
+        } catch { Write-LabLog "  ✖ Fout: $_" }
     }
 
     $progress.Value = 100
-    Write-Log ""
-    Write-Log "✔ Week 2 lab afgerond."
+    Write-LabLog ""
+    Write-LabLog "✔ Week 2 lab afgerond."
     Write-KennisCheck
     $btnNext.IsEnabled = $true
     $btnRun.IsEnabled  = $true

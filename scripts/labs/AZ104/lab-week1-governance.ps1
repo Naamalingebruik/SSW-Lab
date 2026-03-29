@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # SSW-Lab | labs/AZ104/lab-week1-governance.ps1
 # AZ-104 Week 1 — Azure identiteiten, governance en beheer
 # Cloud: Azure subscription (Az PowerShell module)
@@ -83,7 +83,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen Azure-resources worden aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -96,9 +96,9 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
@@ -107,54 +107,54 @@ $btnRun.Add_Click({
     $location = "westeurope"
 
     # ── Stap 1: Connect-AzAccount ────────────────────────────
-    Write-Log "${pre}Stap 1: Verbinding met Azure subscription"
+    Write-LabLog "${pre}Stap 1: Verbinding met Azure subscription"
     $progress.Value = 16
     if ($isDry) {
-        Write-Log "${pre}  Connect-AzAccount"
-        Write-Log "${pre}  Get-AzSubscription | Select-Object Name, Id, State | Format-Table"
-        Write-Log "${pre}  Get-AzContext | Select-Object Account, Subscription, Tenant"
+        Write-LabLog "${pre}  Connect-AzAccount"
+        Write-LabLog "${pre}  Get-AzSubscription | Select-Object Name, Id, State | Format-Table"
+        Write-LabLog "${pre}  Get-AzContext | Select-Object Account, Subscription, Tenant"
     } else {
         try {
-            Write-Log "  Verbinden met Azure..."
+            Write-LabLog "  Verbinden met Azure..."
             Connect-AzAccount -ErrorAction Stop | Out-Null
             $ctx = Get-AzContext
-            Write-Log "  Account     : $($ctx.Account)"
-            Write-Log "  Subscription: $($ctx.Subscription.Name)"
-            Write-Log "  Tenant      : $($ctx.Tenant.Id)"
-        } catch { Write-Log "  Fout: $_"; $btnRun.IsEnabled = $true; return }
+            Write-LabLog "  Account     : $($ctx.Account)"
+            Write-LabLog "  Subscription: $($ctx.Subscription.Name)"
+            Write-LabLog "  Tenant      : $($ctx.Tenant.Id)"
+        } catch { Write-LabLog "  Fout: $_"; $btnRun.IsEnabled = $true; return }
     }
 
     # ── Stap 2: Resource group ───────────────────────────────
-    Write-Log "${pre}Stap 2: Resource group — $rgName"
+    Write-LabLog "${pre}Stap 2: Resource group — $rgName"
     $progress.Value = 32
     if ($isDry) {
-        Write-Log "${pre}  New-AzResourceGroup -Name '$rgName' -Location '$location' -Tag @{Cert='AZ-104'; Env='Lab'}"
-        Write-Log "${pre}  Get-AzResourceGroup -Name '$rgName' | Select-Object ResourceGroupName, Location, ProvisioningState"
+        Write-LabLog "${pre}  New-AzResourceGroup -Name '$rgName' -Location '$location' -Tag @{Cert='AZ-104'; Env='Lab'}"
+        Write-LabLog "${pre}  Get-AzResourceGroup -Name '$rgName' | Select-Object ResourceGroupName, Location, ProvisioningState"
     } else {
         try {
             $rg = Get-AzResourceGroup -Name $rgName -ErrorAction SilentlyContinue
             if (-not $rg) {
                 $rg = New-AzResourceGroup -Name $rgName -Location $location -Tag @{Cert = "AZ-104"; Env = "Lab" }
-                Write-Log "  Resource group aangemaakt: $($rg.ResourceGroupName) ($location)"
+                Write-LabLog "  Resource group aangemaakt: $($rg.ResourceGroupName) ($location)"
             } else {
-                Write-Log "  Resource group bestaat al: $($rg.ResourceGroupName) [$($rg.ProvisioningState)]"
+                Write-LabLog "  Resource group bestaat al: $($rg.ResourceGroupName) [$($rg.ProvisioningState)]"
             }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: Entra ID gebruiker + groep ──────────────────
-    Write-Log "${pre}Stap 3: Entra ID — gebruiker en groep via Graph"
+    Write-LabLog "${pre}Stap 3: Entra ID — gebruiker en groep via Graph"
     $progress.Value = 48
     if ($isDry) {
-        Write-Log "${pre}  Connect-MgGraph -Scopes 'User.ReadWrite.All','Group.ReadWrite.All'"
-        Write-Log "${pre}  `$upn = 'az-labuser01@<tenant>.onmicrosoft.com'"
-        Write-Log "${pre}  New-MgUser -DisplayName 'AZ Lab User 01' -UserPrincipalName `$upn ..."
-        Write-Log "${pre}  New-MgGroup -DisplayName 'AZ104-Operators' -MailEnabled:`$false -SecurityEnabled:`$true ..."
-        Write-Log "${pre}  New-MgGroupMember -GroupId <groupId> -DirectoryObjectId <userId>"
+        Write-LabLog "${pre}  Connect-MgGraph -Scopes 'User.ReadWrite.All','Group.ReadWrite.All'"
+        Write-LabLog "${pre}  `$upn = 'az-labuser01@<tenant>.onmicrosoft.com'"
+        Write-LabLog "${pre}  New-MgUser -DisplayName 'AZ Lab User 01' -UserPrincipalName `$upn ..."
+        Write-LabLog "${pre}  New-MgGroup -DisplayName 'AZ104-Operators' -MailEnabled:`$false -SecurityEnabled:`$true ..."
+        Write-LabLog "${pre}  New-MgGroupMember -GroupId <groupId> -DirectoryObjectId <userId>"
     } else {
         try {
             if (-not (Get-Module Microsoft.Graph.Users -ListAvailable)) {
-                Write-Log "  Installeer Microsoft.Graph.Users: Install-Module Microsoft.Graph.Users -Force"
+                Write-LabLog "  Installeer Microsoft.Graph.Users: Install-Module Microsoft.Graph.Users -Force"
             } else {
                 Connect-MgGraph -Scopes "User.ReadWrite.All", "Group.ReadWrite.All" -ErrorAction Stop | Out-Null
                 $domain  = (Get-MgDomain | Where-Object { $_.IsDefault }).Id
@@ -163,46 +163,46 @@ $btnRun.Add_Click({
                 if (-not $mgUser) {
                     $passProfile = @{ forceChangePasswordNextSignIn = $true; password = "LabAzure@2024!" }
                     $mgUser = New-MgUser -DisplayName "AZ Lab User 01" -UserPrincipalName $upn -AccountEnabled -PasswordProfile $passProfile -MailNickname "az-labuser01"
-                    Write-Log "  Gebruiker aangemaakt: $($mgUser.UserPrincipalName)"
-                } else { Write-Log "  Gebruiker bestaat al: $($mgUser.UserPrincipalName)" }
+                    Write-LabLog "  Gebruiker aangemaakt: $($mgUser.UserPrincipalName)"
+                } else { Write-LabLog "  Gebruiker bestaat al: $($mgUser.UserPrincipalName)" }
                 $grp = Get-MgGroup -Filter "displayName eq 'AZ104-Operators'" -ErrorAction SilentlyContinue
                 if (-not $grp) {
                     $grp = New-MgGroup -DisplayName "AZ104-Operators" -MailEnabled:$false -SecurityEnabled -MailNickname "az104ops"
-                    Write-Log "  Groep aangemaakt: AZ104-Operators"
-                } else { Write-Log "  Groep bestaat al: AZ104-Operators" }
+                    Write-LabLog "  Groep aangemaakt: AZ104-Operators"
+                } else { Write-LabLog "  Groep bestaat al: AZ104-Operators" }
                 New-MgGroupMember -GroupId $grp.Id -DirectoryObjectId $mgUser.Id -ErrorAction SilentlyContinue
-                Write-Log "  Gebruiker toegevoegd aan groep"
+                Write-LabLog "  Gebruiker toegevoegd aan groep"
             }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 4: RBAC-toewijzing ──────────────────────────────
-    Write-Log "${pre}Stap 4: RBAC — Contributor rol op resource group"
+    Write-LabLog "${pre}Stap 4: RBAC — Contributor rol op resource group"
     $progress.Value = 66
     if ($isDry) {
-        Write-Log "${pre}  `$rg = Get-AzResourceGroup -Name '$rgName'"
-        Write-Log "${pre}  New-AzRoleAssignment -SignInName 'az-labuser01@<tenant>' -RoleDefinitionName 'Contributor' -Scope `$rg.ResourceId"
-        Write-Log "${pre}  Get-AzRoleAssignment -ResourceGroupName '$rgName' | Select-Object DisplayName, RoleDefinitionName | Format-Table"
+        Write-LabLog "${pre}  `$rg = Get-AzResourceGroup -Name '$rgName'"
+        Write-LabLog "${pre}  New-AzRoleAssignment -SignInName 'az-labuser01@<tenant>' -RoleDefinitionName 'Contributor' -Scope `$rg.ResourceId"
+        Write-LabLog "${pre}  Get-AzRoleAssignment -ResourceGroupName '$rgName' | Select-Object DisplayName, RoleDefinitionName | Format-Table"
     } else {
         try {
             $rg = Get-AzResourceGroup -Name $rgName -ErrorAction Stop
             $existing = Get-AzRoleAssignment -ResourceGroupName $rgName | Where-Object { $_.DisplayName -like "AZ Lab User*" }
             if (-not $existing) {
                 New-AzRoleAssignment -ObjectId $mgUser.Id -RoleDefinitionName "Contributor" -Scope $rg.ResourceId -ErrorAction Stop | Out-Null
-                Write-Log "  Contributor rol toegewezen aan az-labuser01 op $rgName"
-            } else { Write-Log "  Rol al toegewezen" }
-            Get-AzRoleAssignment -ResourceGroupName $rgName | Select-Object DisplayName, RoleDefinitionName | ForEach-Object { Write-Log "  $($_.DisplayName) -> $($_.RoleDefinitionName)" }
-        } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  Contributor rol toegewezen aan az-labuser01 op $rgName"
+            } else { Write-LabLog "  Rol al toegewezen" }
+            Get-AzRoleAssignment -ResourceGroupName $rgName | Select-Object DisplayName, RoleDefinitionName | ForEach-Object { Write-LabLog "  $($_.DisplayName) -> $($_.RoleDefinitionName)" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 5: Azure Policy ─────────────────────────────────
-    Write-Log "${pre}Stap 5: Azure Policy — toegestane regio's"
+    Write-LabLog "${pre}Stap 5: Azure Policy — toegestane regio's"
     $progress.Value = 84
     if ($isDry) {
-        Write-Log "${pre}  `$def = Get-AzPolicyDefinition | Where-Object {`$_.Properties.displayName -like '*Allowed locations*'}"
-        Write-Log "${pre}  `$params = @{'listOfAllowedLocations'=@{value=@('westeurope','northeurope')}}"
-        Write-Log "${pre}  New-AzPolicyAssignment -Name 'ssw-allowed-regions' -Scope `$rg.ResourceId -PolicyDefinition `$def -PolicyParameterObject `$params"
-        Write-Log "${pre}  Azure portal > Policy > Assignments > ssw-allowed-regions"
+        Write-LabLog "${pre}  `$def = Get-AzPolicyDefinition | Where-Object {`$_.Properties.displayName -like '*Allowed locations*'}"
+        Write-LabLog "${pre}  `$params = @{'listOfAllowedLocations'=@{value=@('westeurope','northeurope')}}"
+        Write-LabLog "${pre}  New-AzPolicyAssignment -Name 'ssw-allowed-regions' -Scope `$rg.ResourceId -PolicyDefinition `$def -PolicyParameterObject `$params"
+        Write-LabLog "${pre}  Azure portal > Policy > Assignments > ssw-allowed-regions"
     } else {
         try {
             $rg     = Get-AzResourceGroup -Name $rgName -ErrorAction Stop
@@ -212,19 +212,19 @@ $btnRun.Add_Click({
                 $assign = Get-AzPolicyAssignment -Scope $rg.ResourceId | Where-Object { $_.Name -eq "ssw-allowed-regions" }
                 if (-not $assign) {
                     New-AzPolicyAssignment -Name "ssw-allowed-regions" -Scope $rg.ResourceId -PolicyDefinition $def -PolicyParameterObject $params -ErrorAction Stop | Out-Null
-                    Write-Log "  Policy toegewezen: West Europe + North Europe toegestaan"
-                } else { Write-Log "  Policy al toegewezen op $rgName" }
-            } else { Write-Log "  'Allowed locations' policy definitie niet gevonden" }
-        } catch { Write-Log "  Fout: $_" }
+                    Write-LabLog "  Policy toegewezen: West Europe + North Europe toegestaan"
+                } else { Write-LabLog "  Policy al toegewezen op $rgName" }
+            } else { Write-LabLog "  'Allowed locations' policy definitie niet gevonden" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 1 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen Entra ID Role en Azure RBAC Role?"
-    Write-Log "2. Welke RBAC-scope-hiërarchie bestaat er in Azure?"
-    Write-Log "3. Wat doet een Azure Policy vs. een RBAC Deny assignment?"
-    Write-Log "4. Wanneer gebruik je Management Groups in plaats van Subscriptions?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 1 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen Entra ID Role en Azure RBAC Role?"
+    Write-LabLog "2. Welke RBAC-scope-hiërarchie bestaat er in Azure?"
+    Write-LabLog "3. Wat doet een Azure Policy vs. een RBAC Deny assignment?"
+    Write-LabLog "4. Wanneer gebruik je Management Groups in plaats van Subscriptions?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

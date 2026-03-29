@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/MS102/lab-week1-tenant.ps1
 # MS-102 Week 1 — Microsoft 365 Tenant inrichten
@@ -98,7 +98,7 @@ $dryRunTitle = $reader.FindName("DryRunTitle")
 $dryRunSub   = $reader.FindName("DryRunSub")
 $conv        = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
@@ -118,11 +118,11 @@ function Update-DryRunBar {
     }
 }
 
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({   Update-DryRunBar })
-$chkDryRun.Add_Unchecked({ Update-DryRunBar })
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({   Show-DryRunState })
+$chkDryRun.Add_Unchecked({ Show-DryRunState })
 
-function Write-Log($msg) {
+function Write-LabLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"
     $logBox.Text += "[$ts] $msg`n"
     $logBox.ScrollToEnd()
@@ -136,12 +136,12 @@ $btnRun.Add_Click({
     $dcVM   = $profiles.DC01.Name
 
     # ── Stap 1: Azure AD Connect service status ──────────────
-    Write-Log "${pre}Stap 1: DC01 — Azure AD Connect service controleren"
+    Write-LabLog "${pre}Stap 1: DC01 — Azure AD Connect service controleren"
     $progress.Value = 14
     if ($isDry) {
-        Write-Log "${pre}  Get-Service ADSync | Select-Object Name, Status, StartType"
-        Write-Log "${pre}  Verwacht: Status=Running, StartType=Automatic"
-        Write-Log "${pre}  Import-Module ADSync; Get-ADSyncScheduler | Select-Object SyncCycleEnabled, CurrentlyRunning, NextSyncCyclePolicyType"
+        Write-LabLog "${pre}  Get-Service ADSync | Select-Object Name, Status, StartType"
+        Write-LabLog "${pre}  Verwacht: Status=Running, StartType=Automatic"
+        Write-LabLog "${pre}  Import-Module ADSync; Get-ADSyncScheduler | Select-Object SyncCycleEnabled, CurrentlyRunning, NextSyncCyclePolicyType"
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $dcVM" -UserName "$dcVM\$($SSWConfig.AdminUser)"
@@ -156,69 +156,69 @@ $btnRun.Add_Click({
                     "Service: $($svc.Status) | ADSync module niet beschikbaar: $_"
                 }
             }
-            Write-Log "  $syncInfo"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  $syncInfo"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 2: Delta sync uitvoeren ─────────────────────────
-    Write-Log "${pre}Stap 2: DC01 — Delta sync starten"
+    Write-LabLog "${pre}Stap 2: DC01 — Delta sync starten"
     $progress.Value = 30
     if ($isDry) {
-        Write-Log "${pre}  Import-Module ADSync"
-        Write-Log "${pre}  Start-ADSyncSyncCycle -PolicyType Delta"
-        Write-Log "${pre}  Wacht 30-60 seconden en verifieer in Entra admin center"
+        Write-LabLog "${pre}  Import-Module ADSync"
+        Write-LabLog "${pre}  Start-ADSyncSyncCycle -PolicyType Delta"
+        Write-LabLog "${pre}  Wacht 30-60 seconden en verifieer in Entra admin center"
     } else {
         try {
             Invoke-Command -VMName $dcVM -Credential $cred -ScriptBlock {
                 Import-Module ADSync -ErrorAction Stop
                 Start-ADSyncSyncCycle -PolicyType Delta
             }
-            Write-Log "  Delta sync gestart"
-            Write-Log "  Wacht ca. 30-60 seconden voor verwerking..."
-        } catch { Write-Log "  Fout (is Azure AD Connect geinstalleerd?): $_" }
+            Write-LabLog "  Delta sync gestart"
+            Write-LabLog "  Wacht ca. 30-60 seconden voor verwerking..."
+        } catch { Write-LabLog "  Fout (is Azure AD Connect geinstalleerd?): $_" }
     }
 
     # ── Stap 3: Microsoft Graph — gebruikers verifiëren ──────
-    Write-Log "${pre}Stap 3: Microsoft Graph — gesynchroniseerde gebruikers ophalen"
+    Write-LabLog "${pre}Stap 3: Microsoft Graph — gesynchroniseerde gebruikers ophalen"
     $progress.Value = 50
     if ($isDry) {
-        Write-Log "${pre}  Connect-MgGraph -Scopes 'User.Read.All'"
-        Write-Log "${pre}  Get-MgUser -Filter ""onPremisesSyncEnabled eq true"" | Select-Object DisplayName, UserPrincipalName, OnPremisesSyncEnabled"
-        Write-Log "${pre}  Vereist: Microsoft.Graph PowerShell module"
-        Write-Log "${pre}  Installeren: Install-Module Microsoft.Graph -Scope CurrentUser"
+        Write-LabLog "${pre}  Connect-MgGraph -Scopes 'User.Read.All'"
+        Write-LabLog "${pre}  Get-MgUser -Filter ""onPremisesSyncEnabled eq true"" | Select-Object DisplayName, UserPrincipalName, OnPremisesSyncEnabled"
+        Write-LabLog "${pre}  Vereist: Microsoft.Graph PowerShell module"
+        Write-LabLog "${pre}  Installeren: Install-Module Microsoft.Graph -Scope CurrentUser"
     } else {
         $mgInstalled = Get-Module -ListAvailable -Name Microsoft.Graph.Users -ErrorAction SilentlyContinue
         if (-not $mgInstalled) {
-            Write-Log "  Microsoft.Graph module niet gevonden"
-            Write-Log "  Installeer met: Install-Module Microsoft.Graph -Scope CurrentUser"
+            Write-LabLog "  Microsoft.Graph module niet gevonden"
+            Write-LabLog "  Installeer met: Install-Module Microsoft.Graph -Scope CurrentUser"
         } else {
             try {
                 Import-Module Microsoft.Graph.Users -ErrorAction Stop
                 Connect-MgGraph -Scopes "User.Read.All" -NoWelcome -ErrorAction Stop
                 $syncedUsers = Get-MgUser -Filter "onPremisesSyncEnabled eq true" -Top 10 |
                                Select-Object DisplayName, UserPrincipalName
-                Write-Log "  Gesynchroniseerde gebruikers (max 10):"
-                $syncedUsers | ForEach-Object { Write-Log "    $($_.DisplayName)  <$($_.UserPrincipalName)>" }
-            } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  Gesynchroniseerde gebruikers (max 10):"
+                $syncedUsers | ForEach-Object { Write-LabLog "    $($_.DisplayName)  <$($_.UserPrincipalName)>" }
+            } catch { Write-LabLog "  Fout: $_" }
         }
     }
 
     # ── Stap 4: M365 admin center ────────────────────────────
-    Write-Log "${pre}Stap 4: Manueel — M365 admin center"
+    Write-LabLog "${pre}Stap 4: Manueel — M365 admin center"
     $progress.Value = 68
-    Write-Log "  URL: https://admin.microsoft.com"
-    Write-Log "  Taken:"
-    Write-Log "    - Configureer tenantinformatie (naam, tijdzone, land)"
-    Write-Log "    - Verificeer domein ssw.lab of custom domein"
-    Write-Log "    - Bekijk licentie-overzicht: Billing > Licenses"
+    Write-LabLog "  URL: https://admin.microsoft.com"
+    Write-LabLog "  Taken:"
+    Write-LabLog "    - Configureer tenantinformatie (naam, tijdzone, land)"
+    Write-LabLog "    - Verificeer domein ssw.lab of custom domein"
+    Write-LabLog "    - Bekijk licentie-overzicht: Billing > Licenses"
 
     # ── Stap 5: Licenties activeren ──────────────────────────
-    Write-Log "${pre}Stap 5: Manueel — M365 E5 licenties activeren"
+    Write-LabLog "${pre}Stap 5: Manueel — M365 E5 licenties activeren"
     $progress.Value = 82
-    Write-Log "  M365 admin center > Users > Active users"
-    Write-Log "  Selecteer een gesynchroniseerde gebruiker > Licenses and apps"
-    Write-Log "  Wijs toe: Microsoft 365 E5 Developer"
-    Write-Log "  Herhaal voor alle testgebruikers die Intune/Defender nodig hebben"
+    Write-LabLog "  M365 admin center > Users > Active users"
+    Write-LabLog "  Selecteer een gesynchroniseerde gebruiker > Licenses and apps"
+    Write-LabLog "  Wijs toe: Microsoft 365 E5 Developer"
+    Write-LabLog "  Herhaal voor alle testgebruikers die Intune/Defender nodig hebben"
 
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show(
@@ -227,15 +227,15 @@ $btnRun.Add_Click({
     }
 
     $progress.Value = 100
-    Write-Log ""
-    Write-Log "Week 1 lab afgerond."
-    Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen een managed domain en een federated domain?"
-    Write-Log "2. Hoe werkt password hash synchronization versus pass-through authentication?"
-    Write-Log "3. Welke DNS-records zijn vereist voor een custom domein in Microsoft 365?"
-    Write-Log "4. Wat is het Microsoft 365 compliance center en waarvoor gebruik je het?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog ""
+    Write-LabLog "Week 1 lab afgerond."
+    Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen een managed domain en een federated domain?"
+    Write-LabLog "2. Hoe werkt password hash synchronization versus pass-through authentication?"
+    Write-LabLog "3. Welke DNS-records zijn vereist voor een custom domein in Microsoft 365?"
+    Write-LabLog "4. Wat is het Microsoft 365 compliance center en waarvoor gebruik je het?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     $btnNext.IsEnabled = $true
     $btnRun.IsEnabled  = $true

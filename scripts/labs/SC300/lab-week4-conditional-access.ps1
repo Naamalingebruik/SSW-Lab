@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/SC300/lab-week4-conditional-access.ps1
 # SC-300 Week 4 — Conditional Access: beleid, What-If, Named Locations
@@ -11,7 +11,6 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="SC-300 | Week 4 — Conditional Access" Height="720" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
@@ -86,7 +85,7 @@ $chkDryRun = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("DryRu
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — CA policies worden niet aangemaakt"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -99,39 +98,39 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
     $isDry = $chkDryRun.IsChecked; $pre = if ($isDry) { "[DRY RUN] " } else { "" }
 
     # ── Stap 1: Bestaande CA policies ophalen ────────────────
-    Write-Log "${pre}Stap 1: Graph — bestaande Conditional Access policies"
+    Write-LabLog "${pre}Stap 1: Graph — bestaande Conditional Access policies"
     $progress.Value = 16
     if ($isDry) {
-        Write-Log "${pre}  Connect-MgGraph -Scopes 'Policy.Read.All'"
-        Write-Log "${pre}  Get-MgIdentityConditionalAccessPolicy | Select-Object DisplayName, State, Id | Format-Table"
+        Write-LabLog "${pre}  Connect-MgGraph -Scopes 'Policy.Read.All'"
+        Write-LabLog "${pre}  Get-MgIdentityConditionalAccessPolicy | Select-Object DisplayName, State, Id | Format-Table"
     } else {
         try {
             Connect-MgGraph -Scopes "Policy.Read.All", "Policy.ReadWrite.ConditionalAccess" -ErrorAction Stop | Out-Null
             $policies = Get-MgIdentityConditionalAccessPolicy
-            Write-Log "  Conditional Access policies ($($policies.Count) totaal):"
-            $policies | ForEach-Object { Write-Log "  [$($_.State.PadRight(12))] $($_.DisplayName)" }
-        } catch { Write-Log "  Fout: $_"; $btnRun.IsEnabled = $true; return }
+            Write-LabLog "  Conditional Access policies ($($policies.Count) totaal):"
+            $policies | ForEach-Object { Write-LabLog "  [$($_.State.PadRight(12))] $($_.DisplayName)" }
+        } catch { Write-LabLog "  Fout: $_"; $btnRun.IsEnabled = $true; return }
     }
 
     # ── Stap 2: MFA CA policy aanmaken (report-only) ─────────
-    Write-Log "${pre}Stap 2: CA policy aanmaken — MFA vereist (report-only)"
+    Write-LabLog "${pre}Stap 2: CA policy aanmaken — MFA vereist (report-only)"
     $progress.Value = 32
     if ($isDry) {
-        Write-Log "${pre}  `$conditions = @{"
-        Write-Log "${pre}    users = @{ includeUsers = @('All'); excludeUsers = @('<break-glass-account-id>') }"
-        Write-Log "${pre}    applications = @{ includeApplications = @('All') }"
-        Write-Log "${pre}  }"
-        Write-Log "${pre}  `$grantControls = @{ operator = 'OR'; builtInControls = @('mfa') }"
-        Write-Log "${pre}  New-MgIdentityConditionalAccessPolicy -DisplayName 'SSW - Require MFA for All Users' -State 'enabledForReportingButNotEnforcing' -Conditions `$conditions -GrantControls `$grantControls"
+        Write-LabLog "${pre}  `$conditions = @{"
+        Write-LabLog "${pre}    users = @{ includeUsers = @('All'); excludeUsers = @('<break-glass-account-id>') }"
+        Write-LabLog "${pre}    applications = @{ includeApplications = @('All') }"
+        Write-LabLog "${pre}  }"
+        Write-LabLog "${pre}  `$grantControls = @{ operator = 'OR'; builtInControls = @('mfa') }"
+        Write-LabLog "${pre}  New-MgIdentityConditionalAccessPolicy -DisplayName 'SSW - Require MFA for All Users' -State 'enabledForReportingButNotEnforcing' -Conditions `$conditions -GrantControls `$grantControls"
     } else {
         try {
             $existingPolicy = Get-MgIdentityConditionalAccessPolicy | Where-Object { $_.DisplayName -eq "SSW - Require MFA for All Users" }
@@ -149,21 +148,21 @@ $btnRun.Add_Click({
                     }
                 }
                 $newPolicy = New-MgIdentityConditionalAccessPolicy @params
-                Write-Log "  CA policy aangemaakt: $($newPolicy.DisplayName)"
-                Write-Log "  State: report-only (geen blokkade)"
-                Write-Log "  ID: $($newPolicy.Id)"
+                Write-LabLog "  CA policy aangemaakt: $($newPolicy.DisplayName)"
+                Write-LabLog "  State: report-only (geen blokkade)"
+                Write-LabLog "  ID: $($newPolicy.Id)"
             } else {
-                Write-Log "  Policy bestaat al: $($existingPolicy.DisplayName) [$($existingPolicy.State)]"
+                Write-LabLog "  Policy bestaat al: $($existingPolicy.DisplayName) [$($existingPolicy.State)]"
             }
-        } catch { Write-Log "  Fout: $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: Named Location voor Nederland ────────────────
-    Write-Log "${pre}Stap 3: Named Location aanmaken (Nederland)"
+    Write-LabLog "${pre}Stap 3: Named Location aanmaken (Nederland)"
     $progress.Value = 50
     if ($isDry) {
-        Write-Log "${pre}  `$location = @{ '@odata.type' = '#microsoft.graph.countryNamedLocation'; displayName = 'Nederland'; countriesAndRegions = @('NL'); includeUnknownCountriesAndRegions = `$false }"
-        Write-Log "${pre}  Invoke-MgGraphRequest -Method POST -Uri '/v1.0/identity/conditionalAccess/namedLocations' -Body (`$location | ConvertTo-Json)"
+        Write-LabLog "${pre}  `$location = @{ '@odata.type' = '#microsoft.graph.countryNamedLocation'; displayName = 'Nederland'; countriesAndRegions = @('NL'); includeUnknownCountriesAndRegions = `$false }"
+        Write-LabLog "${pre}  Invoke-MgGraphRequest -Method POST -Uri '/v1.0/identity/conditionalAccess/namedLocations' -Body (`$location | ConvertTo-Json)"
     } else {
         try {
             $existingLoc = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/identity/conditionalAccess/namedLocations"
@@ -176,52 +175,52 @@ $btnRun.Add_Click({
                     includeUnknownCountriesAndRegions = $false
                 }
                 $nlLocation = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/identity/conditionalAccess/namedLocations" -Body ($body | ConvertTo-Json) -ContentType "application/json"
-                Write-Log "  Named Location aangemaakt: Nederland (NL)"
-                Write-Log "  ID: $($nlLocation.id)"
-            } else { Write-Log "  Named Location bestaat al: $($nlLocation.displayName)" }
-        } catch { Write-Log "  Fout: $_" }
+                Write-LabLog "  Named Location aangemaakt: Nederland (NL)"
+                Write-LabLog "  ID: $($nlLocation.id)"
+            } else { Write-LabLog "  Named Location bestaat al: $($nlLocation.displayName)" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 4: What-If tool (portal) ───────────────────────
-    Write-Log "${pre}Stap 4: Manueel — CA What-If tool"
+    Write-LabLog "${pre}Stap 4: Manueel — CA What-If tool"
     $progress.Value = 68
-    Write-Log "  Entra portal > Protection > Conditional Access > What If"
-    Write-Log "  Simuleer scenario:"
-    Write-Log "    User: testuser01@<tenant>"
-    Write-Log "    Application: Microsoft Azure Management"
-    Write-Log "    IP: 87.212.76.1 (NL - een willekeurig NL IP)"
-    Write-Log "    Device platform: Windows"
-    Write-Log "  Klik 'What If' en bekijk welke policies van toepassing zijn"
-    Write-Log "  Verifieer: 'SSW - Require MFA for All Users' staat in de lijst"
+    Write-LabLog "  Entra portal > Protection > Conditional Access > What If"
+    Write-LabLog "  Simuleer scenario:"
+    Write-LabLog "    User: testuser01@<tenant>"
+    Write-LabLog "    Application: Microsoft Azure Management"
+    Write-LabLog "    IP: 87.212.76.1 (NL - een willekeurig NL IP)"
+    Write-LabLog "    Device platform: Windows"
+    Write-LabLog "  Klik 'What If' en bekijk welke policies van toepassing zijn"
+    Write-LabLog "  Verifieer: 'SSW - Require MFA for All Users' staat in de lijst"
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show("Entra portal - CA What-If tool openen?", "SSW-Lab", "YesNo", "Question")
         if ($open -eq "Yes") { Start-Process "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ConditionalAccessBlade/~/WhatIf" }
     }
 
     # ── Stap 5: Sign-in logs analyseren ─────────────────────
-    Write-Log "${pre}Stap 5: Graph — Sign-in logs met CA policy resultaten"
+    Write-LabLog "${pre}Stap 5: Graph — Sign-in logs met CA policy resultaten"
     $progress.Value = 84
     if ($isDry) {
-        Write-Log "${pre}  Connect-MgGraph -Scopes 'AuditLog.Read.All'"
-        Write-Log "${pre}  Get-MgAuditLogSignIn -Top 5 | Select-Object UserPrincipalName, AppDisplayName, Status, ConditionalAccessStatus | Format-Table"
+        Write-LabLog "${pre}  Connect-MgGraph -Scopes 'AuditLog.Read.All'"
+        Write-LabLog "${pre}  Get-MgAuditLogSignIn -Top 5 | Select-Object UserPrincipalName, AppDisplayName, Status, ConditionalAccessStatus | Format-Table"
     } else {
         try {
             Connect-MgGraph -Scopes "AuditLog.Read.All" -ErrorAction Stop | Out-Null
             $signIns = Get-MgAuditLogSignIn -Top 5
-            Write-Log "  Laatste 5 aanmeldingen:"
+            Write-LabLog "  Laatste 5 aanmeldingen:"
             $signIns | ForEach-Object {
-                Write-Log "  $($_.UserPrincipalName) → $($_.AppDisplayName) [$($_.ConditionalAccessStatus)]"
+                Write-LabLog "  $($_.UserPrincipalName) → $($_.AppDisplayName) [$($_.ConditionalAccessStatus)]"
             }
-        } catch { Write-Log "  Fout (Entra P1 vereist voor sign-in logs): $_" }
+        } catch { Write-LabLog "  Fout (Entra P1 vereist voor sign-in logs): $_" }
     }
 
-    $progress.Value = 100; Write-Log ""; Write-Log "Week 4 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen 'Report-only' en 'Enabled' CA policies?"
-    Write-Log "2. Hoe werkt Continuous Access Evaluation (CAE) in combinatie met CA?"
-    Write-Log "3. Wanneer gebruik je een Named Location vs. een IP-filter?"
-    Write-Log "4. Wat is 'Require compliant device' en welk MDM-systeem is vereist?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    $progress.Value = 100; Write-LabLog ""; Write-LabLog "Week 4 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen 'Report-only' en 'Enabled' CA policies?"
+    Write-LabLog "2. Hoe werkt Continuous Access Evaluation (CAE) in combinatie met CA?"
+    Write-LabLog "3. Wanneer gebruik je een Named Location vs. een IP-filter?"
+    Write-LabLog "4. Wat is 'Require compliant device' en welk MDM-systeem is vereist?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

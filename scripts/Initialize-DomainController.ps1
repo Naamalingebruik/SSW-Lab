@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | Initialize-DomainController.ps1
 # Configureert LAB-DC01 als domain controller voor ssw.lab.
@@ -134,7 +134,7 @@ $dryRunSub     = $reader.FindName("DryRunSub")
 $conv          = [System.Windows.Media.BrushConverter]::new()
 $profiles      = Get-SSWVmProfiles -Config $SSWConfig
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
@@ -164,11 +164,11 @@ $reader.Add_Loaded({
     if ($savedSecret) {
         $pwdAdmin.Password = $savedSecret
     }
-    Update-DryRunBar
+    Show-DryRunState
 })
 
-$chkDryRun.Add_Checked({   Update-DryRunBar })
-$chkDryRun.Add_Unchecked({ Update-DryRunBar })
+$chkDryRun.Add_Checked({   Show-DryRunState })
+$chkDryRun.Add_Unchecked({ Show-DryRunState })
 
 function Add-UiLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"

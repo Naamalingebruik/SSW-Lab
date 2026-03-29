@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | labs/MS102/lab-week3-hybrid-identity.ps1
 # MS-102 Week 3 — Entra ID en hybride identiteit
@@ -94,7 +94,7 @@ $chkDryRun   = $reader.FindName("ChkDryRun"); $dryRunBar = $reader.FindName("Dry
 $dryRunTitle = $reader.FindName("DryRunTitle"); $dryRunSub = $reader.FindName("DryRunSub")
 $conv        = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background = $conv.ConvertFrom("#1A2E24"); $dryRunBar.BorderBrush = $conv.ConvertFrom("#A6E3A1")
         $dryRunTitle.Text = "Dry Run — geen wijzigingen"; $dryRunTitle.Foreground = $conv.ConvertFrom("#A6E3A1")
@@ -107,9 +107,9 @@ function Update-DryRunBar {
         $chkDryRun.Foreground = $conv.ConvertFrom("#F38BA8")
     }
 }
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({ Update-DryRunBar }); $chkDryRun.Add_Unchecked({ Update-DryRunBar })
-function Write-Log($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({ Show-DryRunState }); $chkDryRun.Add_Unchecked({ Show-DryRunState })
+function Write-LabLog($msg) { $ts = Get-Date -Format "HH:mm:ss"; $logBox.Text += "[$ts] $msg`n"; $logBox.ScrollToEnd() }
 
 $btnRun.Add_Click({
     $btnRun.IsEnabled = $false
@@ -118,12 +118,12 @@ $btnRun.Add_Click({
     $dcVM = $profiles.DC01.Name
 
     # ── Stap 1: ADSync scheduler ─────────────────────────────
-    Write-Log "${pre}Stap 1: DC01 — ADSync scheduler en delta sync"
+    Write-LabLog "${pre}Stap 1: DC01 — ADSync scheduler en delta sync"
     $progress.Value = 14
     if ($isDry) {
-        Write-Log "${pre}  Import-Module ADSync"
-        Write-Log "${pre}  Get-ADSyncScheduler | Select-Object SyncCycleEnabled, NextSyncCyclePolicyType, NextSyncCycleStartTimeInUTC"
-        Write-Log "${pre}  Start-ADSyncSyncCycle -PolicyType Delta"
+        Write-LabLog "${pre}  Import-Module ADSync"
+        Write-LabLog "${pre}  Get-ADSyncScheduler | Select-Object SyncCycleEnabled, NextSyncCyclePolicyType, NextSyncCycleStartTimeInUTC"
+        Write-LabLog "${pre}  Start-ADSyncSyncCycle -PolicyType Delta"
     } else {
         try {
             $cred = Get-Credential -Message "Admin credentials voor $dcVM" -UserName "$dcVM\$($SSWConfig.AdminUser)"
@@ -136,17 +136,17 @@ $btnRun.Add_Click({
                     "Delta sync gestart"
                 } catch { "ADSync module niet beschikbaar: $_" }
             }
-            $syncResult | ForEach-Object { Write-Log "  $_" }
-        } catch { Write-Log "  Fout: $_" }
+            $syncResult | ForEach-Object { Write-LabLog "  $_" }
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 2: Password Writeback ───────────────────────────
-    Write-Log "${pre}Stap 2: DC01 — Password Writeback status"
+    Write-LabLog "${pre}Stap 2: DC01 — Password Writeback status"
     $progress.Value = 28
     if ($isDry) {
-        Write-Log "${pre}  Import-Module ADSync"
-        Write-Log "${pre}  Get-ADSyncAADPasswordWritebackConfiguration"
-        Write-Log "${pre}  Verwacht: Enabled=True (vereist voor SSPR vanuit de cloud)"
+        Write-LabLog "${pre}  Import-Module ADSync"
+        Write-LabLog "${pre}  Get-ADSyncAADPasswordWritebackConfiguration"
+        Write-LabLog "${pre}  Verwacht: Enabled=True (vereist voor SSPR vanuit de cloud)"
     } else {
         try {
             $pwbResult = Invoke-Command -VMName $dcVM -Credential $cred -ScriptBlock {
@@ -157,43 +157,43 @@ $btnRun.Add_Click({
                     else { "Password Writeback configuratie niet gevonden — controleer Azure AD Connect installatie" }
                 } catch { "ADSync module niet beschikbaar: $_" }
             }
-            Write-Log "  $pwbResult"
-        } catch { Write-Log "  Fout: $_" }
+            Write-LabLog "  $pwbResult"
+        } catch { Write-LabLog "  Fout: $_" }
     }
 
     # ── Stap 3: MFA configureren ─────────────────────────────
-    Write-Log "${pre}Stap 3: Manueel — MFA configureren via Entra admin center"
+    Write-LabLog "${pre}Stap 3: Manueel — MFA configureren via Entra admin center"
     $progress.Value = 44
-    Write-Log "  URL: https://entra.microsoft.com"
-    Write-Log "  Navigeer naar: Security > Multifactor authentication"
-    Write-Log "  Aanbevolen: gebruik Authentication methods policy (niet per-user MFA)"
-    Write-Log "  Schakel in: Microsoft Authenticator voor alle gebruikers"
-    Write-Log "  Gebruik Conditional Access voor MFA-afdwinging (week 3 exam-onderwerp)"
+    Write-LabLog "  URL: https://entra.microsoft.com"
+    Write-LabLog "  Navigeer naar: Security > Multifactor authentication"
+    Write-LabLog "  Aanbevolen: gebruik Authentication methods policy (niet per-user MFA)"
+    Write-LabLog "  Schakel in: Microsoft Authenticator voor alle gebruikers"
+    Write-LabLog "  Gebruik Conditional Access voor MFA-afdwinging (week 3 exam-onderwerp)"
 
     # ── Stap 4: MFA registratie ──────────────────────────────
-    Write-Log "${pre}Stap 4: Manueel — MFA registreren als testuser01"
+    Write-LabLog "${pre}Stap 4: Manueel — MFA registreren als testuser01"
     $progress.Value = 58
-    Write-Log "  Op W11-01, open Edge en ga naar: https://aka.ms/mfasetup"
-    Write-Log "  Log in als testuser01@<tenant>.onmicrosoft.com"
-    Write-Log "  Voeg Microsoft Authenticator toe als verificatiemethode"
-    Write-Log "  Scan de QR code met de Authenticator app op je telefoon"
+    Write-LabLog "  Op W11-01, open Edge en ga naar: https://aka.ms/mfasetup"
+    Write-LabLog "  Log in als testuser01@<tenant>.onmicrosoft.com"
+    Write-LabLog "  Voeg Microsoft Authenticator toe als verificatiemethode"
+    Write-LabLog "  Scan de QR code met de Authenticator app op je telefoon"
 
     # ── Stap 5: Sign-in logs ─────────────────────────────────
-    Write-Log "${pre}Stap 5: Manueel — Sign-in logs analyseren"
+    Write-LabLog "${pre}Stap 5: Manueel — Sign-in logs analyseren"
     $progress.Value = 72
-    Write-Log "  Entra admin center > Users > Sign-in logs"
-    Write-Log "  Filter op: testuser01 | Datum: vandaag"
-    Write-Log "  Controleer: MFA Required = Yes, MFA Result = Success"
-    Write-Log "  Exporteer indien nodig naar CSV voor verdere analyse"
+    Write-LabLog "  Entra admin center > Users > Sign-in logs"
+    Write-LabLog "  Filter op: testuser01 | Datum: vandaag"
+    Write-LabLog "  Controleer: MFA Required = Yes, MFA Result = Success"
+    Write-LabLog "  Exporteer indien nodig naar CSV voor verdere analyse"
 
     # ── Stap 6: B2B guest uitnodigen ─────────────────────────
-    Write-Log "${pre}Stap 6: Manueel — B2B guest-gebruiker uitnodigen"
+    Write-LabLog "${pre}Stap 6: Manueel — B2B guest-gebruiker uitnodigen"
     $progress.Value = 86
-    Write-Log "  Entra admin center > Users > All users > + Invite external user"
-    Write-Log "  Email: gebruik een persoonlijk account of een tweede MSDN tenant"
-    Write-Log "  Rol: Guest | Bericht: 'SSW-Lab B2B test uitnodiging'"
-    Write-Log "  Na acceptatie: guest zichtbaar onder External users"
-    Write-Log "  Stel Cross-tenant access in: Security > Cross-tenant access settings"
+    Write-LabLog "  Entra admin center > Users > All users > + Invite external user"
+    Write-LabLog "  Email: gebruik een persoonlijk account of een tweede MSDN tenant"
+    Write-LabLog "  Rol: Guest | Bericht: 'SSW-Lab B2B test uitnodiging'"
+    Write-LabLog "  Na acceptatie: guest zichtbaar onder External users"
+    Write-LabLog "  Stel Cross-tenant access in: Security > Cross-tenant access settings"
 
     if (-not $isDry) {
         $open = [System.Windows.MessageBox]::Show("Browser openen naar Entra Sign-in logs?", "SSW-Lab", "YesNo", "Question")
@@ -201,13 +201,13 @@ $btnRun.Add_Click({
     }
 
     $progress.Value = 100
-    Write-Log ""; Write-Log "Week 3 lab afgerond."; Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen MFA per gebruiker en Security Defaults?"
-    Write-Log "2. Hoe werkt Seamless Single Sign-On (SSO) met Azure AD Connect?"
-    Write-Log "3. Wat is Azure AD B2B en wanneer gebruik je B2B versus B2C?"
-    Write-Log "4. Hoe troubleshoot je een sync-fout in Azure AD Connect?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog ""; Write-LabLog "Week 3 lab afgerond."; Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen MFA per gebruiker en Security Defaults?"
+    Write-LabLog "2. Hoe werkt Seamless Single Sign-On (SSO) met Azure AD Connect?"
+    Write-LabLog "3. Wat is Azure AD B2B en wanneer gebruik je B2B versus B2C?"
+    Write-LabLog "4. Hoe troubleshoot je een sync-fout in Azure AD Connect?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $btnNext.IsEnabled = $true; $btnRun.IsEnabled = $true
 })
 

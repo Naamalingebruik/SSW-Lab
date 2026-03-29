@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 # ============================================================
 # SSW-Lab | MD-102 | Week 1 — Windows client deployment
 # Doel: Verifieer deploy-readiness, Windows 11 build, ADK-installatie
@@ -97,7 +97,7 @@ $dryRunTitle = $reader.FindName("DryRunTitle")
 $dryRunSub   = $reader.FindName("DryRunSub")
 $conv        = [System.Windows.Media.BrushConverter]::new()
 
-function Update-DryRunBar {
+function Show-DryRunState {
     if ($chkDryRun.IsChecked) {
         $dryRunBar.Background   = $conv.ConvertFrom("#1A2E24")
         $dryRunBar.BorderBrush  = $conv.ConvertFrom("#A6E3A1")
@@ -117,24 +117,24 @@ function Update-DryRunBar {
     }
 }
 
-$reader.Add_Loaded({ Update-DryRunBar })
-$chkDryRun.Add_Checked({   Update-DryRunBar })
-$chkDryRun.Add_Unchecked({ Update-DryRunBar })
+$reader.Add_Loaded({ Show-DryRunState })
+$chkDryRun.Add_Checked({   Show-DryRunState })
+$chkDryRun.Add_Unchecked({ Show-DryRunState })
 
-function Write-Log($msg) {
+function Write-LabLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"
     $logBox.Text += "[$ts] $msg`n"
     $logBox.ScrollToEnd()
 }
 
 function Write-KennisCheck {
-    Write-Log ""
-    Write-Log "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    Write-Log "1. Wat is het verschil tussen wipe-and-load en in-place upgrade?"
-    Write-Log "2. Welke minimale build heeft Windows 11 nodig voor Intune-enrollment?"
-    Write-Log "3. Wat doet oscdimg.exe en waarom is het nodig voor unattended deployments?"
-    Write-Log "4. Wanneer gebruik je DISM versus sysprep?"
-    Write-Log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog ""
+    Write-LabLog "━━━ KENNISCHECK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-LabLog "1. Wat is het verschil tussen wipe-and-load en in-place upgrade?"
+    Write-LabLog "2. Welke minimale build heeft Windows 11 nodig voor Intune-enrollment?"
+    Write-LabLog "3. Wat doet oscdimg.exe en waarom is het nodig voor unattended deployments?"
+    Write-LabLog "4. Wanneer gebruik je DISM versus sysprep?"
+    Write-LabLog "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
 
 $btnRun.Add_Click({
@@ -148,29 +148,29 @@ $btnRun.Add_Click({
     $w11VM  = $profiles."W11-01".Name
 
     # ── Stap 1: DC01 — Get-ADDomain ──────────────────────────
-    Write-Log "${pre}Stap 1: DC01 — controleer AD-domein ssw.lab"
+    Write-LabLog "${pre}Stap 1: DC01 — controleer AD-domein ssw.lab"
     $progress.Value = 15
     if ($isDry) {
-        Write-Log "${pre}  Invoke-Command -VMName $dcVM → Get-ADDomain"
-        Write-Log "${pre}  Verwacht resultaat: Name=ssw, DNSRoot=ssw.lab, ForestMode=WinThreshold"
+        Write-LabLog "${pre}  Invoke-Command -VMName $dcVM → Get-ADDomain"
+        Write-LabLog "${pre}  Verwacht resultaat: Name=ssw, DNSRoot=ssw.lab, ForestMode=WinThreshold"
     } else {
         try {
             $cred = Get-Credential -Message "Lokale admin credentials voor $dcVM" -UserName "$dcVM\$($SSWConfig.AdminUser)"
             $adInfo = Invoke-Command -VMName $dcVM -Credential $cred -ScriptBlock {
                 (Get-ADDomain).DNSRoot + " | Forest: " + (Get-ADForest).Name + " | DCs: " + ((Get-ADDomainController -Filter *).Name -join ", ")
             }
-            Write-Log "  ✔ $adInfo"
+            Write-LabLog "  ✔ $adInfo"
         } catch {
-            Write-Log "  ✖ Fout: $_"
+            Write-LabLog "  ✖ Fout: $_"
         }
     }
 
     # ── Stap 2: MGMT01 — ADK aanwezig? ───────────────────────
-    Write-Log "${pre}Stap 2: MGMT01 — controleer Windows ADK (Deployment Tools)"
+    Write-LabLog "${pre}Stap 2: MGMT01 — controleer Windows ADK (Deployment Tools)"
     $progress.Value = 35
     if ($isDry) {
-        Write-Log "${pre}  Controleer pad: '${env:ProgramFiles(x86)}\Windows Kits\10\...\oscdimg.exe'"
-        Write-Log "${pre}  Als niet aanwezig: download ADK via aka.ms/adk"
+        Write-LabLog "${pre}  Controleer pad: '${env:ProgramFiles(x86)}\Windows Kits\10\...\oscdimg.exe'"
+        Write-LabLog "${pre}  Als niet aanwezig: download ADK via aka.ms/adk"
     } else {
         try {
             $cred2 = Get-Credential -Message "Lokale admin credentials voor $mgmtVM" -UserName "$mgmtVM\$($SSWConfig.AdminUser)"
@@ -178,19 +178,19 @@ $btnRun.Add_Click({
                 $p = "${env:ProgramFiles(x86)}\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe"
                 [System.IO.File]::Exists($p)
             }
-            if ($adkOk) { Write-Log "  ✔ Windows ADK aanwezig op MGMT01" }
-            else { Write-Log "  ⚠ Windows ADK NIET gevonden — download via aka.ms/adk" }
+            if ($adkOk) { Write-LabLog "  ✔ Windows ADK aanwezig op MGMT01" }
+            else { Write-LabLog "  ⚠ Windows ADK NIET gevonden — download via aka.ms/adk" }
         } catch {
-            Write-Log "  ✖ Fout: $_"
+            Write-LabLog "  ✖ Fout: $_"
         }
     }
 
     # ── Stap 3: W11-01 — Build nummer ────────────────────────
-    Write-Log "${pre}Stap 3: W11-01 — Windows 11 build nummer ophalen"
+    Write-LabLog "${pre}Stap 3: W11-01 — Windows 11 build nummer ophalen"
     $progress.Value = 55
     if ($isDry) {
-        Write-Log "${pre}  Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'"
-        Write-Log "${pre}  Verwacht: DisplayVersion=24H2, CurrentBuildNumber=26100 of hoger"
+        Write-LabLog "${pre}  Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'"
+        Write-LabLog "${pre}  Verwacht: DisplayVersion=24H2, CurrentBuildNumber=26100 of hoger"
     } else {
         try {
             $cred3 = Get-Credential -Message "Lokale admin credentials voor $w11VM" -UserName "$w11VM\$($SSWConfig.AdminUser)"
@@ -198,18 +198,18 @@ $btnRun.Add_Click({
                 $reg = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
                 "Build: $($reg.CurrentBuildNumber) | UBR: $($reg.UBR) | Versie: $($reg.DisplayVersion)"
             }
-            Write-Log "  ✔ $buildInfo"
+            Write-LabLog "  ✔ $buildInfo"
         } catch {
-            Write-Log "  ✖ Fout: $_"
+            Write-LabLog "  ✖ Fout: $_"
         }
     }
 
     # ── Stap 4: W11-01 — Windows Update log ─────────────────
-    Write-Log "${pre}Stap 4: W11-01 — Windows Update log analyseren"
+    Write-LabLog "${pre}Stap 4: W11-01 — Windows Update log analyseren"
     $progress.Value = 75
     if ($isDry) {
-        Write-Log "${pre}  Get-WindowsUpdateLog (converteert ETL naar WindowsUpdate.log)"
-        Write-Log "${pre}  Analyse: zoek op 'SUCCESS', 'FAILED', 'REBOOT' entries"
+        Write-LabLog "${pre}  Get-WindowsUpdateLog (converteert ETL naar WindowsUpdate.log)"
+        Write-LabLog "${pre}  Analyse: zoek op 'SUCCESS', 'FAILED', 'REBOOT' entries"
     } else {
         try {
             Invoke-Command -VMName $w11VM -Credential $cred3 -ScriptBlock {
@@ -218,15 +218,15 @@ $btnRun.Add_Click({
                     $lines = Get-Content "C:\Temp\WULog.txt" | Select-Object -Last 20
                     $lines -join "`n"
                 } else { "Get-WindowsUpdateLog aangemaakt — bekijk C:\Temp\WULog.txt op de VM" }
-            } | ForEach-Object { Write-Log "  $_" }
+            } | ForEach-Object { Write-LabLog "  $_" }
         } catch {
-            Write-Log "  ✖ Fout: $_"
+            Write-LabLog "  ✖ Fout: $_"
         }
     }
 
     $progress.Value = 100
-    Write-Log ""
-    Write-Log "✔ Week 1 lab afgerond."
+    Write-LabLog ""
+    Write-LabLog "✔ Week 1 lab afgerond."
     Write-KennisCheck
     $btnNext.IsEnabled = $true
     $btnRun.IsEnabled  = $true
