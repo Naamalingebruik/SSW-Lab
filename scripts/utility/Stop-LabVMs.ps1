@@ -25,6 +25,7 @@ param(
 )
 
 $ErrorActionPreference = 'Continue'
+$script:ShutdownTimeout = $Timeout
 
 # ── Config laden ──────────────────────────────────────────────
 $repoRoot   = Join-Path $PSScriptRoot '..\..'
@@ -36,67 +37,71 @@ if (Test-Path $localConfig) { . $localConfig }
 
 # ── Logging ───────────────────────────────────────────────────
 $logFile = Join-Path $repoRoot 'Stop-LabVMs.log'
-function Write-Log([string]$msg) {
+function Add-StopLog([string]$msg) {
     $line = "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] $msg"
-    Write-Host $line
-    try { Add-Content -Path $logFile -Value $line -ErrorAction SilentlyContinue } catch {}
+    Write-Output $line
+    try {
+        Add-Content -Path $logFile -Value $line -ErrorAction SilentlyContinue
+    } catch {
+        Write-Verbose "Logregel kon niet worden weggeschreven naar $logFile."
+    }
 }
 
 # ── VM graceful afsluiten ─────────────────────────────────────
 function Stop-LabVM([string]$vmName) {
     $vm = Get-VM -Name $vmName -ErrorAction SilentlyContinue
     if (-not $vm) {
-        Write-Log "  '$vmName' niet gevonden in Hyper-V — overgeslagen."
+        Add-StopLog "  '$vmName' niet gevonden in Hyper-V — overgeslagen."
         return
     }
     if ($vm.State -eq 'Off') {
-        Write-Log "  '$vmName' staat al uit."
+        Add-StopLog "  '$vmName' staat al uit."
         return
     }
 
     if ($Force) {
         Stop-VM -Name $vmName -Force -TurnOff -ErrorAction SilentlyContinue
-        Write-Log "  '$vmName' geforceerd uitgezet."
+        Add-StopLog "  '$vmName' geforceerd uitgezet."
         return
     }
 
     # Graceful: stuur shutdown-signaal via integration services
     try {
         Stop-VM -Name $vmName -ErrorAction Stop
-        Write-Log "  '$vmName' shutdown-signaal gestuurd, wachten (max ${Timeout}s)…"
+        Add-StopLog "  '$vmName' shutdown-signaal gestuurd, wachten (max $($script:ShutdownTimeout)s)…"
     } catch {
-        Write-Log "  '$vmName' graceful shutdown mislukt ($_) — forceer uitzetten."
+        Add-StopLog "  '$vmName' graceful shutdown mislukt ($_) — forceer uitzetten."
         Stop-VM -Name $vmName -Force -TurnOff -ErrorAction SilentlyContinue
         return
     }
 
-    $deadline = (Get-Date).AddSeconds($Timeout)
+    $deadline = (Get-Date).AddSeconds($script:ShutdownTimeout)
     while ((Get-VM -Name $vmName -ErrorAction SilentlyContinue).State -ne 'Off' -and (Get-Date) -lt $deadline) {
         Start-Sleep -Seconds 3
     }
 
     if ((Get-VM -Name $vmName -ErrorAction SilentlyContinue).State -ne 'Off') {
-        Write-Log "  '$vmName' na ${Timeout}s nog niet uit — forceer uitzetten."
+        Add-StopLog "  '$vmName' na $($script:ShutdownTimeout)s nog niet uit — forceer uitzetten."
         Stop-VM -Name $vmName -Force -TurnOff -ErrorAction SilentlyContinue
     } else {
-        Write-Log "  '$vmName' is afgesloten."
+        Add-StopLog "  '$vmName' is afgesloten."
     }
 }
 
 # ── Hoofdprogramma ────────────────────────────────────────────
-Write-Log "======================================================"
-Write-Log "  SSW-Lab Stop$(if ($Force) { ' (geforceerd)' })"
-Write-Log "======================================================"
+Add-StopLog "======================================================"
+Add-StopLog "  SSW-Lab Stop$(if ($Force) { ' (geforceerd)' })"
+Add-StopLog "======================================================"
 
 $profiles = Get-Content $SSWConfig.ProfilePath -Raw | ConvertFrom-Json
 
 $stopOrder = @('W11-AUTOPILOT', 'W11-02', 'W11-01', 'MGMT01', 'DC01')
 foreach ($key in $stopOrder) {
     $vmProfile = $profiles.$key
-    if (-not $vmProfile) { Write-Log "  Profiel '$key' niet gevonden — overgeslagen."; continue }
+    if (-not $vmProfile) { Add-StopLog "  Profiel '$key' niet gevonden — overgeslagen."; continue }
     Stop-LabVM -vmName $vmProfile.Name
 }
 
-Write-Log "======================================================"
-Write-Log "  SSW-Lab Stop voltooid."
-Write-Log "======================================================"
+Add-StopLog "======================================================"
+Add-StopLog "  SSW-Lab Stop voltooid."
+Add-StopLog "======================================================"
