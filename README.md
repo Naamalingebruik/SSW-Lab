@@ -1,15 +1,15 @@
 # SSW-Lab
 
-**Hyper-V lab voor Microsoft-certificeringen (MD-102, MS-102, SC-300, AZ-104) op een Sogeti laptop met MSDN-licenties.**  
-Gebouwd door en voor Sogeti SSW collega's — geen eigen domein of dedicated hardware vereist.
+**Hyper-V lab voor Microsoft-certificeringstrajecten zoals MD-102, MS-102, SC-300 en AZ-104 op een Sogeti-laptop met MSDN-licenties.**  
+Ontwikkeld door en voor Sogeti SSW-collega's, zonder afhankelijkheid van een eigen domein of dedicated hardware.
 
-> **Status:** Dit is een persoonlijk/community project en **geen officieel Sogeti- of Capgemini-product**.
+> **Status:** Dit is een persoonlijk communityproject en **geen officieel Sogeti- of Capgemini-product**.
 
-> **Tenant-aanname:** `SSW-Lab` wordt gebruikt in combinatie met een Microsoft 365 / Entra dev-tenant met Intune en standaard testdata uit die dev-tenant. De studiegidsen geven expliciet aan wanneer je lokaal in het lab werkt en wanneer je naar de dev-tenant of Azure-portal moet.
+> **Tenant-aanname:** `SSW-Lab` is bedoeld voor gebruik in combinatie met een Microsoft 365 / Entra dev-tenant met Intune en standaard testdata. De studiegidsen maken expliciet onderscheid tussen stappen die lokaal in het lab plaatsvinden en stappen die in de dev-tenant of Azure-portal worden uitgevoerd.
 
-> **Beveiligingsnotitie:** Dit lab gebruikt lokale wachtwoorden die via unattend.xml in ISO's worden opgeslagen.  
-> Gebruik **nooit** productiewachtwoorden of bedrijfsaccounts. Gebruik uitsluitend MSDN-testaccounts en wachtwoorden die je specifiek voor dit lab aanmaakt.
-> Voor invoer in scripts heeft `SSW-Lab` nu voorkeur voor environment variables of SecretManagement boven plaintext in repo-bestanden.
+> **Beveiligingsnotitie:** Dit lab gebruikt lokale wachtwoorden die via `unattend.xml` in ISO's worden opgeslagen.  
+> Gebruik **nooit** productiewachtwoorden of bedrijfsaccounts. Gebruik uitsluitend MSDN-testaccounts en wachtwoorden die je specifiek voor dit lab aanmaakt.  
+> Voor scriptinvoer heeft `SSW-Lab` daarom nadrukkelijk voorkeur voor environment variables of SecretManagement boven plaintext in repo-bestanden.
 
 ---
 
@@ -23,10 +23,10 @@ Gebouwd door en voor Sogeti SSW collega's — geen eigen domein of dedicated har
 | Hyper-V | Vereist | — |
 | Licenties | MSDN | MSDN |
 
-> **Geen eigen domein nodig.** Het lab gebruikt `ssw.lab` als intern domein. Activering verloopt via MSDN — geen productkeys in scripts.
-> **Wel nuttig als je het hebt:** een geverifieerd eigen domein in je dev-tenant kan extra waarde geven voor realistische UPN's, Entra Connect en hybrid identity-scenario's. Zie dit als een aanbevolen uitbreiding, niet als harde voorwaarde voor collega's.
+> **Geen eigen domein nodig.** Het lab gebruikt `ssw.lab` als intern domein. Activering loopt via MSDN; productkeys horen niet in scripts thuis.  
+> **Wel waardevol als je het hebt:** een geverifieerd domein in je dev-tenant verhoogt de realiteitswaarde voor UPN's, Entra Connect en hybrid identity-scenario's. Zie dit als een aanbevolen uitbreiding, niet als harde voorwaarde.
 
-> **Sogeti-laptop (High Flex):** Start lab-scripts als Administrator via *Uitvoeren als andere gebruiker* met je High Flex-beheerdersaccount (`admin-xxx@sogeti.com`). Zscaler SSL-inspectie is transparant — de Sogeti-root CA is vertrouwd op beheerde laptops, dus cloud-verbindingen (`Connect-AzAccount`, `Connect-MgGraph`) werken zonder aanpassing. Installeer benodigde PS-modules (`Az`, `Microsoft.Graph.*`, `ExchangeOnlineManagement`) eenmalig vooraf.
+> **Sogeti-laptop (High Flex):** Start labscripts als Administrator via *Uitvoeren als andere gebruiker* met je High Flex-beheerdersaccount (`admin-xxx@sogeti.com`). Zscaler SSL-inspectie is transparant: de Sogeti-root CA is al vertrouwd op beheerde laptops, waardoor cloudverbindingen zoals `Connect-AzAccount` en `Connect-MgGraph` zonder extra aanpassing werken. Installeer benodigde PowerShell-modules zoals `Az`, `Microsoft.Graph.*` en `ExchangeOnlineManagement` eenmalig vooraf.
 
 ---
 
@@ -58,11 +58,11 @@ Gebouwd door en voor Sogeti SSW collega's — geen eigen domein of dedicated har
 .\scripts\Join-LabComputersToDomain.ps1
 ```
 
-Elk script heeft een GUI en een knop om door te gaan naar het volgende.
+Elk primair script heeft een GUI en sluit aan op de volgende stap in de standaardflow.
 
 Voor een extra test-VM buiten de standaard presetflow gebruik je `New-LabExtraVm.ps1`. Dat script hergebruikt de bestaande labprofielen, switch, diskconventies, Secure Boot, vTPM en unattended ISO-routing.
 
-Als je liever een lichte invoerschil gebruikt, start dan `New-LabExtraVmGui.ps1`. Daar kies je `Client` of `Server`, daarna een passend template. Voor clients is dat Windows 11 Enterprise unattended; voor servers Windows Server Standard Desktop Experience unattended.
+Gebruik `New-LabExtraVmGui.ps1` als je liever een lichte invoerschil gebruikt. Je kiest daar eerst `Client` of `Server` en vervolgens een passend template. Clients blijven daarbij Windows 11 Enterprise unattended; servers blijven Windows Server Standard Desktop Experience unattended.
 
 ---
 
@@ -80,7 +80,7 @@ Gebruik in documentatie en dagelijks gebruik altijd de primaire scriptnamen zoal
 | **Standard** | LAB-DC01 + LAB-MGMT01 + 2x W11 | ~14 GB |
 | **Full** | Standard + LAB-W11-AUTOPILOT | ~18 GB |
 
-`New-LabVMs.ps1` stelt automatisch een preset voor op basis van beschikbaar RAM.
+`New-LabVMs.ps1` adviseert automatisch een passende preset op basis van het beschikbare RAM.
 
 ---
 
@@ -95,15 +95,15 @@ Laptop (Hyper-V host)
     └── 10.50.10.30+ → LAB-W11-01, LAB-W11-02, LAB-W11-AUTOPILOT (DHCP)
 ```
 
-> **Let op:** Het gateway-IP `10.50.10.1` op `vEthernet (SSW-Internal)` is niet persistent — voer `Configure-HostNetwork.ps1` opnieuw uit na een host-reboot.
+> **Let op:** Het gateway-IP `10.50.10.1` op `vEthernet (SSW-Internal)` is niet persistent. Voer `Configure-HostNetwork.ps1` daarom opnieuw uit na een hostreboot.
 
-Internettoegang via NAT op de host. Geen Tailscale nodig.
+Internettoegang loopt via NAT op de host. Tailscale is hiervoor niet nodig.
 
 ---
 
 ## Configuratie aanpassen
 
-Pas `config.ps1` aan voor jouw omgeving:
+Pas `config.ps1` aan voor je eigen omgeving:
 
 ```powershell
 $SSWConfig = @{
@@ -115,7 +115,7 @@ $SSWConfig = @{
 }
 ```
 
-Voor persoonlijke overrides (bijv. Entra UPN) maak je `config.local.ps1` aan — dit bestand staat in `.gitignore`:
+Voor persoonlijke overrides, bijvoorbeeld een Entra UPN, maak je `config.local.ps1` aan. Dit bestand staat in `.gitignore`:
 
 ```powershell
 # config.local.ps1 (niet committen)
@@ -129,7 +129,7 @@ setx SSW_LAB_PASSWORD "GebruikEenSterkLabWachtwoord!123"
 setx SSW_DSRM_PASSWORD "GebruikEenApartDsrmWachtwoord!123"
 ```
 
-`Build-UnattendedIsos.ps1` en `Initialize-DomainController.ps1` gebruiken nu eerst ingevulde GUI-velden, daarna `config.local.ps1`, daarna environment variables, daarna Windows Credential Manager en tenslotte `Get-Secret` als dat beschikbaar is.
+`Build-UnattendedIsos.ps1` en `Initialize-DomainController.ps1` gebruiken eerst ingevulde GUI-velden, daarna `config.local.ps1`, vervolgens environment variables, daarna Windows Credential Manager en tenslotte `Get-Secret` als dat beschikbaar is.
 
 ---
 
@@ -161,7 +161,7 @@ Voor editorhulp en basisvalidatie van VM-profielen is ook `profiles/vm-profiles.
 
 ## Onboarding en afhankelijkheden
 
-Voor collega`s die willen zien welke setupstappen en labscripts in welke volgorde logisch op elkaar volgen, staat er nu een dependency graph in [docs/lab-dependency-graph.md](D:\GitHub\SSW-Lab\docs\lab-dependency-graph.md).
+Voor collega's die snel willen zien welke setupstappen en labscripts logisch op elkaar volgen, is er nu een dependency graph in [docs/lab-dependency-graph.md](D:\GitHub\SSW-Lab\docs\lab-dependency-graph.md).
 
 Werk die opnieuw bij als `profiles/learning-tracks.json` verandert:
 
@@ -175,7 +175,7 @@ Werk die opnieuw bij als `profiles/learning-tracks.json` verandert:
 
 `SSW-Lab` heeft nu ook weer een volledige Engelse scriptspiegel onder [scripts-en](D:\GitHub\SSW-Lab\scripts-en).
 
-Dat betekent:
+Concreet betekent dit:
 - elke PowerShell-file onder `scripts/` heeft nu een tegenhanger onder `scripts-en/`
 - de kernsetup is dus zowel in het Nederlands als in het Engels aanwezig
 - hetzelfde geldt nu ook voor de tracklabs en utility-scripts

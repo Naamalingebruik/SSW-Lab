@@ -4,7 +4,7 @@
 >
 > **Geldende versie vanaf:** `2026-03-28 23:14 +01:00`
 >
-> **Belangrijk:** dit is vanaf heden de leidende wiki-versie voor `SSW-Lab`. Oudere teksten, screenshots, wrappernamen en verwijzingen naar de oude vaste MD-102 progress-flow zijn niet meer leidend.
+> **Belangrijk:** dit is de leidende wiki-versie voor `SSW-Lab`. Oudere teksten, screenshots, wrappernamen en verwijzingen naar de voormalige vaste MD-102 progress-flow zijn niet langer leidend.
 
 `SSW-Lab` is een Hyper-V lab voor Microsoft-certificeringstrajecten op een laptop of werkstation, met focus op:
 - `MD-102`
@@ -12,14 +12,14 @@
 - `SC-300`
 - `AZ-104`
 
-De repo gebruikt nu:
+De repo werkt nu vanuit drie duidelijke uitgangspunten:
 - primaire scriptnamen zonder wrapperlaag
 - gedeelde logica via `modules/SSWLab`
 - trajectgestuurde voortgang in plaats van een vaste MD-102-statusflow
 
 ---
 
-## Wat is nu de geldende werkwijze?
+## Huidige werkwijze
 
 De geldende operationele flow in `SSW-Lab` is:
 1. start met [Initialize-Preflight.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-Preflight.ps1)
@@ -30,7 +30,7 @@ De geldende operationele flow in `SSW-Lab` is:
 6. join clients met [Join-LabComputersToDomain.ps1](D:\GitHub\SSW-Lab\scripts\Join-LabComputersToDomain.ps1)
 7. werk daarna verder in de labs onder `scripts/labs/<TRACK>/`
 
-Gebruik vanaf nu alleen deze primaire scriptnamen. De oude genummerde wrappers zijn verwijderd.
+Gebruik vanaf nu uitsluitend deze primaire scriptnamen. De oude genummerde wrappers zijn verwijderd.
 
 Er is nu ook weer een volledige Engelse scriptspiegel onder `scripts-en/`. Voor elk script onder `scripts/` bestaat een tegenhanger onder `scripts-en/`.
 
@@ -38,7 +38,7 @@ Er is nu ook weer een volledige Engelse scriptspiegel onder `scripts-en/`. Voor 
 
 ## Trajectkeuze en voortgang
 
-De wiki gaat er vanaf nu vanuit dat werken in `SSW-Lab` trajectgestuurd gebeurt.
+De wiki gaat ervan uit dat `SSW-Lab` trajectgestuurd wordt gebruikt.
 
 Ondersteunde trajecten:
 - `MD102`
@@ -52,7 +52,7 @@ De voortgangsflow is nu:
 - [Get-TrackProgress.ps1](D:\GitHub\SSW-Lab\scripts\utility\Get-TrackProgress.ps1)
 - [Register-TrackProgressTask.ps1](D:\GitHub\SSW-Lab\scripts\utility\Register-TrackProgressTask.ps1)
 
-De trajectkeuze uit [Initialize-Preflight.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-Preflight.ps1) en [Initialize-ManagementHost.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-ManagementHost.ps1) voedt deze state nu automatisch. Handmatig zetten via `Set-CurrentTrack.ps1` blijft alleen nodig als je het traject later bewust wilt overschrijven.
+De trajectkeuze uit [Initialize-Preflight.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-Preflight.ps1) en [Initialize-ManagementHost.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-ManagementHost.ps1) voedt deze state nu automatisch. Handmatig instellen via `Set-CurrentTrack.ps1` is alleen nog nodig wanneer je het traject later bewust wilt overschrijven.
 
 Deze flow schrijft lokaal naar:
 - `profiles/current-track.local.json`
@@ -60,7 +60,7 @@ Deze flow schrijft lokaal naar:
 - `status.md`
 - `next-steps.md`
 
-Deze bestanden staan bewust in `.gitignore`. Voortgang is dus persoonlijk en blijft buiten git.
+Deze bestanden staan bewust in `.gitignore`. Voortgang blijft daarmee persoonlijk en buiten git.
 
 **Niet meer geldig:**
 - de oude vaste MD-102 voortgangsflow
@@ -81,7 +81,7 @@ Deze bestanden staan bewust in `.gitignore`. Voortgang is dus persoonlijk en bli
 .\scripts\Join-LabComputersToDomain.ps1
 ```
 
-Daarna volg je je traject:
+Daarna werk je verder in je gekozen traject:
 
 ```powershell
 .\scripts\utility\Set-CurrentTrack.ps1 -TrackId MS102

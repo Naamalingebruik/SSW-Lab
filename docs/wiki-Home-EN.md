@@ -12,14 +12,14 @@
 - `SC-300`
 - `AZ-104`
 
-The repository now uses:
+The repository now operates from three clear principles:
 - primary script names only, without the wrapper layer
 - shared logic through `modules/SSWLab`
 - track-driven progress instead of a fixed MD-102 status flow
 
 ---
 
-## What is the current operating model?
+## Current operating model
 
 The current operational flow in `SSW-Lab` is:
 1. start with [Initialize-Preflight.ps1](D:\GitHub\SSW-Lab\scripts\Initialize-Preflight.ps1)
@@ -38,7 +38,7 @@ A full English script mirror is now available under `scripts-en/`. Every script 
 
 ## Track selection and progress
 
-This wiki now assumes `SSW-Lab` is operated in a track-driven way.
+This wiki assumes `SSW-Lab` is operated in a track-driven way.
 
 Supported tracks:
 - `MD102`
@@ -81,7 +81,7 @@ These files are intentionally ignored by git. Progress is personal and local by 
 .\scripts\Join-LabComputersToDomain.ps1
 ```
 
-Then follow your track:
+Then continue with your selected track:
 
 ```powershell
 .\scripts\utility\Set-CurrentTrack.ps1 -TrackId MS102
