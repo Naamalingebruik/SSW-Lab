@@ -15,10 +15,17 @@ if (-not $pesterModule) {
 Import-Module $pesterModule.Path -Force
 
 Write-Output "Pester versie: $($pesterModule.Version)"
-$pesterConfiguration = [PesterConfiguration]::Default
-$pesterConfiguration.Run.Path = $testsPath
-$pesterConfiguration.Run.Exit = $true
-Invoke-Pester -Configuration $pesterConfiguration
+if ($pesterModule.Version.Major -ge 5) {
+    $pesterConfiguration = [PesterConfiguration]::Default
+    $pesterConfiguration.Run.Path = $testsPath
+    $pesterConfiguration.Run.Exit = $true
+    Invoke-Pester -Configuration $pesterConfiguration
+} else {
+    $result = Invoke-Pester -Script $testsPath -PassThru
+    if ($result.FailedCount -gt 0) {
+        exit 1
+    }
+}
 
 $scriptAnalyzerModule = Get-Module -ListAvailable PSScriptAnalyzer | Sort-Object Version -Descending | Select-Object -First 1
 if ($scriptAnalyzerModule) {

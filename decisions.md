@@ -52,6 +52,22 @@ Voor oude scriptpaden die bewust als compatlaag blijven bestaan: zie `docs/compa
 - `.github/workflows/quality.yml`
 - `README.md`
 
+---
+
+### Onboarding verbeterd met dependency graph en vm-profielcontract
+
+**Beslissing:** `SSW-Lab` heeft nu een expliciete dependency graph voor de setupflow en de 26 labscripts, plus een licht schema-contract voor `profiles/vm-profiles.json`.
+
+**Waarom:** Voor collega`s was de setupflow wel beschreven, maar nog niet als één visueel dependency-overzicht aanwezig. Tegelijk groeide `vm-profiles.json` uit tot een belangrijk contract tussen setupscripts, extra-VM flow en documentatie.
+
+**Wat is toegevoegd:**
+- `docs/lab-dependency-graph.md`
+- `scripts/utility/Export-LabDependencyGraph.ps1`
+- `profiles/vm-profiles.schema.json`
+- extra testdekking in `tests/SSWLab.Tests.ps1` voor het vm-profielcontract
+
+**Gevolg:** Onboarding is directer geworden en profielwijzigingen krijgen sneller feedback, zonder dat daarvoor eerst een mislukte VM-aanmaak nodig is.
+
 ### Studiegidsen verrijkt voor examengerichte voorbereiding
 
 **Beslissing:** De studiegidsen in `docs/` zijn aangescherpt als de primaire, deelbare examvoorbereiding voor collega's. Ze moeten zelfstandig bruikbaar zijn zonder toegang tot het private `M365-Lab`, maar wel in combinatie met de gedeelde MSDN / Microsoft 365 dev-tenant die voor collega's beschikbaar is.

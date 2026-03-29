@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ssw-lab.local/schemas/vm-profiles.schema.json",
+  "title": "SSW-Lab VM Profiles",
+  "type": "object",
+  "additionalProperties": {
+    "type": "object",
+    "required": [
+      "Name",
+      "vCPU",
+      "RAM_GB",
+      "Disk_GB",
+      "Role",
+      "OS",
+      "IP"
+    ],
+    "additionalProperties": true,
+    "properties": {
+      "Name": {
+        "type": "string",
+        "minLength": 1
+      },
+      "vCPU": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "RAM_GB": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "Disk_GB": {
+        "type": "integer",
+        "minimum": 20
+      },
+      "Role": {
+        "type": "string",
+        "minLength": 1
+      },
+      "OS": {
+        "type": "string",
+        "enum": [
+          "Server2025",
+          "Windows11"
+        ]
+      },
+      "IP": {
+        "type": "string",
+        "minLength": 1
+      },
+      "DHCPReservation": {
+        "type": "string"
+      },
+      "Note": {
+        "type": "string"
+      }
+    }
+  }
+}

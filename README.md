@@ -155,6 +155,20 @@ De huidige verificatie gebruikt zowel `Pester` als `PSScriptAnalyzer`. Tests sta
 
 Voor CI is daarnaast een Windows workflow toegevoegd in `.github/workflows/quality.yml`, zodat dezelfde kwaliteitsrun ook automatisch op `push` en `pull_request` kan draaien.
 
+Voor editorhulp en basisvalidatie van VM-profielen is ook `profiles/vm-profiles.schema.json` toegevoegd. De testlaag controleert nu mee dat `profiles/vm-profiles.json` binnen dat afgesproken contract blijft.
+
+---
+
+## Onboarding en afhankelijkheden
+
+Voor collega`s die willen zien welke setupstappen en labscripts in welke volgorde logisch op elkaar volgen, staat er nu een dependency graph in [docs/lab-dependency-graph.md](D:\GitHub\SSW-Lab\docs\lab-dependency-graph.md).
+
+Werk die opnieuw bij als `profiles/learning-tracks.json` verandert:
+
+```powershell
+.\scripts\utility\Export-LabDependencyGraph.ps1
+```
+
 ---
 
 ## Trajectgestuurde voortgang

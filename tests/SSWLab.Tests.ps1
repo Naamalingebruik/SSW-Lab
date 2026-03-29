@@ -60,6 +60,29 @@ Describe 'Config helpers' {
         (Get-SSWDefaultIsoPath -Config $config -TemplateKey 'W11-01') | Should -Be 'D:\SSW-Lab\isos\SSW-W11-Unattend.iso'
         (Get-SSWDefaultIsoPath -Config $config -TemplateKey 'DC01') | Should -Be 'D:\SSW-Lab\isos\SSW-WS2025-Unattend.iso'
     }
+
+    It 'houdt vm-profiles.json binnen het afgesproken schema' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $profilesPath = Join-Path $repoRoot 'profiles\vm-profiles.json'
+        $schemaPath = Join-Path $repoRoot 'profiles\vm-profiles.schema.json'
+        $profiles = Get-Content -LiteralPath $profilesPath -Raw | ConvertFrom-Json
+        $schema = Get-Content -LiteralPath $schemaPath -Raw | ConvertFrom-Json
+
+        $schema.properties.Name.type | Should -Be 'string'
+        $schema.properties.OS.enum | Should -Contain 'Windows11'
+        $schema.properties.OS.enum | Should -Contain 'Server2025'
+
+        foreach ($profileProperty in $profiles.PSObject.Properties) {
+            $profile = $profileProperty.Value
+            $profile.Name | Should -Not -BeNullOrEmpty
+            [int]$profile.vCPU | Should -BeGreaterThan 0
+            [int]$profile.RAM_GB | Should -BeGreaterThan 0
+            [int]$profile.Disk_GB | Should -BeGreaterThan 19
+            $profile.Role | Should -Not -BeNullOrEmpty
+            @('Windows11', 'Server2025') | Should -Contain $profile.OS
+            $profile.IP | Should -Not -BeNullOrEmpty
+        }
+    }
 }
 
 Describe 'Test-SSWSecretPolicy' {
