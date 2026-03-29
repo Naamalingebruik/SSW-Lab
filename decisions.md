@@ -379,6 +379,16 @@ Ingesteld via `scripts/utility/Repair-W11-02Network.ps1` op 2026-03-22.
 
 ---
 
+### Lege debug-restant verwijderd
+
+**Beslissing:** `sog-status-debug.txt` is verwijderd uit de repo-root van `SSW-Lab`.
+
+**Aanleiding:** Dit bestand was leeg, had geen functionele verwijzingen meer in scripts of documentatie en voegde alleen ruis toe naast de actuele track-voortgangsbestanden.
+
+**Gevolg:** De repo-root bevat minder historische ballast. Debug-uitvoer hoort alleen te blijven bestaan als die nog actief wordt gebruikt of doelgericht wordt gegenereerd.
+
+---
+
 ### Gateway IP op host: niet persistent na reboot
 
 **Aandachtspunt:** Het IP `10.50.10.1` op `vEthernet (SSW-Internal)` gaat verloren na een host-reboot. `Configure-HostNetwork.ps1` moet opnieuw worden uitgevoerd (of als scheduled task worden geregistreerd) bij elke host-reboot.
