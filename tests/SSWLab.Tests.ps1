@@ -308,3 +308,27 @@ Describe 'Track-voortgang' {
         $saved.trackId | Should -Be 'SC300'
     }
 }
+
+Describe 'Lab script parse checks' {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    $labDirs  = @(
+        (Join-Path $repoRoot 'scripts\labs\MD102'),
+        (Join-Path $repoRoot 'scripts\labs\MS102'),
+        (Join-Path $repoRoot 'scripts\labs\SC300'),
+        (Join-Path $repoRoot 'scripts\labs\AZ104')
+    )
+
+    $labScripts = $labDirs |
+        Where-Object { Test-Path $_ } |
+        ForEach-Object { Get-ChildItem -Path $_ -Filter '*.ps1' } |
+        Select-Object -ExpandProperty FullName
+
+    foreach ($script in $labScripts) {
+        $relativePath = $script.Replace($repoRoot, '').TrimStart('\')
+        It "parses without syntax errors: $relativePath" {
+            $errors = $null
+            $null = [System.Management.Automation.Language.Parser]::ParseFile($script, [ref]$null, [ref]$errors)
+            $errors | Should -BeNullOrEmpty
+        }
+    }
+}

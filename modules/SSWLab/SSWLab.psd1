@@ -2,9 +2,9 @@
     RootModule        = 'SSWLab.psm1'
     ModuleVersion     = '0.1.0'
     GUID              = 'f5b6cbf3-0ef9-4472-8fb1-9cb55683fca2'
-    Author            = 'OpenAI Codex'
-    CompanyName       = 'SSW-Lab'
-    Copyright         = '(c) SSW-Lab'
+    Author            = 'Etienne Dankfort'
+    CompanyName       = 'Stick To The Script'
+    Copyright         = '(c) Stick To The Script'
     Description       = 'Herbruikbare logica voor SSW-Lab scripts.'
     PowerShellVersion = '5.1'
     FunctionsToExport = @(

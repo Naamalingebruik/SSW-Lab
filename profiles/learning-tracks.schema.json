@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ssw-lab.local/schemas/learning-tracks.schema.json",
+  "title": "SSW-Lab Learning Tracks",
+  "type": "object",
+  "required": ["tracks"],
+  "additionalProperties": false,
+  "properties": {
+    "tracks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "recommendedPreset", "focus", "milestones"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": ["MD102", "MS102", "SC300", "AZ104"]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recommendedPreset": {
+            "type": "string",
+            "enum": ["Minimal", "Standard", "Full"]
+          },
+          "focus": {
+            "type": "string",
+            "minLength": 1
+          },
+          "milestones": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["id", "title", "scriptPath", "summary"],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^week[1-9][0-9]*$"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scriptPath": {
+                  "type": "string",
+                  "pattern": "^scripts/labs/[A-Z0-9]+/.+\\.ps1$"
+                },
+                "summary": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
