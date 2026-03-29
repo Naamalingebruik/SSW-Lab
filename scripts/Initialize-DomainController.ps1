@@ -170,7 +170,7 @@ $reader.Add_Loaded({
 $chkDryRun.Add_Checked({   Update-DryRunBar })
 $chkDryRun.Add_Unchecked({ Update-DryRunBar })
 
-function Write-Log($msg) {
+function Add-UiLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"
     $logBox.Text += "[$ts] $msg`n"
     $logBox.ScrollToEnd()
@@ -210,16 +210,16 @@ $btnSetup.Add_Click({
     }
 
     if ($isDry) {
-        Write-Log "${pre}Verbinding: PowerShell Direct -> $vmName als $localUser"
-        Write-Log "${pre}Set-NetIPAddress $dcIP/24 op netwerk adapter"
-        Write-Log "${pre}Rename-Computer -NewName DC01"
-        Write-Log "${pre}Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools"
-        Write-Log "${pre}Install-ADDSForest -DomainName $domain -DomainNetbiosName $netbios -InstallDns"
-        Write-Log "${pre}VM wordt herstart na promotie"
-        Write-Log "${pre}New-ADUser '$domainAdmin' - lid van Domain Admins"
-        Write-Log "${pre}Install-WindowsFeature DHCP - scope 10.50.10.100-200 aanmaken"
-        Write-Log "${pre}DHCP-reservering 10.50.10.30 voor LAB-W11-AUTOPILOT (op basis van MAC)"
-        Write-Log "Dry Run klaar - niets uitgevoerd."
+        Add-UiLog "${pre}Verbinding: PowerShell Direct -> $vmName als $localUser"
+        Add-UiLog "${pre}Set-NetIPAddress $dcIP/24 op netwerk adapter"
+        Add-UiLog "${pre}Rename-Computer -NewName DC01"
+        Add-UiLog "${pre}Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools"
+        Add-UiLog "${pre}Install-ADDSForest -DomainName $domain -DomainNetbiosName $netbios -InstallDns"
+        Add-UiLog "${pre}VM wordt herstart na promotie"
+        Add-UiLog "${pre}New-ADUser '$domainAdmin' - lid van Domain Admins"
+        Add-UiLog "${pre}Install-WindowsFeature DHCP - scope 10.50.10.100-200 aanmaken"
+        Add-UiLog "${pre}DHCP-reservering 10.50.10.30 voor LAB-W11-AUTOPILOT (op basis van MAC)"
+        Add-UiLog "Dry Run klaar - niets uitgevoerd."
         $progress.Value = 100
         $btnNext.IsEnabled = $true
         $btnSetup.IsEnabled = $true
@@ -227,21 +227,21 @@ $btnSetup.Add_Click({
     }
 
     $vm = Get-VM -Name $vmName -ErrorAction SilentlyContinue
-    if (-not $vm) { Write-Log "VM '$vmName' niet gevonden."; $btnSetup.IsEnabled = $true; return }
+    if (-not $vm) { Add-UiLog "VM '$vmName' niet gevonden."; $btnSetup.IsEnabled = $true; return }
     if ($vm.State -ne "Running") {
-        Write-Log "VM starten..."
+        Add-UiLog "VM starten..."
         Start-VM -Name $vmName
-        Write-Log "Wachten 60 sec..."
+        Add-UiLog "Wachten 60 sec..."
         Start-Sleep -Seconds 60
     }
 
     $cred = New-SSWCredential -UserName "$vmName\$localUser" -Password (ConvertTo-SSWSecureString -Value $adminPwd)
 
     try {
-        Write-Log "Verbinding via PowerShell Direct..."
+        Add-UiLog "Verbinding via PowerShell Direct..."
         $progress.Value = 10
 
-        Write-Log "IP $dcIP instellen..."
+        Add-UiLog "IP $dcIP instellen..."
         Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
             param($ip, $gw)
             $adapter = Get-NetAdapter | Where-Object { $_.Status -eq "Up" } | Select-Object -First 1
@@ -252,21 +252,21 @@ $btnSetup.Add_Click({
 
         $desiredName = ($vmName -replace "^LAB-","" ) # bijv. LAB-DC01 → DC01, of gebruik de volledige naam
         $desiredName = $vmName                        # Windows-naam = Hyper-V VM-naam (bijv. LAB-DC01)
-        Write-Log "Computernaam instellen ($desiredName)..."
+        Add-UiLog "Computernaam instellen ($desiredName)..."
         Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
             param($n)
             if ($env:COMPUTERNAME -ne $n) { Rename-Computer -NewName $n -Force -ErrorAction SilentlyContinue }
         } -ArgumentList $desiredName
         $progress.Value = 35
 
-        Write-Log "AD DS installeren..."
+        Add-UiLog "AD DS installeren..."
         Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
             Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools -ErrorAction Stop | Out-Null
         }
         $progress.Value = 60
-        Write-Log "AD DS geïnstalleerd."
+        Add-UiLog "AD DS geïnstalleerd."
 
-        Write-Log "Forest '$domain' aanmaken..."
+        Add-UiLog "Forest '$domain' aanmaken..."
         Invoke-Command -VMName $vmName -Credential $cred -ScriptBlock {
             param($dom, $nb, $dsrm)
             $secDSRM = New-Object System.Security.SecureString
@@ -279,7 +279,7 @@ $btnSetup.Add_Click({
                 -NoRebootOnCompletion:$false -Force -ErrorAction Stop | Out-Null
         } -ArgumentList $domain, $netbios, $dsrmPwd
         $progress.Value = 90
-        Write-Log "Forest aangemaakt. DC herstart - wachten tot DC weer online is..."
+        Add-UiLog "Forest aangemaakt. DC herstart - wachten tot DC weer online is..."
         $domCred = New-SSWCredential -UserName "$domain\Administrator" -Password (ConvertTo-SSWSecureString -Value $adminPwd)
         $online = $false
         $deadline = (Get-Date).AddMinutes(5)
@@ -295,21 +295,21 @@ $btnSetup.Add_Click({
         }
         if (-not $online) { throw "DC is na 5 minuten nog niet bereikbaar." }
 
-        Write-Log "Extra domain admin '$domainAdmin' aanmaken in AD..."
+        Add-UiLog "Extra domain admin '$domainAdmin' aanmaken in AD..."
         Invoke-Command -VMName $vmName -Credential $domCred -ScriptBlock {
             param([string]$user, [securestring]$password)
             New-ADUser -Name $user -SamAccountName $user -AccountPassword $password `
                 -Enabled $true -PasswordNeverExpires $true -ErrorAction Stop
             Add-ADGroupMember -Identity "Domain Admins" -Members $user -ErrorAction Stop
         } -ArgumentList $domainAdmin, (ConvertTo-SSWSecureString -Value $adminPwd)
-        Write-Log "'$domainAdmin' aangemaakt en toegevoegd aan Domain Admins."
+        Add-UiLog "'$domainAdmin' aangemaakt en toegevoegd aan Domain Admins."
 
         # ── DHCP-server + Autopilot IP-reservering ──────────────────────────────
         # Na een Autopilot-reset wordt Windows opnieuw geïnstalleerd en raakt een
         # handmatig ingesteld statisch IP kwijt. De oplossing: DHCP op de DC met
         # een vaste reservering op basis van het Hyper-V MAC-adres. Dit MAC-adres
         # verandert nooit, ook niet na een Autopilot-reset of OS-herinstallatie.
-        Write-Log "DHCP-server installeren en Autopilot IP-reservering aanmaken..."
+        Add-UiLog "DHCP-server installeren en Autopilot IP-reservering aanmaken..."
 
         # MAC-adres van Autopilot-VM ophalen via Hyper-V (host-kant)
         $apVMName  = (Get-SSWVmProfile -Profiles $profiles -Name 'W11-AUTOPILOT').Name
@@ -322,7 +322,7 @@ $btnSetup.Add_Click({
             $apMAC = ($apAdapter.MacAddress -replace '[:\-]', '') `
                      -replace '(..)(..)(..)(..)(..)(..)', '$1-$2-$3-$4-$5-$6'
         } else {
-            Write-Log "  WAARSCHUWING: MAC van '$apVMName' niet gevonden (VM nog niet aangemaakt?) - reservering later instelbaar via utility\Start-LabVMs.ps1."
+            Add-UiLog "  WAARSCHUWING: MAC van '$apVMName' niet gevonden (VM nog niet aangemaakt?) - reservering later instelbaar via utility\Start-LabVMs.ps1."
         }
 
         $dhcpResult = Invoke-Command -VMName $vmName -Credential $domCred -ScriptBlock {
@@ -392,15 +392,15 @@ $btnSetup.Add_Click({
         } -ArgumentList '10.50.10.0', '10.50.10.100', '10.50.10.200',
                          $SSWConfig.GatewayIP, $SSWConfig.DCIP, $apReservedIP, $apMAC
 
-        foreach ($line in $dhcpResult) { Write-Log "  $line" }
-        Write-Log "DHCP gereed - Autopilot-VM krijgt altijd $apReservedIP (ook na Autopilot-reset)."
+        foreach ($line in $dhcpResult) { Add-UiLog "  $line" }
+        Add-UiLog "DHCP gereed - Autopilot-VM krijgt altijd $apReservedIP (ook na Autopilot-reset)."
         # ── Einde DHCP-setup ────────────────────────────────────────────────────
 
         $progress.Value = 100
-        Write-Log "DC01 klaar als domain controller voor $domain"
+        Add-UiLog "DC01 klaar als domain controller voor $domain"
         $btnNext.IsEnabled = $true
     } catch {
-        Write-Log "FOUT: $_"
+        Add-UiLog "FOUT: $_"
         $btnSetup.IsEnabled = $true
         return
     }

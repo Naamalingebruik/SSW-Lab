@@ -173,7 +173,7 @@ function Update-DryRunBar {
     }
 }
 
-function Write-Log($msg) {
+function Add-UiLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"
     $logBox.Text += "[$ts] $msg`n"
     $logBox.ScrollToEnd()
@@ -232,16 +232,16 @@ $btnJoin.Add_Click({
     if (-not $localPwd -or -not $domainPwd) { [System.Windows.MessageBox]::Show("Vul beide wachtwoorden in.", "SSW-Lab"); $btnJoin.IsEnabled = $true; return }
 
     $sel = $checkBoxes.GetEnumerator() | Where-Object { $_.Value.IsChecked } | ForEach-Object { $_.Key }
-    if ($sel.Count -eq 0) { Write-Log "Geen VMs geselecteerd."; $btnJoin.IsEnabled = $true; return }
+    if ($sel.Count -eq 0) { Add-UiLog "Geen VMs geselecteerd."; $btnJoin.IsEnabled = $true; return }
 
     $step = [math]::Floor(100 / $sel.Count); $done = 0
 
     foreach ($vmName in $sel) {
-        Write-Log "${pre}Add-Computer '$vmName' → $domain (lokaal: $localAdmin, domain admin: $domAdmin)"
+        Add-UiLog "${pre}Add-Computer '$vmName' → $domain (lokaal: $localAdmin, domain admin: $domAdmin)"
 
         if (-not $isDry) {
             $vm = Get-VM -Name $vmName -ErrorAction SilentlyContinue
-            if (-not $vm) { Write-Log "$vmName niet gevonden."; continue }
+            if (-not $vm) { Add-UiLog "$vmName niet gevonden."; continue }
             if ($vm.State -ne "Running") { Start-VM -Name $vmName; Start-Sleep -Seconds 30 }
 
             $localCred = [PSCredential]::new(
@@ -261,8 +261,8 @@ $btnJoin.Add_Click({
                     }
                     Add-Computer -DomainName $dom -Credential $domainCredential -Restart -Force -ErrorAction Stop
                 } -ArgumentList $domain, $domCred, $vmName
-                Write-Log "✔ $vmName wordt hernoemd naar $vmName en herstart en joint $domain"
-            } catch { Write-Log "FOUT $vmName`: $_" }
+                Add-UiLog "✔ $vmName wordt hernoemd naar $vmName en herstart en joint $domain"
+            } catch { Add-UiLog "FOUT $vmName`: $_" }
         }
 
         $done += $step
@@ -270,7 +270,7 @@ $btnJoin.Add_Click({
     }
 
     $progress.Value = 100
-    Write-Log $(if ($isDry) { "✔ Dry Run klaar — niets uitgevoerd." } else { "✔ Domain join voltooid." })
+    Add-UiLog $(if ($isDry) { "✔ Dry Run klaar — niets uitgevoerd." } else { "✔ Domain join voltooid." })
     $btnJoin.IsEnabled = $true
 })
 

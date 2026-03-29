@@ -159,7 +159,7 @@ $reader.Add_Loaded({
 $chkDryRun.Add_Checked({   Update-DryRunBar })
 $chkDryRun.Add_Unchecked({ Update-DryRunBar })
 
-function Write-Log($msg) {
+function Add-UiLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"
     $logBox.Text += "[$ts] $msg`n"
     $logBox.ScrollToEnd()
@@ -180,15 +180,15 @@ $btnApply.Add_Click({
         $progress.Value = 10
         $existSwitch = Get-VMSwitch -Name $switchName -ErrorAction SilentlyContinue
         if ($existSwitch) {
-            Write-Log ("{0}vSwitch {1} bestaat al - overgeslagen." -f $pre, $switchName)
+            Add-UiLog ("{0}vSwitch {1} bestaat al - overgeslagen." -f $pre, $switchName)
         } else {
-            Write-Log ("{0}New-VMSwitch -Name {1} -SwitchType Internal" -f $pre, $switchName)
+            Add-UiLog ("{0}New-VMSwitch -Name {1} -SwitchType Internal" -f $pre, $switchName)
             if (-not $isDry) { New-VMSwitch -Name $switchName -SwitchType Internal -ErrorAction Stop | Out-Null }
         }
         $progress.Value = 35
 
         $adapterName = "vEthernet ($switchName)"
-        Write-Log ("{0}New-NetIPAddress -IPAddress {1} -PrefixLength 24 -InterfaceAlias {2}" -f $pre, $gateway, $adapterName)
+        Add-UiLog ("{0}New-NetIPAddress -IPAddress {1} -PrefixLength 24 -InterfaceAlias {2}" -f $pre, $gateway, $adapterName)
         if (-not $isDry) {
             $netAdapter = Get-NetAdapter -Name $adapterName -ErrorAction SilentlyContinue
             if ($netAdapter) {
@@ -202,17 +202,17 @@ $btnApply.Add_Click({
 
         $existNAT = Get-NetNat -Name $natName -ErrorAction SilentlyContinue
         if ($existNAT) {
-            Write-Log ("{0}NAT {1} bestaat al - overgeslagen." -f $pre, $natName)
+            Add-UiLog ("{0}NAT {1} bestaat al - overgeslagen." -f $pre, $natName)
         } else {
-            Write-Log ("{0}New-NetNat -Name {1} -InternalIPInterfaceAddressPrefix {2}" -f $pre, $natName, $subnet)
+            Add-UiLog ("{0}New-NetNat -Name {1} -InternalIPInterfaceAddressPrefix {2}" -f $pre, $natName, $subnet)
             if (-not $isDry) { New-NetNat -Name $natName -InternalIPInterfaceAddressPrefix $subnet -ErrorAction Stop | Out-Null }
         }
 
         $progress.Value = 100
-        Write-Log $(if ($isDry) { "Dry Run klaar - niets gewijzigd." } else { "Netwerk gereed." })
+        Add-UiLog $(if ($isDry) { "Dry Run klaar - niets gewijzigd." } else { "Netwerk gereed." })
         $btnNext.IsEnabled = $true
     } catch {
-        Write-Log "FOUT: $_"
+        Add-UiLog "FOUT: $_"
     }
     $btnApply.IsEnabled = $true
 })

@@ -235,7 +235,7 @@ $reader.Add_Loaded({
 $chkDryRun.Add_Checked({   Update-DryRunBar })
 $chkDryRun.Add_Unchecked({ Update-DryRunBar })
 
-function Write-Log($msg) {
+function Add-UiLog($msg) {
     $ts = Get-Date -Format "HH:mm:ss"
     $logBox.Text += "[$ts] $msg`n"
     $logBox.ScrollToEnd()
@@ -283,7 +283,7 @@ $btnBuild.Add_Click({
     if ($chkW11.IsChecked -and $txtW11.Text) { $jobs += "W11" }
     if ($chkSrv.IsChecked -and $txtSrv.Text) { $jobs += "SRV" }
 
-    if ($jobs.Count -eq 0) { Write-Log "Geen ISO geselecteerd."; $btnBuild.IsEnabled = $true; return }
+    if ($jobs.Count -eq 0) { Add-UiLog "Geen ISO geselecteerd."; $btnBuild.IsEnabled = $true; return }
 
     $step = [math]::Floor(100 / $jobs.Count); $done = 0
 
@@ -293,23 +293,23 @@ $btnBuild.Add_Click({
             $src = $txtW11.Text.Trim()
             $dst = Join-Path $outDir "SSW-W11-Unattend.iso"
             $xml = New-SSWW11UnattendXml -Config $SSWConfig -AdminPassword $adminPasswordSecure
-            Write-Log "${pre}W11 ISO bouwen: $src -> $dst"
+            Add-UiLog "${pre}W11 ISO bouwen: $src -> $dst"
         } else {
             $src = $txtSrv.Text.Trim()
             $dst = Join-Path $outDir "SSW-WS2025-Unattend.iso"
             $xml = New-SSWServer2025UnattendXml -Config $SSWConfig -AdminPassword $adminPasswordSecure
-            Write-Log "${pre}WS2025 ISO bouwen: $src -> $dst"
+            Add-UiLog "${pre}WS2025 ISO bouwen: $src -> $dst"
         }
         if (-not $isDry) {
-            try { Build-UnattendISO -SourceISO $src -OutputISO $dst -UnattendXml $xml -Log { param($m) Write-Log $m } }
-            catch { Write-Log "FOUT bij $job`: $_" }
+            try { Build-UnattendISO -SourceISO $src -OutputISO $dst -UnattendXml $xml -Log { param($m) Add-UiLog $m } }
+            catch { Add-UiLog "FOUT bij $job`: $_" }
         }
         $done += $step
         $progress.Value = [math]::Min($done, 100)
     }
 
     $progress.Value = 100
-    Write-Log $(if ($isDry) { "Dry Run klaar - niets aangemaakt." } else { "Klaar." })
+    Add-UiLog $(if ($isDry) { "Dry Run klaar - niets aangemaakt." } else { "Klaar." })
     $btnNext.IsEnabled = $true
     $btnBuild.IsEnabled = $true
 })
